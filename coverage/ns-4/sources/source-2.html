@@ -1,0 +1,178 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CarModelReqDTOKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.rentalcarsystem.reservationservice.dtos.request</a>
+</div>
+
+<h1>Coverage Summary for Class: CarModelReqDTOKt (com.rentalcarsystem.reservationservice.dtos.request)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CarModelReqDTOKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93,8%
+  </span>
+  <span class="absValue">
+    (15/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.rentalcarsystem.reservationservice.dtos.request
+&nbsp;
+&nbsp;import com.rentalcarsystem.reservationservice.enums.CarCategory
+&nbsp;import com.rentalcarsystem.reservationservice.enums.CarSegment
+&nbsp;import com.rentalcarsystem.reservationservice.enums.Drivetrain
+&nbsp;import com.rentalcarsystem.reservationservice.enums.EngineType
+&nbsp;import com.rentalcarsystem.reservationservice.enums.TransmissionType
+&nbsp;import com.rentalcarsystem.reservationservice.models.CarFeature
+&nbsp;import com.rentalcarsystem.reservationservice.models.CarModel
+&nbsp;import jakarta.validation.constraints.NotBlank
+&nbsp;import jakarta.validation.constraints.NotNull
+&nbsp;import jakarta.validation.constraints.Positive
+&nbsp;import jakarta.validation.constraints.Size
+&nbsp;
+&nbsp;data class CarModelReqDTO(
+&nbsp;    @field:NotBlank(message = &quot;Brand must not be blank&quot;)
+&nbsp;    val brand: String,
+&nbsp;
+&nbsp;    @field:NotBlank(message = &quot;Model must not be blank&quot;)
+&nbsp;    val model: String,
+&nbsp;
+&nbsp;    @field:NotBlank(message = &quot;Year must not be blank&quot;)
+&nbsp;    @field:Size(min = 4, max = 4, message = &quot;Year must be exactly 4 digits&quot;)
+&nbsp;    val year: String,
+&nbsp;
+&nbsp;    @field:NotNull(message = &quot;Segment must not be blank&quot;)
+&nbsp;    val segment: CarSegment,
+&nbsp;
+&nbsp;    @field:Positive(message = &quot;Number of doors must be greater than zero&quot;)
+&nbsp;    val doorsNumber: Int,
+&nbsp;
+&nbsp;    @field:Positive(message = &quot;Seating capacity must be greater than zero&quot;)
+&nbsp;    val seatingCapacity: Int,
+&nbsp;
+&nbsp;    @field:Positive(message = &quot;Luggage capacity must be greater than zero&quot;)
+&nbsp;    val luggageCapacity: Double,
+&nbsp;
+&nbsp;    @field:NotNull(message = &quot;Category must not be blank&quot;)
+&nbsp;    val category: CarCategory,
+&nbsp;
+&nbsp;    val featureIds: List&lt;Long&gt;,
+&nbsp;
+&nbsp;    val engineType: EngineType,
+&nbsp;
+&nbsp;    val transmissionType: TransmissionType,
+&nbsp;
+&nbsp;    val drivetrain: Drivetrain,
+&nbsp;
+&nbsp;    @field:Positive(message = &quot;Motor displacement must be greater than zero if specified&quot;)
+&nbsp;    val motorDisplacement: Int?,
+&nbsp;
+&nbsp;    @field:Positive(message = &quot;Rental price must be greater than zero&quot;)
+&nbsp;    val rentalPrice: Double,
+&nbsp;)
+&nbsp;
+&nbsp;fun CarModelReqDTO.toEntity(
+<b class="nc">&nbsp;    features: MutableSet&lt;CarFeature&gt; = mutableSetOf()</b>
+<b class="fc">&nbsp;) = CarModel(</b>
+<b class="fc">&nbsp;    brand = this.brand,</b>
+<b class="fc">&nbsp;    model = this.model,</b>
+<b class="fc">&nbsp;    year = this.year,</b>
+<b class="fc">&nbsp;    segment = this.segment,</b>
+<b class="fc">&nbsp;    doorsNumber = this.doorsNumber,</b>
+<b class="fc">&nbsp;    seatingCapacity = this.seatingCapacity,</b>
+<b class="fc">&nbsp;    luggageCapacity = this.luggageCapacity,</b>
+<b class="fc">&nbsp;    category = this.category,</b>
+<b class="fc">&nbsp;    features = features,</b>
+<b class="fc">&nbsp;    engineType = this.engineType,</b>
+<b class="fc">&nbsp;    transmissionType = this.transmissionType,</b>
+<b class="fc">&nbsp;    drivetrain = this.drivetrain,</b>
+<b class="fc">&nbsp;    motorDisplacement = this.motorDisplacement,</b>
+<b class="fc">&nbsp;    rentalPrice = this.rentalPrice,</b>
+&nbsp;)
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-01 23:29</div>
+</div>
+</body>
+</html>

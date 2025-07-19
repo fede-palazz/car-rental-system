@@ -1,0 +1,123 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ReservationService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.rentalcarsystem.reservationservice.services</a>
+</div>
+
+<h1>Coverage Summary for Class: ReservationService (com.rentalcarsystem.reservationservice.services)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">ReservationService</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.rentalcarsystem.reservationservice.services
+&nbsp;
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.PaymentReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.reservation.ActualPickUpDateReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.reservation.FinalizeReservationReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.reservation.ReservationReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.reservation.ReservationUpdateReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.PaymentRecordResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.PaymentResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.reservation.StaffReservationResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.filters.PaymentRecordFilter
+&nbsp;import com.rentalcarsystem.reservationservice.filters.ReservationFilter
+&nbsp;import com.rentalcarsystem.reservationservice.models.Reservation
+&nbsp;import jakarta.validation.Valid
+&nbsp;
+&nbsp;interface ReservationService {
+&nbsp;    fun getReservations(
+&nbsp;        customerId: Long?,
+&nbsp;        page: Int,
+&nbsp;        size: Int,
+&nbsp;        sortBy: String,
+&nbsp;        sortOrder: String,
+&nbsp;        @Valid filters: ReservationFilter
+&nbsp;    ): PagedResDTO&lt;Any&gt;
+&nbsp;
+&nbsp;    fun createReservation(@Valid reservation: ReservationReqDTO): Any
+&nbsp;    fun updateReservation(reservationId: Long, @Valid reservation: ReservationUpdateReqDTO): Any
+&nbsp;    fun setReservationActualPickUpDate(
+&nbsp;        reservationId: Long,
+&nbsp;        @Valid actualPickUpDate: ActualPickUpDateReqDTO
+&nbsp;    ): StaffReservationResDTO
+&nbsp;
+&nbsp;    fun finalizeReservation(reservationId: Long, @Valid finalizeReq: FinalizeReservationReqDTO): StaffReservationResDTO
+&nbsp;    fun deleteReservation(reservationId: Long)
+&nbsp;    // TODO: Update reservation to allow customer to change dates / vehicle ?
+&nbsp;
+&nbsp;    fun createPaymentRequest(@Valid paymentReqDTO: PaymentReqDTO): PaymentResDTO
+&nbsp;
+&nbsp;    fun getPaymentRecordByReservationId(reservationId: Long): PaymentRecordResDTO
+&nbsp;
+&nbsp;    fun getPaymentRecordByToken(token: String): PaymentRecordResDTO
+&nbsp;
+&nbsp;    fun getReservationById(id: Long): Reservation
+&nbsp;
+&nbsp;    fun confirmReservation(id: Long)
+&nbsp;
+&nbsp;    fun getPaymentRecords(
+&nbsp;        page: Int,
+&nbsp;        size: Int,
+&nbsp;        sortBy: String,
+&nbsp;        sortOrder: String,
+&nbsp;        @Valid filters: PaymentRecordFilter
+&nbsp;    ): PagedResDTO&lt;PaymentRecordResDTO&gt;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-22 23:50</div>
+</div>
+</body>
+</html>

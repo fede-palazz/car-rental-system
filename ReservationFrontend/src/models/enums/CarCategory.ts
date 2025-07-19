@@ -1,0 +1,7 @@
+export enum CarCategory {
+  ECONOMY = "ECONOMY",
+  MIDSIZE = "MIDSIZE",
+  FULLSIZE = "FULLSIZE",
+  PREMIUM = "PREMIUM",
+  LUXURY = "LUXURY",
+}

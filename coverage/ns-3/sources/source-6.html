@@ -1,0 +1,294 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MaintenanceControllerKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.rentalcarsystem.reservationservice.controllers</a>
+</div>
+
+<h1>Coverage Summary for Class: MaintenanceControllerKt (com.rentalcarsystem.reservationservice.controllers)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">MaintenanceControllerKt</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.rentalcarsystem.reservationservice.controllers
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper
+&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.filters.MaintenanceFilter
+&nbsp;import com.rentalcarsystem.reservationservice.services.MaintenanceService
+&nbsp;import io.swagger.v3.oas.annotations.Operation
+&nbsp;import io.swagger.v3.oas.annotations.media.Content
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse
+&nbsp;import org.slf4j.LoggerFactory
+&nbsp;import org.springframework.http.ResponseEntity
+&nbsp;import org.springframework.web.bind.annotation.*
+&nbsp;import org.springframework.web.util.UriComponentsBuilder
+&nbsp;
+&nbsp;
+&nbsp;const val MAINTENANCE_BASE_URL = &quot;/api/v1/vehicles/{vehicleId}/maintenances&quot;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(MAINTENANCE_BASE_URL)
+&nbsp;@CrossOrigin(origins = [&quot;http://localhost:5173&quot;], allowCredentials = &quot;true&quot;)
+&nbsp;class MaintenanceController(private val maintenanceService: MaintenanceService) {
+&nbsp;    private val logger = LoggerFactory.getLogger(MaintenanceController::class.java)
+&nbsp;    private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Get maintenances&quot;,
+&nbsp;        description = &quot;Retrieves all maintenance records for a specific vehicle based on the specified query parameters&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;200&quot;, content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = PagedResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()])
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;&quot;)
+&nbsp;    fun getMaintenances(
+&nbsp;        @PathVariable vehicleId: Long,
+&nbsp;        @RequestParam(&quot;page&quot;, defaultValue = &quot;0&quot;) page: Int,
+&nbsp;        @RequestParam(&quot;size&quot;, defaultValue = &quot;10&quot;) size: Int,
+&nbsp;        @RequestParam(&quot;sort&quot;, defaultValue = &quot;defects&quot;) sortBy: String,
+&nbsp;        @RequestParam(&quot;order&quot;, defaultValue = &quot;asc&quot;) sortOrder: String,
+&nbsp;        @ModelAttribute filters: MaintenanceFilter
+&nbsp;    ): ResponseEntity&lt;PagedResDTO&lt;MaintenanceResDTO&gt;&gt; {
+&nbsp;        if (vehicleId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Invalid vehicle id $vehicleId: it must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        // Validate filters
+&nbsp;        if (page &lt; 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;page&#39; must be greater than or equal to zero&quot;)
+&nbsp;        }
+&nbsp;        if (size &lt; 1) {
+&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;size&#39; must be greater than zero&quot;)
+&nbsp;        }
+&nbsp;        // Retrieve MaintenanceRecordFilter fields&#39; names
+&nbsp;        val allowedSortFields = listOf(
+&nbsp;            &quot;defects&quot;,
+&nbsp;            &quot;completed&quot;,
+&nbsp;            &quot;type&quot;,
+&nbsp;            &quot;upcomingServiceNeeds&quot;,
+&nbsp;            &quot;minDate&quot;,
+&nbsp;            &quot;maxDate&quot;
+&nbsp;        )
+&nbsp;        if (sortBy !in allowedSortFields) {
+&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;sort&#39; invalid. Allowed values: $allowedSortFields&quot;)
+&nbsp;        }
+&nbsp;        if (sortOrder !in listOf(&quot;asc&quot;, &quot;desc&quot;)) {
+&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;sortOrder&#39; invalid. Allowed values: [&#39;asc&#39;, &#39;desc&#39;]&quot;)
+&nbsp;        }
+&nbsp;        if (filters.minDate != null &amp;&amp; filters.maxDate != null &amp;&amp; filters.minDate.isAfter(filters.maxDate)) {
+&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;minDate&#39; must be before &#39;maxDate&#39;&quot;)
+&nbsp;        }
+&nbsp;        return ResponseEntity.ok(
+&nbsp;            maintenanceService.getMaintenances(
+&nbsp;                vehicleId, page, size, sortBy, sortOrder, filters
+&nbsp;            )
+&nbsp;        )
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Get maintenance by id&quot;,
+&nbsp;        description = &quot;Retrieves a maintenance record having the specified id or throws an exception if the vehicle or the maintenance record is not found&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;200&quot;, content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = MaintenanceResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/{maintenanceId}&quot;)
+&nbsp;    fun getMaintenanceById(
+&nbsp;        @PathVariable vehicleId: Long,
+&nbsp;        @PathVariable maintenanceId: Long
+&nbsp;    ): ResponseEntity&lt;MaintenanceResDTO&gt; {
+&nbsp;        if (vehicleId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Invalid vehicle id $vehicleId: it must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        if (maintenanceId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Invalid maintenance id $maintenanceId: it must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        return ResponseEntity.ok(maintenanceService.getMaintenanceById(vehicleId, maintenanceId))
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Add vehicle&#39;s maintenance record&quot;,
+&nbsp;        description = &quot;Creates a new maintenance record for the specified vehicle &quot;,
+&nbsp;        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+&nbsp;            required = true,
+&nbsp;            content = [Content(
+&nbsp;                mediaType = &quot;application/json&quot;,
+&nbsp;                schema = Schema(implementation = MaintenanceReqDTO::class)
+&nbsp;            )]
+&nbsp;        ),
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;201&quot;, content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = MaintenanceResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()])
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @PostMapping(&quot;&quot;)
+&nbsp;    fun createMaintenance(
+&nbsp;        @PathVariable vehicleId: Long,
+&nbsp;        @RequestBody maintenanceRecord: MaintenanceReqDTO,
+&nbsp;        uriBuilder: UriComponentsBuilder
+&nbsp;    ): ResponseEntity&lt;MaintenanceResDTO&gt; {
+&nbsp;        if (vehicleId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Vehicle id must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        val createdMaintenance = maintenanceService.createMaintenance(vehicleId, maintenanceRecord)
+&nbsp;        logger.info(
+&nbsp;            &quot;Created maintenance record for vehicle {}: {}&quot;,
+&nbsp;            vehicleId,
+&nbsp;            mapper.writeValueAsString(createdMaintenance)
+&nbsp;        )
+&nbsp;        val location = uriBuilder
+&nbsp;            .path(&quot;$MAINTENANCE_BASE_URL/${createdMaintenance.id}&quot;)
+&nbsp;            .buildAndExpand(createdMaintenance.id)
+&nbsp;            .toUri()
+&nbsp;        return ResponseEntity
+&nbsp;            .created(location) // sets status 201 and Location header
+&nbsp;            .body(createdMaintenance)
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Update maintenance by id&quot;,
+&nbsp;        description = &quot;Updates a maintenance record having the specified id or throws an exception if the vehicle or the maintenance record is not found&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;200&quot;,
+&nbsp;                content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = MaintenanceResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/{maintenanceId}&quot;)
+&nbsp;    fun updateMaintenance(
+&nbsp;        @PathVariable vehicleId: Long,
+&nbsp;        @PathVariable maintenanceId: Long,
+&nbsp;        @RequestBody maintenance: MaintenanceReqDTO
+&nbsp;    ): ResponseEntity&lt;MaintenanceResDTO&gt; {
+&nbsp;        if (vehicleId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Invalid vehicle id $vehicleId: it must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        if (maintenanceId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Invalid maintenance id $maintenanceId: it must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        val updatedMaintenance = maintenanceService.updateMaintenance(vehicleId, maintenanceId, maintenance)
+&nbsp;        logger.info(
+&nbsp;            &quot;Updated maintenance record {} for vehicle {}: {}&quot;,
+&nbsp;            maintenanceId,
+&nbsp;            vehicleId,
+&nbsp;            mapper.writeValueAsString(updatedMaintenance)
+&nbsp;        )
+&nbsp;        return ResponseEntity.ok(updatedMaintenance)
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Delete maintenance by id&quot;,
+&nbsp;        description = &quot;Deletes a maintenance record having the specified id or throws an exception if the vehicle or the maintenance record is not found&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(responseCode = &quot;204&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @DeleteMapping(&quot;/{maintenanceId}&quot;)
+&nbsp;    fun deleteMaintenance(
+&nbsp;        @PathVariable vehicleId: Long,
+&nbsp;        @PathVariable maintenanceId: Long
+&nbsp;    ): ResponseEntity&lt;Unit&gt; {
+&nbsp;        if (vehicleId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Invalid vehicle id $vehicleId: it must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        if (maintenanceId &lt;= 0) {
+&nbsp;            throw IllegalArgumentException(&quot;Invalid maintenance id $maintenanceId: it must be a positive number&quot;)
+&nbsp;        }
+&nbsp;        maintenanceService.deleteMaintenance(vehicleId, maintenanceId)
+&nbsp;        logger.info(&quot;Deleted maintenance record {} for vehicle {}&quot;, maintenanceId, vehicleId)
+&nbsp;        return ResponseEntity.noContent().build()
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-01 23:29</div>
+</div>
+</body>
+</html>

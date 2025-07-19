@@ -1,0 +1,2506 @@
+{
+	"info": {
+		"_postman_id": "ac791cd1-9b7e-4727-b789-2d968dac7aaa",
+		"name": "WA2 Lab 4",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39418907"
+	},
+	"item": [
+		{
+			"name": "Car Rental Service",
+			"item": [
+				{
+					"name": "Reservations",
+					"item": [
+						{
+							"name": "Get Available Models - Date Ranges Max User Score",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2025-09-10T10%3A05%3A35.366Z&desiredDropOffDate=2025-09-15T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2025-09-10T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2025-09-15T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Brand + Date Ranges",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2025-09-10T10%3A05%3A35.366Z&desiredDropOffDate=2025-09-15T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&brand=F&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2025-09-10T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2025-09-15T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "F"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 1, model 3",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 1,\r\n    \"carModelId\": 3,\r\n    \"plannedPickUpDate\": \"2025-09-10T10:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2025-09-15T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 1, model 3, other dates",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 1,\r\n    \"carModelId\": 3,\r\n    \"plannedPickUpDate\": \"2025-09-17T15:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2025-09-22T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 1, Model 3, Dates Overlapping By Buffer To DropOffDates",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 1,\r\n    \"carModelId\": 3,\r\n    \"plannedPickUpDate\": \"2025-09-02T15:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2025-09-08T15:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 1, Model 3, Dates Overlapping By Buffer To PickUpDates",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 1,\r\n    \"carModelId\": 3,\r\n    \"plannedPickUpDate\": \"2025-09-24T09:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2025-09-29T15:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 3, Model 3, User Score Insufficient",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 3,\r\n    \"carModelId\": 3,\r\n    \"plannedPickUpDate\": \"2026-09-24T09:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-29T15:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Brand + Date Ranges Overlapping",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2025-09-08T10%3A05%3A35.366Z&desiredDropOffDate=2025-09-12T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&brand=F&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2025-09-08T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2025-09-12T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "F"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Brand + Date Ranges Overlapping By Buffer To DropOffDate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2025-09-02T10%3A05%3A35.366Z&desiredDropOffDate=2025-09-09T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&brand=F&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2025-09-02T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2025-09-09T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "F"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Brand + Date Ranges Overlapping By Buffer To PickUpDate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2025-09-23T10%3A05%3A35.366Z&desiredDropOffDate=2025-09-29T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&brand=F&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2025-09-23T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2025-09-29T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "F"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Brand + Date Ranges Not Overlapping",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2025-09-24T15%3A05%3A35.366Z&desiredDropOffDate=2025-09-29T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&brand=F&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2025-09-24T15%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2025-09-29T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "F"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Reservations - No Filters",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Reservation - Set Actual Pick Up Date of 5",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"actualPickUpDate\": \"2025-09-12T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId/pick-up-date",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId",
+										"pick-up-date"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "5"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Reservations - PICKED_UP Reservations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations?status=PICKED_UP",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "PICKED_UP"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Reservation - Set Actual Pick Up Date of 6",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"actualPickUpDate\": \"2025-09-17T19:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId/pick-up-date",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId",
+										"pick-up-date"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "6"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Reservations - licensePlate + brand Filters",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations?licensePlate=lmn&brand=t",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									],
+									"query": [
+										{
+											"key": "licensePlate",
+											"value": "lmn"
+										},
+										{
+											"key": "brand",
+											"value": "t"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Reservation - Finalize 6",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"actualDropOffDate\": \"2025-09-23T10:05:35.366Z\",\r\n    \"wasDeliveryLate\": true,\r\n    \"wasVehicleDamaged\": true,\r\n    \"wasInvolvedInAccident\": false\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId/finalize",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId",
+										"finalize"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "6"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Date Ranges, User Score 80",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2028-09-10T10%3A05%3A35.366Z&desiredDropOffDate=2028-09-15T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2028-09-10T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2028-09-15T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Date Ranges, User Score 80, LUXURY category",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2028-09-10T10%3A05%3A35.366Z&desiredDropOffDate=2028-09-15T10%3A05%3A35.366Z&page=0&size=10&sort=brand&order=asc&category=LUXURY&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2028-09-10T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2028-09-15T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "category",
+											"value": "LUXURY"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 1, Model 3, User Score Insufficient",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 1,\r\n    \"carModelId\": 3,\r\n    \"plannedPickUpDate\": \"2026-09-24T09:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-29T15:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Reservations - minPlannedDropOffDate + year Filters",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations?minPlannedDropOffDate=2025-08-29T10%3A05%3A35.366Z&year=2021",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									],
+									"query": [
+										{
+											"key": "minPlannedDropOffDate",
+											"value": "2025-08-29T10%3A05%3A35.366Z"
+										},
+										{
+											"key": "year",
+											"value": "2021"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Reservation - 2",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Reservations - User 1",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations?customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									],
+									"query": [
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 4, Model 2",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 4,\r\n    \"carModelId\": 2,\r\n    \"plannedPickUpDate\": \"2026-09-10T10:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-20T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 3, Model 2, Dates Overlapping",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 3,\r\n    \"carModelId\": 2,\r\n    \"plannedPickUpDate\": \"2026-09-21T10:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-25T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Reservation - User 4, Same Vehicle, Advance DropOff Date",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 4,\r\n    \"plannedDropOffDate\": \"2026-09-15T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "7"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 3, Same Request As Before, No Overlap After Previous Update",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 3,\r\n    \"carModelId\": 2,\r\n    \"plannedPickUpDate\": \"2026-09-21T10:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-25T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 4, Same Vehicle, Same Dates, Overlap After Previous Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 4,\r\n    \"carModelId\": 2,\r\n    \"plannedPickUpDate\": \"2026-09-21T10:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-25T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Reservation - User 3, Other Vehicle, Same Dates",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 3,\r\n    \"carModelId\": 10\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "8"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 4, Same Request As Before, No Overlap After Previous Update",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 4,\r\n    \"carModelId\": 2,\r\n    \"plannedPickUpDate\": \"2026-09-21T10:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-25T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Reservation - 1",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Reservation - 3",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Reservation - 4",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/:reservationId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										":reservationId"
+									],
+									"variable": [
+										{
+											"key": "reservationId",
+											"value": "4"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Date Ranges, User 1, Sees Mercedes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2026-09-21T10:05:35.366Z&desiredDropOffDate=2026-09-25T10:05:35.366Z&page=0&size=10&sort=brand&order=asc&brand=Mercedes&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2026-09-21T10:05:35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2026-09-25T10:05:35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "Mercedes"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Same Date Ranges, User 4, Sees Mercedes Too",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2026-09-21T10:05:35.366Z&desiredDropOffDate=2026-09-25T10:05:35.366Z&page=0&size=10&sort=brand&order=asc&brand=Mercedes&customerId=4",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2026-09-21T10:05:35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2026-09-25T10:05:35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "Mercedes"
+										},
+										{
+											"key": "customerId",
+											"value": "4"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Reservation - User 1, Same Dates As in GET, Rents Only Mercedes Vehicle Available",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"customerId\": 1,\r\n    \"carModelId\": 9,\r\n    \"plannedPickUpDate\": \"2026-09-21T10:05:35.366Z\",\r\n    \"plannedDropOffDate\": \"2026-09-25T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Date Ranges, User 1, With Reservation, Still Sees Mercedes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2026-09-21T10:05:35.366Z&desiredDropOffDate=2026-09-25T10:05:35.366Z&page=0&size=10&sort=brand&order=asc&brand=Mercedes&customerId=1&reservationToUpdateId=10",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2026-09-21T10:05:35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2026-09-25T10:05:35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "Mercedes"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										},
+										{
+											"key": "reservationToUpdateId",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Date Ranges, User 1, With NO Reservation, Does Not See Mercedes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2026-09-21T10:05:35.366Z&desiredDropOffDate=2026-09-25T10:05:35.366Z&page=0&size=10&sort=brand&order=asc&brand=Mercedes&customerId=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2026-09-21T10:05:35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2026-09-25T10:05:35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "Mercedes"
+										},
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Date Ranges, User 4, With Reservation, Cannot Search With Other's Reservation",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2026-09-21T10:05:35.366Z&desiredDropOffDate=2026-09-25T10:05:35.366Z&page=0&size=10&sort=brand&order=asc&brand=Mercedes&customerId=4&reservationToUpdateId=10",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2026-09-21T10:05:35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2026-09-25T10:05:35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "Mercedes"
+										},
+										{
+											"key": "customerId",
+											"value": "4"
+										},
+										{
+											"key": "reservationToUpdateId",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Available Models - Date Ranges, User 4, With NO Reservation, Does Not See Mercedes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/reservations/search-availability?desiredPickUpDate=2026-09-21T10:05:35.366Z&desiredDropOffDate=2026-09-25T10:05:35.366Z&page=0&size=10&sort=brand&order=asc&brand=Mercedes&customerId=4",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"reservations",
+										"search-availability"
+									],
+									"query": [
+										{
+											"key": "desiredPickUpDate",
+											"value": "2026-09-21T10:05:35.366Z"
+										},
+										{
+											"key": "desiredDropOffDate",
+											"value": "2026-09-25T10:05:35.366Z"
+										},
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "sort",
+											"value": "brand"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "brand",
+											"value": "Mercedes"
+										},
+										{
+											"key": "customerId",
+											"value": "4"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Notes",
+					"item": [
+						{
+							"name": "Get All Notes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/notes",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"notes"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "11"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Note",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"content\": \"new note test\",\r\n  \"author\": \"someone\",\r\n  \"date\": \"2025-04-10T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/notes",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"notes"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Note",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"content\": \"updated note test\",\r\n  \"author\": \"updated someone\",\r\n  \"date\": \"2025-04-10T10:05:35.366Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/notes/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"notes",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "2"
+										},
+										{
+											"key": "id",
+											"value": "16"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Note",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/notes/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"notes",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "2"
+										},
+										{
+											"key": "id",
+											"value": "16"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Maintenances",
+					"item": [
+						{
+							"name": "Get All Maintenances",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/maintenances",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"maintenances"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "6"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Maintenance",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/maintenances/:maintenanceId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"maintenances",
+										":maintenanceId"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "6"
+										},
+										{
+											"key": "maintenanceId",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Maintenance",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"defects\": \"test defects\",\r\n  \"type\": \"test type\"\r\n  \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/maintenances",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"maintenances"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "12"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Maintenance",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"defects\": \"update defects\",\r\n  \"completed\": true,\r\n  \"type\": \"update type\",\r\n  \"upcomingServiceNeeds\": \"some needs\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/maintenances/:maintenanceId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"maintenances",
+										":maintenanceId"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "12"
+										},
+										{
+											"key": "maintenanceId",
+											"value": "109"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Maintenance",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId/maintenances/:maintenanceId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId",
+										"maintenances",
+										":maintenanceId"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "12"
+										},
+										{
+											"key": "maintenanceId",
+											"value": "8"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vehicles",
+					"item": [
+						{
+							"name": "Get All Vehicles",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles?sort=licensePlate&brand=t&status=AVAILABLE&pendingCleaning=false",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles"
+									],
+									"query": [
+										{
+											"key": "sort",
+											"value": "licensePlate"
+										},
+										{
+											"key": "brand",
+											"value": "t"
+										},
+										{
+											"key": "status",
+											"value": "AVAILABLE"
+										},
+										{
+											"key": "pendingCleaning",
+											"value": "false"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Vehicle",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "12"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Vehicle",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"licensePlate\": \"newtest\",\r\n  \"vin\": \"stringstringstrin\",\r\n  \"carModelId\": 5\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Vehicle",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"licensePlate\": \"testupd\",\r\n  \"status\": \"RENTED\",\r\n  \"kmTravelled\": 45.5,\r\n  \"pendingCleaning\": true,\r\n  \"pendingRepair\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "16"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Vehicle",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/vehicles/:vehicleId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"vehicles",
+										":vehicleId"
+									],
+									"variable": [
+										{
+											"key": "vehicleId",
+											"value": "16"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Car Features",
+					"item": [
+						{
+							"name": "Get All Features",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models/features",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models",
+										"features"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Car model features",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models/:id/features",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models",
+										":id",
+										"features"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "15"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Car Feature",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models/features/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models",
+										"features",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Car Models",
+					"item": [
+						{
+							"name": "Get All Car models",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models?minRentalPrice=100&maxRentalPrice=120&order=desc&sort=rentalPrice",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models"
+									],
+									"query": [
+										{
+											"key": "brand",
+											"value": "bmw",
+											"disabled": true
+										},
+										{
+											"key": "minRentalPrice",
+											"value": "100"
+										},
+										{
+											"key": "maxRentalPrice",
+											"value": "120"
+										},
+										{
+											"key": "order",
+											"value": "desc"
+										},
+										{
+											"key": "sort",
+											"value": "rentalPrice"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Car model",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Car model",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"brand\": \"Tesla\",\n  \"model\": \"Model Y\",\n  \"year\": \"2024\",\n  \"segment\": \"SEDAN\",\n  \"doorsNumber\": 4,\n  \"seatingCapacity\": 5,\n  \"luggageCapacity\": 480.5,\n  \"category\": \"PREMIUM\",\n  \"featureIds\": [3, 5],\n  \"engineType\": \"HYBRID\",\n  \"transmissionType\": \"AUTOMATIC\",\n  \"driveTrain\": \"FWD\",\n  \"rentalPrice\": 75.99\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Car model",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"brand\": \"TeslaNew\",\n  \"model\": \"Model Y New\",\n  \"year\": \"2024\",\n  \"segment\": \"SEDAN\",\n  \"doorsNumber\": 4,\n  \"seatingCapacity\": 5,\n  \"luggageCapacity\": 480.5,\n  \"category\": \"LUXURY\",\n  \"featureIds\": [8, 4],\n  \"engineType\": \"HYBRID\",\n  \"transmissionType\": \"AUTOMATIC\",\n  \"driveTrain\": \"FWD\",\n  \"rentalPrice\": 75.99\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "15"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Car model",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/v1/models/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"v1",
+										"models",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "11"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User Management Service",
+			"item": [
+				{
+					"name": "Get all users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/users/:userId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"users",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"test_name\",\r\n    \"lastName\": \"test_surname\",\r\n    \"email\": \"test@test.com\",\r\n    \"phone\": \"333-333-3333\",\r\n    \"address\": \"test address\",\r\n    \"role\": \"CUSTOMER\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/v1/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update user",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"test_name\",\r\n    \"lastName\": \"test_surname\",\r\n    \"phone\": \"333-333-3333\",\r\n    \"address\": \"test address\",\r\n    \"role\": \"CUSTOMER\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/v1/users/:userId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"users",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/users/:userId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"users",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "4"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

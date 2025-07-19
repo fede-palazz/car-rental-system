@@ -1,0 +1,306 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > VehicleController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.rentalcarsystem.reservationservice.controllers</a>
+</div>
+
+<h1>Coverage Summary for Class: VehicleController (com.rentalcarsystem.reservationservice.controllers)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">VehicleController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71,4%
+  </span>
+  <span class="absValue">
+    (10/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    82,2%
+  </span>
+  <span class="absValue">
+    (37/45)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.rentalcarsystem.reservationservice.controllers
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper
+&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.VehicleReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.request.VehicleUpdateReqDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.VehicleResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
+&nbsp;import com.rentalcarsystem.reservationservice.filters.VehicleFilter
+&nbsp;import com.rentalcarsystem.reservationservice.services.VehicleService
+&nbsp;import io.swagger.v3.oas.annotations.Operation
+&nbsp;import io.swagger.v3.oas.annotations.media.Content
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse
+&nbsp;import org.slf4j.LoggerFactory
+&nbsp;import org.springframework.http.ResponseEntity
+&nbsp;import org.springframework.web.bind.annotation.*
+&nbsp;import org.springframework.web.util.UriComponentsBuilder
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/v1/vehicles&quot;)
+&nbsp;@CrossOrigin(origins = [&quot;http://localhost:5173&quot;], allowCredentials = &quot;true&quot;)
+<b class="fc">&nbsp;class VehicleController(private val vehicleService: VehicleService) {</b>
+<b class="fc">&nbsp;    private val logger = LoggerFactory.getLogger(MaintenanceController::class.java)</b>
+<b class="fc">&nbsp;    private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }</b>
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Get vehicles&quot;,
+&nbsp;        description = &quot;Retrieves all vehicles based on the specified query parameters&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;200&quot;, content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = PagedResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;&quot;)
+&nbsp;    fun getVehicles(
+&nbsp;        @RequestParam(&quot;page&quot;, defaultValue = &quot;0&quot;) page: Int,
+&nbsp;        @RequestParam(&quot;size&quot;, defaultValue = &quot;10&quot;) size: Int,
+&nbsp;        @RequestParam(&quot;sort&quot;, defaultValue = &quot;vin&quot;) sortBy: String,
+&nbsp;        @RequestParam(&quot;order&quot;, defaultValue = &quot;asc&quot;) sortOrder: String,
+&nbsp;        @ModelAttribute filters: VehicleFilter
+&nbsp;    ): ResponseEntity&lt;PagedResDTO&lt;VehicleResDTO&gt;&gt; {
+&nbsp;        // Validate filters
+<b class="pc">&nbsp;        if (page &lt; 0) {</b>
+<b class="nc">&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;page&#39; must be greater than or equal to zero&quot;)</b>
+&nbsp;        }
+<b class="pc">&nbsp;        if (size &lt; 1) {</b>
+<b class="nc">&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;size&#39; must be greater than zero&quot;)</b>
+&nbsp;        }
+&nbsp;        // Retrieve VehicleFilter fields&#39; names
+<b class="fc">&nbsp;        val allowedSortFields = listOf(</b>
+<b class="fc">&nbsp;            &quot;licensePlate&quot;,</b>
+<b class="fc">&nbsp;            &quot;vin&quot;,</b>
+<b class="fc">&nbsp;            &quot;brand&quot;,</b>
+<b class="fc">&nbsp;            &quot;model&quot;,</b>
+<b class="fc">&nbsp;            &quot;year&quot;,</b>
+<b class="fc">&nbsp;            &quot;status&quot;,</b>
+<b class="fc">&nbsp;            &quot;kmTravelled&quot;,</b>
+<b class="fc">&nbsp;            &quot;pendingCleaning&quot;,</b>
+<b class="fc">&nbsp;            &quot;pendingRepair&quot;</b>
+&nbsp;        )
+<b class="fc">&nbsp;        if (sortBy !in allowedSortFields) {</b>
+<b class="fc">&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;sort&#39; invalid. Allowed values: $allowedSortFields&quot;)</b>
+&nbsp;        }
+<b class="pc">&nbsp;        if (sortOrder !in listOf(&quot;asc&quot;, &quot;desc&quot;)) {</b>
+<b class="nc">&nbsp;            throw IllegalArgumentException(&quot;Parameter &#39;sortOrder&#39; invalid. Allowed values: [&#39;asc&#39;, &#39;desc&#39;]&quot;)</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return ResponseEntity.ok(</b>
+<b class="fc">&nbsp;            vehicleService.getVehicles(</b>
+<b class="fc">&nbsp;                page, size, sortBy, sortOrder, filters</b>
+&nbsp;            )
+&nbsp;        )
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Get vehicle by id&quot;,
+&nbsp;        description = &quot;Retrieves a vehicle having the specified id or throws an exception if the vehicle is not found&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;200&quot;, content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = VehicleResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/{vehicleId}&quot;)
+&nbsp;    fun getVehicleById(@PathVariable vehicleId: Long): ResponseEntity&lt;VehicleResDTO&gt; {
+<b class="fc">&nbsp;        if (vehicleId &lt;= 0) {</b>
+<b class="fc">&nbsp;            throw IllegalArgumentException(&quot;Invalid vehicle id $vehicleId: it must be a positive number&quot;)</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return ResponseEntity.ok(vehicleService.getVehicleById(vehicleId).toResDTO())</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Add vehicle&quot;,
+&nbsp;        description = &quot;Adds a new car instance to the fleet, linking it to a specific model from the car models catalogue&quot;,
+&nbsp;        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+&nbsp;            required = true,
+&nbsp;            content = [Content(
+&nbsp;                mediaType = &quot;application/json&quot;,
+&nbsp;                schema = Schema(implementation = VehicleReqDTO::class)
+&nbsp;            )]
+&nbsp;        ),
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;201&quot;, content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = VehicleResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;409&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @PostMapping(&quot;&quot;)
+&nbsp;    fun addVehicle(
+&nbsp;        @RequestBody vehicle: VehicleReqDTO,
+&nbsp;        uriBuilder: UriComponentsBuilder
+&nbsp;    ): ResponseEntity&lt;VehicleResDTO&gt; {
+<b class="fc">&nbsp;        val createdVehicle = vehicleService.addVehicle(vehicle)</b>
+<b class="fc">&nbsp;        logger.info(&quot;Created vehicle: {}&quot;, mapper.writeValueAsString(createdVehicle))</b>
+<b class="fc">&nbsp;        val location = uriBuilder</b>
+<b class="fc">&nbsp;            .path(&quot;/api/v1/vehicles/{id}&quot;)</b>
+<b class="fc">&nbsp;            .buildAndExpand(createdVehicle.id)</b>
+<b class="fc">&nbsp;            .toUri()</b>
+&nbsp;        return ResponseEntity
+<b class="fc">&nbsp;            .created(location) // sets status 201 and Location header</b>
+<b class="fc">&nbsp;            .body(createdVehicle)</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Update vehicle by id&quot;,
+&nbsp;        description = &quot;Updates a vehicle having the specified id or throws an exception if the vehicle is not found&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(
+&nbsp;                responseCode = &quot;200&quot;,
+&nbsp;                content = [Content(
+&nbsp;                    mediaType = &quot;application/json&quot;,
+&nbsp;                    schema = Schema(implementation = VehicleResDTO::class)
+&nbsp;                )]
+&nbsp;            ),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/{vehicleId}&quot;)
+&nbsp;    fun updateVehicle(
+&nbsp;        @PathVariable vehicleId: Long,
+&nbsp;        @RequestBody vehicleDTO: VehicleUpdateReqDTO
+&nbsp;    ): ResponseEntity&lt;VehicleResDTO&gt; {
+<b class="pc">&nbsp;        if (vehicleId &lt;= 0) {</b>
+<b class="nc">&nbsp;            throw IllegalArgumentException(&quot;Invalid vehicle id $vehicleId: it must be a positive number&quot;)</b>
+&nbsp;        }
+<b class="fc">&nbsp;        val updatedVehicle = vehicleService.updateVehicle(vehicleId, vehicleDTO)</b>
+<b class="nc">&nbsp;        logger.info(&quot;Updated vehicle {}: {}&quot;, vehicleId, mapper.writeValueAsString(updatedVehicle))</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(updatedVehicle)</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;        summary = &quot;Delete vehicle by id&quot;,
+&nbsp;        description = &quot;Deletes a vehicle having the specified id or throws an exception if the vehicle is not found&quot;,
+&nbsp;        responses = [
+&nbsp;            ApiResponse(responseCode = &quot;204&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;400&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;404&quot;, content = [Content()]),
+&nbsp;            ApiResponse(responseCode = &quot;422&quot;, content = [Content()]),
+&nbsp;        ]
+&nbsp;    )
+&nbsp;    @DeleteMapping(&quot;/{vehicleId}&quot;)
+&nbsp;    fun deleteVehicle(@PathVariable vehicleId: Long): ResponseEntity&lt;Unit&gt; {
+<b class="fc">&nbsp;        if (vehicleId &lt;= 0) {</b>
+<b class="fc">&nbsp;            throw IllegalArgumentException(&quot;Invalid vehicle id $vehicleId: it must be a positive number&quot;)</b>
+&nbsp;        }
+<b class="fc">&nbsp;        vehicleService.deleteVehicle(vehicleId)</b>
+<b class="nc">&nbsp;        logger.info(&quot;Deleted vehicle {}&quot;, vehicleId)</b>
+<b class="nc">&nbsp;        return ResponseEntity.noContent().build()</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-01 23:29</div>
+</div>
+</body>
+</html>
