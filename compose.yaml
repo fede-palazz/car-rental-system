@@ -11,7 +11,7 @@ services:
     command: postgres -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
     volumes:
       - ./init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh
-      - lab5_g15_db:/var/lib/postgresql/data
+      - g15_db:/var/lib/postgresql/data
 
   # Kafka
   kafka:
@@ -72,19 +72,19 @@ services:
         echo "Starting Kafka Connect..."
         /etc/confluent/docker/run
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: paypal-demo-kafka-ui
-    depends_on:
-      - kafka
-    ports:
-      - "9095:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
-      DYNAMIC_CONFIG_ENABLED: "true"
+  #  kafka-ui:
+  #    image: provectuslabs/kafka-ui:latest
+  #    container_name: paypal-demo-kafka-ui
+  #    depends_on:
+  #      - kafka
+  #    ports:
+  #      - "9095:8080"
+  #    environment:
+  #      KAFKA_CLUSTERS_0_NAME: local
+  #      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+  #      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
+  #      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+  #      DYNAMIC_CONFIG_ENABLED: "true"
 
   # Setup Debezium connector
   setup-connector:
@@ -158,7 +158,8 @@ services:
       - start-dev
       - --import-realm
     volumes:
-      - ./keycloak/car-rental-system-realm-dev.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/import/car-rental-system-realm-dev.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./keycloak/export:/opt/keycloak/data/export
     depends_on:
       - postgres-keycloak
 
@@ -169,12 +170,12 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: keycloak
     ports:
-      - "5433:5432"  # Map to 5433 on host instead of 5432
+      - "5433:5432"
     volumes:
       - keycloak_data:/var/lib/postgresql/data
 
 volumes:
-  lab5_g15_db:
+  g15_db:
   kafka_data:
   kafka_connect_plugins:
   keycloak_data:

@@ -23,27 +23,45 @@ docker compose -f compose-prod.yaml down -v
 username: g15-personal@wa2.polito.it
 password: bellapass
 
-## Keycloak credentials
+## Keycloak
 
-### Users with role CUSTOMER
+### Export real settings
 
+```bash
+    docker exec g15-keycloak /opt/keycloak/bin/kc.sh export \
+  --file /opt/keycloak/data/export/realm-export.json \
+  --realm car-rental-system
+```
+
+### Account credentials
+
+Users with role CUSTOMER
+
+```text
 username: customer1
 password: password
 
 username: customer2
 password: password
+```
 
 ### User with role STAFF
 
+```text
 username: staff
 password: password
+```
 
 ### User with role FLEET_MANAGER
 
+```text
 username: fleetmanager
 password: password
+```
 
 ### User with role MANAGER
 
+```text
 username: manager
 password: password
+```

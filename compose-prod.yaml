@@ -53,7 +53,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: password
     volumes:
-      - ./keycloak/car-rental-system-realm-prod.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/import/car-rental-system-realm-prod.json:/opt/keycloak/data/import/realm-export.json:ro
     command:
       - start-dev
       - --import-realm
