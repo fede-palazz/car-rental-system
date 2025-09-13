@@ -47,7 +47,10 @@ CREATE TABLE maintenances
     completed              BOOLEAN                     NOT NULL,
     type                   VARCHAR(255),
     upcoming_service_needs VARCHAR(255)                NOT NULL,
-    date                   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    start_date             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    planned_end_date       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    actual_end_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    fleet_manager_username VARCHAR(255),
     vehicle_id             BIGINT                      NOT NULL,
     CONSTRAINT pk_maintenances PRIMARY KEY (id)
 );
@@ -248,6 +251,7 @@ VALUES (1, 'Routine check completed. No issues found.', 'John Doe', '2024-03-01 
 SELECT setval('notes_seq', (SELECT MAX(id) FROM notes));
 
 -- Maintenance records
+/* TODO
 INSERT INTO maintenances (id, defects, completed, type, upcoming_service_needs, date, vehicle_id)
 VALUES (1, 'Brake pads worn out', true, 'Brake Replacement', 'Check brake fluid in 5000 km',
         '2025-04-20 10:15:30'::timestamp, 3),
@@ -263,4 +267,5 @@ VALUES (1, 'Brake pads worn out', true, 'Brake Replacement', 'Check brake fluid 
         '2024-03-06 08:05:55'::timestamp, 6),
        (7, 'Tires tread low', true, 'Tire Replacement', 'Next inspection in 5000 km', '2024-03-07 12:30:40'::timestamp,
         11);
+*/
 SELECT setval('maintenances_seq', (SELECT MAX(id) FROM maintenances));

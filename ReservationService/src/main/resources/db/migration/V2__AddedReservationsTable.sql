@@ -14,15 +14,18 @@ CREATE TABLE reservations
     total_amount             DOUBLE PRECISION            NOT NULL,
     was_delivery_late        BOOLEAN,
     was_charged_fee          BOOLEAN,
-    was_vehicle_damaged      BOOLEAN,
     was_involved_in_accident BOOLEAN,
+    damage_level             INTEGER,
+    cleanliness_level        INTEGER,
+    pick_up_staff_username   VARCHAR(255),
+    drop_off_staff_username  VARCHAR(255),
     CONSTRAINT pk_reservations PRIMARY KEY (id)
 );
 
 ALTER TABLE reservations
     ADD CONSTRAINT FK_RESERVATIONS_ON_VEHICLE FOREIGN KEY (vehicle_id) REFERENCES vehicles (id);
 
-
+/* TODO
 -- Reservation 1: Successful reservation with no issues
 INSERT INTO reservations (
     id, customer_username, vehicle_id, creation_date,
@@ -38,6 +41,7 @@ INSERT INTO reservations (
              320.00,
              NULL, FALSE, FALSE, FALSE
          );
+
 
 -- Reservation 2: Late delivery and damage, still completed
 INSERT INTO reservations (
@@ -86,5 +90,5 @@ INSERT INTO reservations (
              700.00,
              TRUE, TRUE, TRUE, TRUE
          );
-
+*/
 SELECT setval('reservations_seq', (SELECT MAX(id) FROM reservations));

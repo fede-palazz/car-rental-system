@@ -6,8 +6,9 @@ import java.time.LocalDateTime
 
 const val WAS_DELIVERY_LATE_PENALTY = 5
 const val WAS_CHARGED_FEE_PENALTY = 10
-const val WAS_VEHICLE_DAMAGED_PENALTY = 15
 const val WAS_INVOLVED_IN_ACCIDENT_PENALTY = 25
+const val WAS_VEHICLE_DAMAGED_PENALTY = 3
+const val WAS_VEHICLE_DIRTY_PENALTY = 3
 const val NO_PROBLEM_BONUS = 5
 
 @Entity
@@ -42,10 +43,13 @@ class Reservation(
 
     // Boolean attribute used to compute eligibility score
     var wasDeliveryLate: Boolean? = null,
-
     var wasChargedFee: Boolean? = null,
+    var wasInvolvedInAccident: Boolean? = null,
 
-    var wasVehicleDamaged: Boolean? = null,
+    var damageLevel: Int? = null,
+    var cleanlinessLevel: Int? = null,
 
-    var wasInvolvedInAccident: Boolean? = null
-) : BaseEntity<Long>()
+    var pickUpStaffOperatorUsername : String?=null,
+    var dropOffStaffOperatorUsername : String?=null,
+
+    ) : BaseEntity<Long>()
