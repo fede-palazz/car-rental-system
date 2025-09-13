@@ -175,8 +175,21 @@ services:
     volumes:
       - keycloak_data:/var/lib/postgresql/data
 
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: mailpit
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Rome
+    volumes:
+      - mailpit_data:/data
+
 volumes:
   g15_db:
   kafka_data:
   kafka_connect_plugins:
   keycloak_data:
+  mailpit_data:
