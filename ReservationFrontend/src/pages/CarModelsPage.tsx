@@ -37,7 +37,7 @@ import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/enums/UserRole";
 
 import { DateTimePicker } from "@/components/ui/date-time-picker";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 function CarModelsPage({
   date,
@@ -254,7 +254,7 @@ function CarModelsPage({
               </div>
             </div>
           }
-          <div className="flex mt-8 justify-between mx-8">
+          <div className="grid grid-cols-3 mt-8 justify-between mx-8">
             <div className="flex gap-2 items-center">
               <Tabs
                 defaultValue="undefined"
@@ -278,7 +278,30 @@ function CarModelsPage({
                 </TabsList>
               </Tabs>
             </div>
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-3">
+                <Input id="searchBar"
+                       className="h-10"
+                       startIcon={
+                    <span className="material-symbols-outlined items-center md-18">
+                      search
+                    </span>
+                }
+                       placeholder={"Search by model or brand"}
+                       value={filter.brand || ""}
+                       onChange={(event) => {
+                           const value = event.target.value;
+                           setFilter({ ...filter, brand: value,model:value });
+                       }}
+                onKeyDown={()=>fetchModels(filter)}
+                >
+                </Input>
+                <Button size="icon" variant="default" onClick={()=>fetchModels(filter)}>
+                    <span className="material-symbols-outlined md-18">
+                  search
+                </span>
+                </Button>
+            </div>
+            <div className="flex gap-3 justify-end items-end">
               <Button
                 variant="secondary"
                 onClick={(e) => {
