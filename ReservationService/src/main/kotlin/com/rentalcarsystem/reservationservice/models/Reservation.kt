@@ -41,15 +41,17 @@ class Reservation(
     @Column(nullable = false)
     var totalAmount: Double,
 
-    // Boolean attribute used to compute eligibility score
+    // Boolean attributes used to compute eligibility score
     var wasDeliveryLate: Boolean? = null,
     var wasChargedFee: Boolean? = null,
     var wasInvolvedInAccident: Boolean? = null,
 
+    // Integer attributes ranging from 0 to 5 (0 = best case, 5 = worst case)
     var damageLevel: Int? = null,
-    var cleanlinessLevel: Int? = null,
+    var dirtinessLevel: Int? = null,
 
-    var pickUpStaffOperatorUsername : String?=null,
-    var dropOffStaffOperatorUsername : String?=null,
+    // Staff members who handled the reservation
+    var pickUpStaffUsername : String?=null,
+    var dropOffStaffUsername : String?=null,
 
     ) : BaseEntity<Long>()

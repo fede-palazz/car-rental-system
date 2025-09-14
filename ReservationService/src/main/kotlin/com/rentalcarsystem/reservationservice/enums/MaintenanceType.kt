@@ -6,5 +6,8 @@ enum class MaintenanceType {
     OIL_CHANGE,
     BRAKES,
     CHASSIS,
+    BATTERY,
+    LIGHTS,
+    WINDSHIELD,
     OTHER
 }
