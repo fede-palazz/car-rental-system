@@ -5,6 +5,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
+import com.rentalcarsystem.reservationservice.exceptions.FailureException
+import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.MaintenanceFilter
 import com.rentalcarsystem.reservationservice.services.MaintenanceService
 import io.swagger.v3.oas.annotations.Operation
@@ -14,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 
@@ -146,7 +150,20 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         if (vehicleId <= 0) {
             throw IllegalArgumentException("Vehicle id must be a positive number")
         }
-        val createdMaintenance = maintenanceService.createMaintenance(vehicleId, maintenanceRecord)
+        require(maintenanceRecord.startDate.isBefore(maintenanceRecord.plannedEndDate)) {
+            "Start date must be before planned end date"
+        }
+        if (maintenanceRecord.actualEndDate != null && maintenanceRecord.actualEndDate.isBefore(maintenanceRecord.plannedEndDate)) {
+            throw IllegalArgumentException("Actual end date must be after planned end date")
+        }
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val createdMaintenance = maintenanceService.createMaintenance(vehicleId, maintenanceRecord, username)
         logger.info(
             "Created maintenance record for vehicle {}: {}",
             vehicleId,
@@ -189,6 +206,12 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         }
         if (maintenanceId <= 0) {
             throw IllegalArgumentException("Invalid maintenance id $maintenanceId: it must be a positive number")
+        }
+        require(maintenance.startDate.isBefore(maintenance.plannedEndDate)) {
+            "Start date must be before planned end date"
+        }
+        if (maintenance.actualEndDate != null && maintenance.actualEndDate.isBefore(maintenance.plannedEndDate)) {
+            throw IllegalArgumentException("Actual end date must be after planned end date")
         }
         val updatedMaintenance = maintenanceService.updateMaintenance(vehicleId, maintenanceId, maintenance)
         logger.info(

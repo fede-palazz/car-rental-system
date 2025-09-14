@@ -98,9 +98,13 @@ class MaintenanceServiceImpl(
         return maintenance.toResDTO()
     }
 
-    override fun createMaintenance(vehicleId: Long, @Valid maintenanceReq: MaintenanceReqDTO): MaintenanceResDTO {
+    override fun createMaintenance(
+        vehicleId: Long,
+        @Valid maintenanceReq: MaintenanceReqDTO,
+        username: String
+    ): MaintenanceResDTO {
         val vehicle = vehicleService.getVehicleById(vehicleId)
-        val maintenance = maintenanceReq.toEntity()
+        val maintenance = maintenanceReq.toEntity(username)
         if (maintenance.completed) {
             throw IllegalArgumentException("A newly created maintenance record cannot be completed")
         }
@@ -113,7 +117,7 @@ class MaintenanceServiceImpl(
     override fun updateMaintenance(
         vehicleId: Long,
         maintenanceId: Long,
-        @Valid maintenanceReq: MaintenanceReqDTO
+        @Valid maintenanceReq: MaintenanceReqDTO,
     ): MaintenanceResDTO {
         // Check if maintenance record exists
         val vehicle = vehicleService.getVehicleById(vehicleId)
@@ -130,7 +134,10 @@ class MaintenanceServiceImpl(
         maintenance.defects = maintenanceReq.defects
         maintenance.completed = maintenanceReq.completed
         maintenance.type = maintenanceReq.type
-        maintenance.upcomingServiceNeeds = maintenanceReq.upcomingServiceNeeds ?: maintenance.upcomingServiceNeeds
+        maintenance.upcomingServiceNeeds = maintenanceReq.upcomingServiceNeeds
+        maintenance.startDate = maintenanceReq.startDate
+        maintenance.plannedEndDate = maintenanceReq.plannedEndDate
+        maintenance.actualEndDate = maintenanceReq.actualEndDate ?: maintenance.actualEndDate
         return maintenance.toResDTO()
     }
 

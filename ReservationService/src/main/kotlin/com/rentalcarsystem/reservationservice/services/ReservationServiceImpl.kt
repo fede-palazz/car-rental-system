@@ -321,11 +321,13 @@ class ReservationServiceImpl(
         reservation.actualDropOffDate = finalizeReq.actualDropOffDate
         reservation.wasDeliveryLate = finalizeReq.wasDeliveryLate
         reservation.wasChargedFee = finalizeReq.wasChargedFee
-        reservation.wasVehicleDamaged = finalizeReq.wasVehicleDamaged
         reservation.wasInvolvedInAccident = finalizeReq.wasInvolvedInAccident
+        reservation.damageLevel = finalizeReq.damageLevel
+        reservation.dirtinessLevel = finalizeReq.dirtinessLevel
         reservation.status = ReservationStatus.DELIVERED
         val token = getAccessToken();
-        //TODO
+        //TODO: Check if it is correct to pass this customerUsername, the controller is passing the logged in user,
+        // but that is supposed to be the staff rather than the customer
         val customer = userManagementRestClient.get().uri("/username/{username}", customerUsername)
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                 APPLICATION_JSON
@@ -337,14 +339,21 @@ class ReservationServiceImpl(
         if (reservation.wasChargedFee == true) {
             newScore -= WAS_CHARGED_FEE_PENALTY
         }
-        if (reservation.wasVehicleDamaged == true) {
-            newScore -= WAS_VEHICLE_DAMAGED_PENALTY
-        }
         if (reservation.wasInvolvedInAccident == true) {
             newScore -= WAS_INVOLVED_IN_ACCIDENT_PENALTY
         }
+        reservation.damageLevel?.let {
+            if (it > 0) {
+                newScore -= WAS_VEHICLE_DAMAGED_PENALTY * it
+            }
+        }
+        reservation.dirtinessLevel?.let {
+            if (it > 0) {
+                newScore -= WAS_VEHICLE_DIRTY_PENALTY * it
+            }
+        }
         if (reservation.wasDeliveryLate != true && reservation.wasChargedFee != true
-            && reservation.wasVehicleDamaged != true && reservation.wasInvolvedInAccident != true
+            && reservation.wasInvolvedInAccident != true && reservation.damageLevel == 0 && reservation.dirtinessLevel == 0
         ) {
             newScore += NO_PROBLEM_BONUS
         }

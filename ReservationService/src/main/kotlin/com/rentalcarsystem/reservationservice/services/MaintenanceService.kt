@@ -21,7 +21,7 @@ interface MaintenanceService {
 
     fun getActualMaintenanceById(maintenanceId: Long): Maintenance
 
-    fun createMaintenance(vehicleId: Long, @Valid maintenanceReq: MaintenanceReqDTO): MaintenanceResDTO
+    fun createMaintenance(vehicleId: Long, @Valid maintenanceReq: MaintenanceReqDTO, username: String): MaintenanceResDTO
 
     fun updateMaintenance(
         vehicleId: Long,

@@ -7,8 +7,9 @@ data class StaffReservationResDTO(
     val customerUsername: String,
     val wasDeliveryLate: Boolean?,
     val wasChargedFee: Boolean?,
-    val wasVehicleDamaged: Boolean?,
     val wasInvolvedInAccident: Boolean?,
+    val damageLevel: Int?,
+    val dirtinessLevel: Int?,
 )
 
 fun Reservation.toStaffReservationResDTO() = StaffReservationResDTO(
@@ -16,6 +17,7 @@ fun Reservation.toStaffReservationResDTO() = StaffReservationResDTO(
     this.customerUsername,
     this.wasDeliveryLate,
     this.wasChargedFee,
-    this.wasVehicleDamaged,
-    this.wasInvolvedInAccident
+    this.wasInvolvedInAccident,
+    this.damageLevel,
+    this.dirtinessLevel,
 )
