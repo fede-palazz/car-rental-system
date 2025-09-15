@@ -25,12 +25,13 @@ interface ReservationService {
     fun createReservation(customerUsername: String, @Valid reservation: ReservationReqDTO): Any
 
     fun setReservationActualPickUpDate(
+        pickUpStaffUsername: String,
         reservationId: Long,
         @Valid actualPickUpDate: ActualPickUpDateReqDTO
     ): StaffReservationResDTO
 
     fun finalizeReservation(
-        customerUsername: String,
+        dropOffStaffUsername: String,
         reservationId: Long,
         @Valid finalizeReq: FinalizeReservationReqDTO
     ): StaffReservationResDTO

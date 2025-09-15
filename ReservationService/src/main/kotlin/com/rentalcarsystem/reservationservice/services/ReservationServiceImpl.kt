@@ -310,6 +310,7 @@ class ReservationServiceImpl(
     }
 
     override fun setReservationActualPickUpDate(
+        pickUpStaffUsername: String,
         reservationId: Long,
         @Valid actualPickUpDate: ActualPickUpDateReqDTO
     ): StaffReservationResDTO {
@@ -326,11 +327,12 @@ class ReservationServiceImpl(
         }
         reservation.actualPickUpDate = actualPickUpDate.actualPickUpDate
         reservation.status = ReservationStatus.PICKED_UP
+        reservation.pickUpStaffUsername = pickUpStaffUsername
         return reservation.toStaffReservationResDTO()
     }
 
     override fun finalizeReservation(
-        customerUsername: String,
+        dropOffStaffUsername: String,
         reservationId: Long,
         @Valid finalizeReq: FinalizeReservationReqDTO
     ): StaffReservationResDTO {
@@ -353,10 +355,9 @@ class ReservationServiceImpl(
         reservation.damageLevel = finalizeReq.damageLevel
         reservation.dirtinessLevel = finalizeReq.dirtinessLevel
         reservation.status = ReservationStatus.DELIVERED
+        reservation.dropOffStaffUsername = dropOffStaffUsername
         val token = getAccessToken()
-        //TODO: Check if it is correct to pass this customerUsername, the controller is passing the logged in user,
-        // but that is supposed to be the staff rather than the customer
-        val customer = userManagementRestClient.get().uri("/username/{username}", customerUsername)
+        val customer = userManagementRestClient.get().uri("/username/{username}", reservation.customerUsername)
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                 APPLICATION_JSON
             ).retrieve().body<UserResDTO>()
@@ -399,7 +400,7 @@ class ReservationServiceImpl(
             eligibilityScore = newScore
         )
         val updatedCustomerRes =
-            userManagementRestClient.put().uri("/username/{username}", customerUsername).body(updatedCustomer)
+            userManagementRestClient.put().uri("/username/{username}", reservation.customerUsername).body(updatedCustomer)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                     APPLICATION_JSON
                 ).retrieve().body<UserResDTO>()

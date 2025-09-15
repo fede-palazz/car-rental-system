@@ -321,7 +321,14 @@ class ReservationController(
         @RequestBody actualPickUpDate: ActualPickUpDateReqDTO
     ): ResponseEntity<StaffReservationResDTO> {
         require(reservationId > 0) { "Invalid reservation id $reservationId: it must be a positive number" }
-        val updatedReservation = reservationService.setReservationActualPickUpDate(reservationId, actualPickUpDate)
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val updatedReservation = reservationService.setReservationActualPickUpDate(username, reservationId, actualPickUpDate)
         logger.info(
             "Set actual pick-up date for reservation {}: {}",
             reservationId,
@@ -332,7 +339,7 @@ class ReservationController(
 
     @Operation(
         summary = "Finalize reservation",
-        description = "Finalizes the given reservation by setting the actual drop-off date and the four boolean evaluations",
+        description = "Finalizes the given reservation by setting the actual drop-off date and the evaluations",
         requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             content = [Content(
