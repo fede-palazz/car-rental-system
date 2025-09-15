@@ -10,14 +10,18 @@ data class StaffReservationResDTO(
     val wasInvolvedInAccident: Boolean?,
     val damageLevel: Int?,
     val dirtinessLevel: Int?,
+    val pickUpStaffUsername: String?,
+    val dropOffStaffUsername: String?,
 )
 
 fun Reservation.toStaffReservationResDTO() = StaffReservationResDTO(
-    this.toCustomerReservationResDTO(),
-    this.customerUsername,
-    this.wasDeliveryLate,
-    this.wasChargedFee,
-    this.wasInvolvedInAccident,
-    this.damageLevel,
-    this.dirtinessLevel,
+    commonInfo = this.toCustomerReservationResDTO(),
+    customerUsername = this.customerUsername,
+    wasDeliveryLate = this.wasDeliveryLate,
+    wasChargedFee = this.wasChargedFee,
+    wasInvolvedInAccident = this.wasInvolvedInAccident,
+    damageLevel = this.damageLevel,
+    dirtinessLevel = this.dirtinessLevel,
+    pickUpStaffUsername = this.pickUpStaffUsername,
+    dropOffStaffUsername = this.dropOffStaffUsername,
 )

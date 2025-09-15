@@ -23,19 +23,19 @@ data class CustomerReservationResDTO(
 )
 
 fun Reservation.toCustomerReservationResDTO() = CustomerReservationResDTO(
-    this.getId()!!,
-    this.vehicle?.getId()!!,
-    this.vehicle!!.licensePlate,
-    this.vehicle!!.vin,
-    this.vehicle!!.carModel.brand,
-    this.vehicle!!.carModel.model,
-    this.vehicle!!.carModel.year,
-    this.vehicle!!.carModel.getId()!!,
-    this.creationDate,
-    this.plannedPickUpDate,
-    this.actualPickUpDate,
-    this.plannedDropOffDate,
-    this.actualDropOffDate,
-    this.status,
-    this.totalAmount
+    id = this.getId()!!,
+    vehicleId = this.vehicle?.getId()!!,
+    licensePlate = this.vehicle!!.licensePlate,
+    vin = this.vehicle!!.vin,
+    brand = this.vehicle!!.carModel.brand,
+    model = this.vehicle!!.carModel.model,
+    year = this.vehicle!!.carModel.year,
+    carModelId = this.vehicle!!.carModel.getId()!!,
+    creationDate = this.creationDate,
+    plannedPickUpDate = this.plannedPickUpDate,
+    actualPickUpDate = this.actualPickUpDate,
+    plannedDropOffDate = this.plannedDropOffDate,
+    actualDropOffDate = this.actualDropOffDate,
+    status = this.status,
+    totalAmount = this.totalAmount
 )

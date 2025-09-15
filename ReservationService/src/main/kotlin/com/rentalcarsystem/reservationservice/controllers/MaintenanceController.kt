@@ -65,13 +65,16 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         if (size < 1) {
             throw IllegalArgumentException("Parameter 'size' must be greater than zero")
         }
-        // Retrieve MaintenanceFilter fields' names
+        // Retrieve MaintenanceResDTO fields' names
         val allowedSortFields = listOf(
             "defects",
             "completed",
             "type",
             "upcomingServiceNeeds",
-            "date"
+            "startDate",
+            "plannedEndDate",
+            "actualEndDate",
+            "fleetManagerUsername"
         )
         if (sortBy !in allowedSortFields) {
             throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedSortFields")
@@ -79,8 +82,14 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         if (sortOrder !in listOf("asc", "desc")) {
             throw IllegalArgumentException("Parameter 'sortOrder' invalid. Allowed values: ['asc', 'desc']")
         }
-        if (filters.minDate != null && filters.maxDate != null && filters.minDate.isAfter(filters.maxDate)) {
-            throw IllegalArgumentException("Parameter 'minDate' must be before 'maxDate'")
+        if (filters.minStartDate != null && filters.maxStartDate != null && filters.minStartDate.isAfter(filters.maxStartDate)) {
+            throw IllegalArgumentException("Parameter 'minStartDate' must be before 'maxStartDate'")
+        }
+        if (filters.minPlannedEndDate != null && filters.maxPlannedEndDate != null && filters.minPlannedEndDate.isAfter(filters.maxPlannedEndDate)) {
+            throw IllegalArgumentException("Parameter 'minPlannedEndDate' must be before 'maxPlannedEndDate'")
+        }
+        if (filters.minActualEndDate != null && filters.maxActualEndDate != null && filters.minActualEndDate.isAfter(filters.maxActualEndDate)) {
+            throw IllegalArgumentException("Parameter 'minActualEndDate' must be before 'maxActualEndDate'")
         }
         return ResponseEntity.ok(
             maintenanceService.getMaintenances(

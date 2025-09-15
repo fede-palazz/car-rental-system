@@ -94,9 +94,9 @@ class ReservationServiceImpl(
     ): PagedResDTO<Any> {
         var spec: Specification<Reservation> = Specification.where(null)
         // Customer username TODO:
-        filters.customerUsername?.let { name ->
+        filters.customerUsername?.takeIf { it.isNotBlank() }?.let { name ->
             spec = spec.and { root, _, cb ->
-                cb.equal(root.get<String>("customerUsername"), name)
+                cb.like(cb.lower(root.get("customerUsername")), "${name.lowercase()}%")
             }
         }
         // License plate
@@ -221,16 +221,44 @@ class ReservationServiceImpl(
                 cb.equal(root.get<Boolean>("wasChargedFee"), wasChargedFee)
             }
         }
-        // Was vehicle damaged
-        filters.wasVehicleDamaged?.let { wasVehicleDamaged ->
-            spec = spec.and { root, _, cb ->
-                cb.equal(root.get<Boolean>("wasVehicleDamaged"), wasVehicleDamaged)
-            }
-        }
         // Was involved in accident
         filters.wasInvolvedInAccident?.let { wasInvolvedInAccident ->
             spec = spec.and { root, _, cb ->
                 cb.equal(root.get<Boolean>("wasInvolvedInAccident"), wasInvolvedInAccident)
+            }
+        }
+        // Damage level
+        filters.minDamageLevel?.let { minDamageLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("damageLevel"), minDamageLevel)
+            }
+        }
+        filters.maxDamageLevel?.let { maxDamageLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("damageLevel"), maxDamageLevel)
+            }
+        }
+        // Dirtiness level
+        filters.minDirtinessLevel?.let { minDirtinessLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("dirtinessLevel"), minDirtinessLevel)
+            }
+        }
+        filters.maxDirtinessLevel?.let { maxDirtinessLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("dirtinessLevel"), maxDirtinessLevel)
+            }
+        }
+        // Pick-up staff username
+        filters.pickUpStaffUsername?.takeIf { it.isNotBlank() }?.let { pickUpStaffUsername ->
+            spec = spec.and { root, _, cb ->
+                cb.like(cb.lower(root.get("pickUpStaffUsername")), "${pickUpStaffUsername.lowercase()}%")
+            }
+        }
+        // Drop-off staff username
+        filters.dropOffStaffUsername?.takeIf { it.isNotBlank() }?.let { dropOffStaffUsername ->
+            spec = spec.and { root, _, cb ->
+                cb.like(cb.lower(root.get("dropOffStaffUsername")), "${dropOffStaffUsername.lowercase()}%")
             }
         }
         // Sorting
@@ -325,7 +353,7 @@ class ReservationServiceImpl(
         reservation.damageLevel = finalizeReq.damageLevel
         reservation.dirtinessLevel = finalizeReq.dirtinessLevel
         reservation.status = ReservationStatus.DELIVERED
-        val token = getAccessToken();
+        val token = getAccessToken()
         //TODO: Check if it is correct to pass this customerUsername, the controller is passing the logged in user,
         // but that is supposed to be the staff rather than the customer
         val customer = userManagementRestClient.get().uri("/username/{username}", customerUsername)
@@ -406,7 +434,7 @@ class ReservationServiceImpl(
         val carModel = reservation.vehicle!!.carModel
 
         val paymentReqDTO = PaymentReqDTO(reservationId)
-        paymentReqDTO.customerUsername=customerUsername;
+        paymentReqDTO.customerUsername=customerUsername
         paymentReqDTO.amount = reservation.totalAmount
         paymentReqDTO.description =
             "Customer $customerUsername pays reservation for ${carModel.brand} ${carModel.model} of total amount: ${paymentReqDTO.amount}"

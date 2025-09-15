@@ -44,7 +44,16 @@ data class ReservationFilter(
     val maxTotalAmount: Double? = null,
     val wasDeliveryLate: Boolean? = null,
     val wasChargedFee: Boolean? = null,
-    val wasVehicleDamaged: Boolean? = null,
     val wasInvolvedInAccident: Boolean? = null,
-    val customerUsername: String? = null
+    @field:PositiveOrZero(message = "Parameter 'minDamageLevel' must be positive")
+    val minDamageLevel: Int? = null,
+    @field:Max(5, message = "Parameter 'maxDamageLevel' must be less than or equal to 5")
+    val maxDamageLevel: Int? = null,
+    @field:PositiveOrZero(message = "Parameter 'minDirtinessLevel' must be positive")
+    val minDirtinessLevel: Int? = null,
+    @field:Max(5, message = "Parameter 'maxDirtinessLevel' must be less than or equal to 5")
+    val maxDirtinessLevel: Int? = null,
+    val customerUsername: String? = null,
+    val pickUpStaffUsername: String? = null,
+    val dropOffStaffUsername: String? = null,
 )

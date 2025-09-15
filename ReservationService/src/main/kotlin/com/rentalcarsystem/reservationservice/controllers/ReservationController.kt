@@ -91,7 +91,10 @@ class ReservationController(
         }
 
         if (isCustomer && (filters.wasChargedFee != null || filters.wasDeliveryLate != null ||
-                filters.wasVehicleDamaged != null || filters.wasInvolvedInAccident != null)) {
+                filters.wasInvolvedInAccident != null || filters.minDamageLevel != null ||
+                filters.maxDamageLevel != null || filters.minDirtinessLevel != null ||
+                filters.maxDirtinessLevel != null || filters.pickUpStaffUsername != null ||
+                filters.dropOffStaffUsername != null)) {
             throw IllegalArgumentException("Invalid search filters")
         }
 
@@ -119,13 +122,18 @@ class ReservationController(
             "customerUsername",
             "wasDeliveryLate",
             "wasChargedFee",
-            "wasVehicleDamaged",
-            "wasInvolvedInAccident"
+            "wasInvolvedInAccident",
+            "damageLevel",
+            "dirtinessLevel",
+            "pickUpStaffUsername",
+            "dropOffStaffUsername"
         )
-        if (sortBy !in allowedCustomerSortFields && sortBy !in allowedStaffSortFields) { // TODO: In the condition, add (logged-in user's role != customer &&)
+        if (!isCustomer && sortBy !in allowedCustomerSortFields && sortBy !in allowedStaffSortFields) {
             throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: ${allowedCustomerSortFields + allowedStaffSortFields}")
         }
-        // TODO: Add similar check for (logged-in user's role == customer && sortBy !in allowedCustomerSortFields)
+        if (isCustomer && sortBy !in allowedCustomerSortFields) {
+            throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedCustomerSortFields")
+        }
         if (sortOrder !in listOf("asc", "desc")) {
             throw IllegalArgumentException("Parameter 'sortOrder' invalid. Allowed values: ['asc', 'desc']")
         }

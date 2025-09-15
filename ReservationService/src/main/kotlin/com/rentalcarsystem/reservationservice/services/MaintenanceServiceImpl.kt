@@ -6,6 +6,7 @@ import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
 import com.rentalcarsystem.reservationservice.enums.CarStatus
+import com.rentalcarsystem.reservationservice.enums.MaintenanceType
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.MaintenanceFilter
@@ -52,9 +53,9 @@ class MaintenanceServiceImpl(
             }
         }
         // Type
-        filters.type?.takeIf { it.isNotBlank() }?.let { type ->
+        filters.type?.let { type ->
             spec = spec.and { root, _, cb ->
-                cb.like(cb.lower(root.get("type")), "${type.lowercase()}%")
+                cb.equal(root.get<MaintenanceType>("type"), type)
             }
         }
         // Upcoming Service Needs
@@ -63,15 +64,43 @@ class MaintenanceServiceImpl(
                 cb.like(cb.lower(root.get("upcomingServiceNeeds")), "${upcomingServiceNeeds.lowercase()}%")
             }
         }
-        // Date range
-        filters.minDate?.let { minDate ->
+        // startDate range
+        filters.minStartDate?.let { minStartDate ->
             spec = spec.and { root, _, cb ->
-                cb.greaterThanOrEqualTo(root.get("date"), minDate)
+                cb.greaterThanOrEqualTo(root.get("startDate"), minStartDate)
             }
         }
-        filters.maxDate?.let { maxDate ->
+        filters.maxStartDate?.let { maxStartDate ->
             spec = spec.and { root, _, cb ->
-                cb.lessThanOrEqualTo(root.get("date"), maxDate)
+                cb.lessThanOrEqualTo(root.get("startDate"), maxStartDate)
+            }
+        }
+        // plannedEndDate range
+        filters.minPlannedEndDate?.let { minPlannedEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("plannedEndDate"), minPlannedEndDate)
+            }
+        }
+        filters.maxPlannedEndDate?.let { maxPlannedEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("plannedEndDate"), maxPlannedEndDate)
+            }
+        }
+        // actualEndDate range
+        filters.minActualEndDate?.let { minActualEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("actualEndDate"), minActualEndDate)
+            }
+        }
+        filters.maxActualEndDate?.let { maxActualEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("actualEndDate"), maxActualEndDate)
+            }
+        }
+        // fleetManagerUsername
+        filters.fleetManagerUsername?.takeIf { it.isNotBlank() }?.let { fleetManagerUsername ->
+            spec = spec.and { root, _, cb ->
+                cb.like(cb.lower(root.get("fleetManagerUsername")), "${fleetManagerUsername.lowercase()}%")
             }
         }
         // Vehicle
