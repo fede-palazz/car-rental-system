@@ -15,6 +15,7 @@ data class CarModelFilter(
     @field:Max(2100, message = "Parameter 'year' must be a valid year")
     @field:Min(1900, message = "Parameter 'year' must be a valid year")
     val year: Int? = null,
+    val search: String? = null,
     val segment: CarSegment? = null,
     val category: CarCategory? = null,
     val engineType: EngineType? = null,

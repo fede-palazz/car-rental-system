@@ -76,5 +76,8 @@ class CarModel(
     @Column(nullable = false)
     @field:Positive
     var rentalPrice: Double,        // Cost per day based on model and category
+
+    @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
+    val searchVector: String? = null,
 ) : BaseEntity<Long>()
 

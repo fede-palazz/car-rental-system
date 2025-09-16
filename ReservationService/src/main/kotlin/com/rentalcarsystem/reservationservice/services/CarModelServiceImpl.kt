@@ -14,6 +14,7 @@ import com.rentalcarsystem.reservationservice.models.Vehicle
 import com.rentalcarsystem.reservationservice.repositories.CarFeatureRepository
 import com.rentalcarsystem.reservationservice.repositories.CarModelRepository
 import com.rentalcarsystem.reservationservice.repositories.ReservationRepository
+import jakarta.persistence.criteria.Predicate
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
@@ -110,6 +111,10 @@ class CarModelServiceImpl(
             spec = spec.and { root, _, cb ->
                 cb.equal(root.get<String>("year"), year.toString())
             }
+        }
+        // Full text search on brand, model and year
+        filters.search?.takeIf { it.isNotBlank() }?.let { search ->
+            spec = spec.and(buildSearchSpecFromFreeText(search))
         }
         // Segment
         filters.segment?.let { segment ->
@@ -326,4 +331,69 @@ class CarModelServiceImpl(
         }
     }
 
+    fun buildSearchSpecFromFreeText(raw: String): Specification<CarModel> {
+        val cleaned = raw.trim().replace(Regex("\\s+"), " ")
+        val yearRegex = Regex("""\b(19|20)\d{2}\b""")
+        val yearMatch = yearRegex.find(cleaned)
+        val yearToken = yearMatch?.value
+
+        // remove year token from text
+        val textPart = if (yearMatch != null) {
+            (cleaned.removeRange(yearMatch.range)).trim().replace(Regex("\\s+"), " ")
+        } else cleaned
+
+        return Specification { root, query, cb ->
+            val predicates = mutableListOf<Predicate>()
+
+            // Year predicate (year stored as VARCHAR(4) in your schema)
+            val yearPredicate = yearToken?.let { cb.equal(root.get<String>("year"), it) }
+
+            // If there's textual part, build FTS + trigram/ILIKE predicates
+            val textPredicate: Predicate? = textPart.takeIf { it.isNotBlank() }?.let { text ->
+                // 1) FTS: ts_rank_cd(search_vector, plainto_tsquery('simple', :text)) > 0
+                // Use the entity property name for the stored tsvector column (e.g. "searchVector").
+                val searchVectorExpr = root.get<Any>("searchVector") // map the entity attribute name
+                val tsqueryExpr = cb.function(
+                    "plainto_tsquery",
+                    String::class.java,
+                    cb.literal("simple"),
+                    cb.literal(text)
+                )
+                val rankExpr = cb.function(
+                    "ts_rank_cd",
+                    Double::class.java,
+                    searchVectorExpr,
+                    tsqueryExpr
+                )
+                val ftsPredicate = cb.greaterThan(rankExpr, 0.0)
+
+                // 2) Trigram / ILIKE fallbacks - brand, model, combined brand + ' ' + model
+                val lowerBrand = cb.lower(root.get("brand"))
+                val lowerModel = cb.lower(root.get("model"))
+                val lowerTextParam = text.lowercase()
+
+                val brandLike = cb.like(lowerBrand, "$lowerTextParam%")        // prefix on brand
+                val modelLike = cb.like(lowerModel, "$lowerTextParam%")        // prefix on model
+                val brandModelConcat = cb.lower(cb.concat(cb.concat(root.get<String>("brand"), cb.literal(" ")), root.get<String>("model")))
+                val brandModelLike = cb.like(brandModelConcat, "%$lowerTextParam%") // substring on combined
+
+                // Additionally consider substring matches on brand or model:
+                val brandSubstring = cb.like(lowerBrand, "%$lowerTextParam%")
+                val modelSubstring = cb.like(lowerModel, "%$lowerTextParam%")
+
+                // Combine FTS OR any ILIKE/trigram predicate
+                cb.or(ftsPredicate, brandLike, modelLike, brandModelLike, brandSubstring, modelSubstring)
+            }
+
+            // Combine searchPredicate and yearPredicate correctly:
+            val finalPred = when {
+                textPredicate != null && yearPredicate != null -> cb.and(textPredicate, yearPredicate)
+                textPredicate != null -> textPredicate
+                yearPredicate != null -> yearPredicate
+                else -> cb.conjunction()
+            }
+
+            finalPred
+        }
+    }
 }
