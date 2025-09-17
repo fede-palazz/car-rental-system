@@ -41,13 +41,13 @@ class CarModelServiceImpl(
     private val reservationRepository: ReservationRepository,
     private val vehicleService: VehicleService,
     private val userManagementRestClient: RestClient,
-    private val keycloakTokenRestClient:RestClient,
+    private val keycloakTokenRestClient: RestClient,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long,
     @Value("\${spring.security.oauth2.client.registration.keycloak.client-id}")
-    private val clientId:String,
+    private val clientId: String,
     @Value("\${spring.security.oauth2.client.registration.keycloak.client-secret}")
-    private val clientSecret:String
+    private val clientSecret: String
 ) : CarModelService {
     fun getAccessToken(): String {
         val body = LinkedMultiValueMap<String, String>().apply {
@@ -83,7 +83,10 @@ class CarModelServiceImpl(
         // Validation of reservationToUpdate if provided
         if (reservationToUpdateId != null) {
             val reservationToUpdate = reservationRepository.findById(reservationToUpdateId).orElseThrow {
-                FailureException(ResponseEnum.RESERVATION_NOT_FOUND, "Reservation with id $reservationToUpdateId was not found")
+                FailureException(
+                    ResponseEnum.RESERVATION_NOT_FOUND,
+                    "Reservation with id $reservationToUpdateId was not found"
+                )
             }
 
             if (isCustomer && reservationToUpdate.customerUsername != customerUsername) {
@@ -159,12 +162,14 @@ class CarModelServiceImpl(
         }
         // Adding the search for desired pickup and drop off dates for a given customer if they are given
         if (desiredPickUpDate != null && desiredDropOffDate != null) {
-            spec = spec.and(availabilityInDesiredDatesSpec(desiredPickUpDate, desiredDropOffDate, reservationToUpdateId))
-          if (isCustomer) { // TODO: Replace this condition with: "if (user is logged in with role == customer || customerId != null) {"
+            spec =
+                spec.and(availabilityInDesiredDatesSpec(desiredPickUpDate, desiredDropOffDate, reservationToUpdateId))
+            if (isCustomer && customerUsername != null) {
                 // TODO: Replace "uri("/{userId}", customerId)" with
                 //  "uri("/{userId}", if (user is logged in with role == customer) { logged in user's id } else customerId)"
                 val token = getAccessToken()
-                val userScore = userManagementRestClient.get().uri("/username/{username}", customerUsername).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                val userScore = userManagementRestClient.get().uri("/username/{username}", customerUsername)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                     APPLICATION_JSON
                 ).retrieve().body<UserResDTO>()?.eligibilityScore
                 spec = spec.and(availabilityForUserScoreSpec(userScore!!))
@@ -302,7 +307,13 @@ class CarModelServiceImpl(
                 cb.notEqual(reservationRoot.get<Long>("id"), reservationToUpdateId)
             } ?: cb.notEqual(reservationRoot.get<Long>("id"), 0)
             // Assembles the inner subquery filters: Belongs to current Vehicle AND Is reserved during the desired time AND does not match with the given reservation
-            overlappingReservationsVehicles.where(cb.and(vehicleMatch, overlappingReservation, reservedVehicleExclusion))
+            overlappingReservationsVehicles.where(
+                cb.and(
+                    vehicleMatch,
+                    overlappingReservation,
+                    reservedVehicleExclusion
+                )
+            )
             // The inner subquery returns the ID of the Vehicle associated with each matching Reservation.
             overlappingReservationsVehicles.select(reservationRoot.get<Vehicle>("vehicle").get("id"))
             // The final condition is: such a reservation exists for the given Vehicle. If this is NOT true, the subquery will include the Vehicle.
@@ -374,7 +385,12 @@ class CarModelServiceImpl(
 
                 val brandLike = cb.like(lowerBrand, "$lowerTextParam%")        // prefix on brand
                 val modelLike = cb.like(lowerModel, "$lowerTextParam%")        // prefix on model
-                val brandModelConcat = cb.lower(cb.concat(cb.concat(root.get<String>("brand"), cb.literal(" ")), root.get<String>("model")))
+                val brandModelConcat = cb.lower(
+                    cb.concat(
+                        cb.concat(root.get<String>("brand"), cb.literal(" ")),
+                        root.get<String>("model")
+                    )
+                )
                 val brandModelLike = cb.like(brandModelConcat, "%$lowerTextParam%") // substring on combined
 
                 // Additionally consider substring matches on brand or model:

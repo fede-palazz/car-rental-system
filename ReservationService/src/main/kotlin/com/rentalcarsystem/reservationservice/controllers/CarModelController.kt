@@ -6,8 +6,6 @@ import com.rentalcarsystem.reservationservice.dtos.request.CarModelReqDTO
 import com.rentalcarsystem.reservationservice.dtos.response.CarFeatureResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.CarModelResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
-import com.rentalcarsystem.reservationservice.exceptions.FailureException
-import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.CarModelFilter
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.services.CarModelService
@@ -54,21 +52,6 @@ class CarModelController(private val carModelService: CarModelService) {
         @RequestParam("order", defaultValue = "asc") sortOrder: String,
         @ModelAttribute filters: CarModelFilter
     ): ResponseEntity<PagedResDTO<CarModelResDTO>> {
-        val authentication = SecurityContextHolder.getContext().authentication
-        val authorities = authentication.authorities
-
-        // Extract roles from authorities
-        val roles = authorities
-            .map { it.authority }
-            .filter { it.startsWith("ROLE_") }
-            .map { it.removePrefix("ROLE_") }
-
-        val isCustomer = "CUSTOMER" in roles
-        // Extract username
-        val jwt = authentication.principal as Jwt
-        val username = jwt.getClaimAsString("preferred_username")
-        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
-
         // Validate filters
         require(page >= 0) { "Parameter 'page' must be greater than or equal to zero" }
         require(size >= 1) { "Parameter 'size' must be greater than zero" }
@@ -90,6 +73,27 @@ class CarModelController(private val carModelService: CarModelService) {
         require(sortOrder in listOf("asc", "desc")) {
             "Parameter 'sortOrder' invalid. Allowed values: ['asc', 'desc']"
         }
+
+        val authentication = SecurityContextHolder.getContext().authentication
+        val authorities = authentication.authorities
+
+        // Extract roles from authorities
+        val roles = authorities
+            .map { it.authority }
+            .filter { it.startsWith("ROLE_") }
+            .map { it.removePrefix("ROLE_") }
+
+        val isAuthenticated = "ANONYMOUS" !in roles
+        var isCustomer = false
+        var username: String? = null
+
+        if (isAuthenticated) {
+            isCustomer = "CUSTOMER" in roles
+            // Extract username
+            val jwt = authentication.principal as Jwt
+            username = jwt.getClaimAsString("preferred_username")
+        }
+
         return ResponseEntity.ok(
             carModelService.getAllModels(
                 page, size, singlePage, sortBy, sortOrder, filters, customerUsername = username, isCustomer = isCustomer
