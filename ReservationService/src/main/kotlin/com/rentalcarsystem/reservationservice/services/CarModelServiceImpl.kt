@@ -9,6 +9,7 @@ import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.CarModelFilter
 import com.rentalcarsystem.reservationservice.models.CarFeature
 import com.rentalcarsystem.reservationservice.models.CarModel
+import com.rentalcarsystem.reservationservice.models.Maintenance
 import com.rentalcarsystem.reservationservice.models.Reservation
 import com.rentalcarsystem.reservationservice.models.Vehicle
 import com.rentalcarsystem.reservationservice.repositories.CarFeatureRepository
@@ -283,14 +284,13 @@ class CarModelServiceImpl(
             val vehicleRoot = subquery.from(Vehicle::class.java)
             // Ensures the subquery's Vehicle.carModel matches the outer query’s CarModel (i.e., the one being tested).
             val modelMatch = cb.equal(vehicleRoot.get<CarModel>("carModel"), root)
-            // Only considers vehicles that are not in maintenance.
-            val notInMaintenance = cb.notEqual(vehicleRoot.get<CarStatus>("status"), CarStatus.IN_MAINTENANCE)
+
             // Creates an inner subquery that returns the ids of all vehicles that have at least one overlapping reservation
             val overlappingReservationsVehicles = subquery.subquery(Long::class.java)
             // reservationRoot is the root of this subquery — we’re querying the Reservation table.
             val reservationRoot = overlappingReservationsVehicles.from(Reservation::class.java)
             // Ensures the inner subquery's Reservation.vehicle matches the subquery’s Vehicle (i.e., the one being tested).
-            val vehicleMatch = cb.equal(reservationRoot.get<Vehicle>("vehicle"), vehicleRoot)
+            val reservationVehicleMatch = cb.equal(reservationRoot.get<Vehicle>("vehicle"), vehicleRoot)
             // Only considers reservations that overlap the desired date range.
             val overlappingReservation = cb.and(
                 cb.lessThan(
@@ -306,10 +306,10 @@ class CarModelServiceImpl(
             val reservedVehicleExclusion = reservationToUpdateId?.let { reservationToUpdateId ->
                 cb.notEqual(reservationRoot.get<Long>("id"), reservationToUpdateId)
             } ?: cb.notEqual(reservationRoot.get<Long>("id"), 0)
-            // Assembles the inner subquery filters: Belongs to current Vehicle AND Is reserved during the desired time AND does not match with the given reservation
+            // Assembles the inner subquery filters: Belongs to current Vehicle AND is reserved during the desired time AND does not match with the given reservation
             overlappingReservationsVehicles.where(
                 cb.and(
-                    vehicleMatch,
+                    reservationVehicleMatch,
                     overlappingReservation,
                     reservedVehicleExclusion
                 )
@@ -318,8 +318,41 @@ class CarModelServiceImpl(
             overlappingReservationsVehicles.select(reservationRoot.get<Vehicle>("vehicle").get("id"))
             // The final condition is: such a reservation exists for the given Vehicle. If this is NOT true, the subquery will include the Vehicle.
             val hasNoOverlappingReservations = cb.not(cb.exists(overlappingReservationsVehicles))
-            // Assembles the subquery filters: Belongs to current CarModel AND Is not in maintenance AND Is not reserved during the desired time
-            subquery.where(cb.and(modelMatch, notInMaintenance, hasNoOverlappingReservations))
+
+            // Only considers vehicles that are currently not in maintenance.
+            val notInMaintenance = cb.notEqual(vehicleRoot.get<CarStatus>("status"), CarStatus.IN_MAINTENANCE)
+
+            // Creates an inner subquery that returns the ids of all vehicles that have at least one overlapping maintenance
+            val overlappingMaintenancesVehicles = subquery.subquery(Long::class.java)
+            // maintenanceRoot is the root of this subquery — we’re querying the Maintenance table.
+            val maintenanceRoot = overlappingMaintenancesVehicles.from(Maintenance::class.java)
+            // Ensures the inner subquery's Maintenance.vehicle matches the subquery’s Vehicle (i.e., the one being tested).
+            val maintenanceVehicleMatch  = cb.equal(maintenanceRoot.get<Vehicle>("vehicle"), vehicleRoot)
+            // Only considers maintenances that overlap the desired date range.
+            val overlappingMaintenance = cb.and(
+                cb.lessThanOrEqualTo(
+                    maintenanceRoot.get("startDate"),
+                    desiredEnd
+                ),
+                cb.greaterThanOrEqualTo(
+                    maintenanceRoot.get("plannedEndDate"),
+                    desiredStart
+                )
+            )
+            // Assembles the inner subquery filters: Belongs to current Vehicle AND is in maintenance during the desired time
+            overlappingMaintenancesVehicles.where(
+                cb.and(
+                    maintenanceVehicleMatch,
+                    overlappingMaintenance
+                )
+            )
+            // The inner subquery returns the ID of the Vehicle associated with each matching Maintenance.
+            overlappingMaintenancesVehicles.select(maintenanceRoot.get<Vehicle>("vehicle").get("id"))
+            // The final condition is: such a maintenance exists for the given Vehicle. If this is NOT true, the subquery will include the Vehicle.
+            val hasNoOverlappingMaintenances = cb.not(cb.exists(overlappingMaintenancesVehicles))
+
+            // Assembles the subquery filters: Belongs to current CarModel AND is not reserved during the desired time AND Is not in maintenance AND is not in maintenance during the desired time
+            subquery.where(cb.and(modelMatch, hasNoOverlappingReservations, notInMaintenance, hasNoOverlappingMaintenances))
             // The subquery returns the ID of the CarModel associated with each matching Vehicle.
             subquery.select(vehicleRoot.get<CarModel>("carModel").get("id"))
             // The final condition is: such a vehicle exists for the given CarModel. If this is true, the outer query will include the CarModel in the result.

@@ -132,6 +132,8 @@ class MaintenanceServiceImpl(
         @Valid maintenanceReq: MaintenanceReqDTO,
         username: String
     ): MaintenanceResDTO {
+        // TODO: Add check to handle case if such vehicle had already been reserved in days overlapping
+        // the desired maintenance period
         val vehicle = vehicleService.getVehicleById(vehicleId)
         val maintenance = maintenanceReq.toEntity(username)
         if (maintenance.completed) {
