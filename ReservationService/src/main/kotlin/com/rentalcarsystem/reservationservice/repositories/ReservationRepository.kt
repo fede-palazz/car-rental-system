@@ -37,14 +37,22 @@ interface ReservationRepository : JpaRepository<Reservation, Long>, JpaSpecifica
         AND NOT EXISTS (
             SELECT r FROM Reservation r
             WHERE r.vehicle = v
-            AND r.plannedPickUpDate < :desiredEnd
-            AND r.plannedDropOffDate > :desiredStart
+            AND r.plannedPickUpDate < :desiredEndWithBuffer
+            AND r.plannedDropOffDate > :desiredStartWithBuffer
+        )
+        AND NOT EXISTS (
+            SELECT m FROM Maintenance m
+            WHERE m.vehicle = v
+            AND m.startDate <= :desiredEnd
+            AND m.plannedEndDate >= :desiredStart
         )
         ORDER BY v.id ASC
         """
     )
     fun findFirstAvailableVehicleByModelAndDateRange(
         @Param("carModel") carModel: CarModel,
+        @Param("desiredStartWithBuffer") desiredStartWithBuffer: LocalDateTime,
+        @Param("desiredEndWithBuffer") desiredEndWithBuffer: LocalDateTime,
         @Param("desiredStart") desiredStart: LocalDateTime,
         @Param("desiredEnd") desiredEnd: LocalDateTime,
         pageable: Pageable = PageRequest.of(0, 1)

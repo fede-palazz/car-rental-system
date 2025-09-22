@@ -565,9 +565,11 @@ class ReservationServiceImpl(
             )
         }
         val vehicle = reservationRepository.findFirstAvailableVehicleByModelAndDateRange(
-            carModel,
-            reservation.plannedPickUpDate.minusDays(reservationBufferDays),
-            reservation.plannedDropOffDate.plusDays(reservationBufferDays),
+            carModel = carModel,
+            desiredStartWithBuffer = reservation.plannedPickUpDate.minusDays(reservationBufferDays),
+            desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),
+            desiredStart = reservation.plannedPickUpDate,
+            desiredEnd = reservation.plannedDropOffDate
         ).firstOrNull()
         if (vehicle == null) {
             throw FailureException(
