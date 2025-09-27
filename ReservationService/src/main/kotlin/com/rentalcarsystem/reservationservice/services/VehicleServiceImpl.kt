@@ -12,9 +12,11 @@ import com.rentalcarsystem.reservationservice.filters.VehicleFilter
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Vehicle
 import com.rentalcarsystem.reservationservice.repositories.CarModelRepository
+import com.rentalcarsystem.reservationservice.repositories.ReservationRepository
 import com.rentalcarsystem.reservationservice.repositories.VehicleRepository
 import jakarta.persistence.criteria.Join
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -22,13 +24,17 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
+import java.time.LocalDateTime
 
 @Service
 @Validated
 @Transactional
 class VehicleServiceImpl(
+    private val carModelRepository: CarModelRepository,
+    private val reservationRepository: ReservationRepository,
     private val vehicleRepository: VehicleRepository,
-    private val carModelRepository: CarModelRepository
+    @Value("\${reservation.buffer-days}")
+    private val reservationBufferDays: Long
 ) : VehicleService {
     override fun getVehicles(
         page: Int,
@@ -125,6 +131,36 @@ class VehicleServiceImpl(
         return vehicleRepository.findById(vehicleId).orElseThrow {
             FailureException(ResponseEnum.VEHICLE_NOT_FOUND, "Vehicle with id $vehicleId not found")
         }
+    }
+
+    override fun getAvailableVehicles(
+        carModelId: Long,
+        desiredStart: LocalDateTime,
+        desiredEnd: LocalDateTime,
+        page: Int,
+        size: Int,
+        sortBy: String,
+        sortOrder: String
+    ): PagedResDTO<VehicleResDTO> {
+        val carModel: CarModel = carModelRepository.findById(carModelId).orElseThrow {
+            FailureException(ResponseEnum.CAR_MODEL_NOT_FOUND, "Car model with ID $carModelId not found")
+        }
+        val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
+        val pageResult = reservationRepository.findAvailableVehiclesByModelAndDateRange(
+            carModel = carModel,
+            desiredStartWithBuffer = desiredStart.minusDays(reservationBufferDays),
+            desiredEndWithBuffer = desiredEnd.plusDays(reservationBufferDays),
+            desiredStart = desiredStart,
+            desiredEnd = desiredEnd,
+            pageable = PageRequest.of(page, size, sortOrd, sortBy)
+        )
+        return PagedResDTO(
+            currentPage = pageResult.number,
+            totalPages = pageResult.totalPages,
+            totalElements = pageResult.totalElements,
+            elementsInPage = pageResult.numberOfElements,
+            content = pageResult.content.map { it.toResDTO() }
+        )
     }
 
     override fun addVehicle(@Valid vehicle: VehicleReqDTO): VehicleResDTO {

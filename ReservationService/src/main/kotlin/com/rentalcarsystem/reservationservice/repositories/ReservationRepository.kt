@@ -4,7 +4,7 @@ import com.rentalcarsystem.reservationservice.enums.ReservationStatus
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Reservation
 import com.rentalcarsystem.reservationservice.models.Vehicle
-import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
@@ -46,17 +46,16 @@ interface ReservationRepository : JpaRepository<Reservation, Long>, JpaSpecifica
             AND m.startDate <= :desiredEnd
             AND m.plannedEndDate >= :desiredStart
         )
-        ORDER BY v.id ASC
         """
     )
-    fun findFirstAvailableVehicleByModelAndDateRange(
+    fun findAvailableVehiclesByModelAndDateRange(
         @Param("carModel") carModel: CarModel,
         @Param("desiredStartWithBuffer") desiredStartWithBuffer: LocalDateTime,
         @Param("desiredEndWithBuffer") desiredEndWithBuffer: LocalDateTime,
         @Param("desiredStart") desiredStart: LocalDateTime,
         @Param("desiredEnd") desiredEnd: LocalDateTime,
-        pageable: Pageable = PageRequest.of(0, 1)
-    ): List<Vehicle>
+        pageable: Pageable
+    ): Page<Vehicle>
 
     fun existsByCustomerUsernameAndStatus(customerUsername: String, status: ReservationStatus): Boolean
 

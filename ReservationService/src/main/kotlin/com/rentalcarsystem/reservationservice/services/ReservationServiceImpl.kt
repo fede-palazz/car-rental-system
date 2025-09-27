@@ -564,13 +564,14 @@ class ReservationServiceImpl(
                 "Your score is too low to reserve a vehicle of category ${carModel.category}"
             )
         }
-        val vehicle = reservationRepository.findFirstAvailableVehicleByModelAndDateRange(
+        val vehicle = reservationRepository.findAvailableVehiclesByModelAndDateRange(
             carModel = carModel,
             desiredStartWithBuffer = reservation.plannedPickUpDate.minusDays(reservationBufferDays),
             desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),
             desiredStart = reservation.plannedPickUpDate,
-            desiredEnd = reservation.plannedDropOffDate
-        ).firstOrNull()
+            desiredEnd = reservation.plannedDropOffDate,
+            pageable = PageRequest.of(0, 1, Sort.Direction.ASC, "kmTravelled")
+        ).content.firstOrNull()
         if (vehicle == null) {
             throw FailureException(
                 ResponseEnum.CAR_MODEL_NOT_AVAILABLE,

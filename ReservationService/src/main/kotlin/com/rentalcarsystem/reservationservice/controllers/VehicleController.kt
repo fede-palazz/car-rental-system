@@ -14,10 +14,12 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.slf4j.LoggerFactory
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/v1/vehicles")
@@ -102,6 +104,65 @@ class VehicleController(private val vehicleService: VehicleService) {
         }
         return ResponseEntity.ok(vehicleService.getVehicleById(vehicleId).toResDTO())
     }
+
+    @Operation(
+        summary = "Get available vehicles",
+        description = "Retrieves all available vehicles based on the specified car model and date range",
+        responses = [
+            ApiResponse(
+                responseCode = "200", content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = PagedResDTO::class)
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()]),
+        ]
+    )
+    @GetMapping("/available")
+    fun getAvailableVehicles(
+        @RequestParam("carModelId", required = true) carModelId: Long,
+        @RequestParam("desiredStart", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredStart: LocalDateTime,
+        @RequestParam("desiredEnd", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredEnd: LocalDateTime,
+        @RequestParam("page", defaultValue = "0") page: Int,
+        @RequestParam("size", defaultValue = "10") size: Int,
+        @RequestParam("sort", defaultValue = "vin") sortBy: String,
+        @RequestParam("order", defaultValue = "asc") sortOrder: String,
+    ): ResponseEntity<PagedResDTO<VehicleResDTO>> {
+        // Validate filters
+        require(carModelId > 0) {
+            "Invalid car model id $carModelId: it must be a positive number"
+        }
+        require(desiredEnd.isAfter(desiredStart)) {
+            "Parameter 'desiredEnd' must be after 'desiredStart'"
+        }
+        require(page >= 0) { "Parameter 'page' must be greater than or equal to zero" }
+        require(size > 0) { "Parameter 'size' must be greater than zero" }
+        // Retrieve Vehicle fields' names
+        val allowedSortFields = listOf(
+            "licensePlate",
+            "vin",
+            "status",
+            "kmTravelled",
+            "pendingCleaning",
+            "pendingRepair"
+        )
+        if (sortBy !in allowedSortFields) {
+            throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedSortFields")
+        }
+        if (sortOrder !in listOf("asc", "desc")) {
+            throw IllegalArgumentException("Parameter 'sortOrder' invalid. Allowed values: ['asc', 'desc']")
+        }
+        return ResponseEntity.ok(
+            vehicleService.getAvailableVehicles(
+                carModelId, desiredStart, desiredEnd, page, size, sortBy, sortOrder
+            )
+        )
+    }
+
 
     @Operation(
         summary = "Add vehicle",
