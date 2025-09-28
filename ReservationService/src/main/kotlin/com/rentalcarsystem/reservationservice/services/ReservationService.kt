@@ -11,6 +11,7 @@ import com.rentalcarsystem.reservationservice.filters.PaymentRecordFilter
 import com.rentalcarsystem.reservationservice.filters.ReservationFilter
 import com.rentalcarsystem.reservationservice.models.Reservation
 import jakarta.validation.Valid
+import java.time.LocalDateTime
 
 interface ReservationService {
     fun getReservations(
@@ -21,6 +22,16 @@ interface ReservationService {
         isCustomer: Boolean,
         @Valid filters: ReservationFilter
     ): PagedResDTO<Any>
+
+    fun getOverlappingReservations(
+        vehicleId: Long,
+        desiredStart: LocalDateTime,
+        desiredEnd: LocalDateTime,
+        page: Int,
+        size: Int,
+        sortBy: String,
+        sortOrder: String,
+    ): PagedResDTO<StaffReservationResDTO>
 
     fun createReservation(customerUsername: String, @Valid reservation: ReservationReqDTO): Any
 

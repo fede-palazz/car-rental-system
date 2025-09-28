@@ -50,6 +50,7 @@ import java.time.temporal.ChronoUnit
 // TODO: Understand if and how to use locking mechanism to ensure concurrency control
 class ReservationServiceImpl(
     private val carModelService: CarModelService,
+    private val vehicleService: VehicleService,
     private val reservationRepository: ReservationRepository,
     private val userManagementRestClient: RestClient,
     private val paymentServiceRestClient: RestClient,
@@ -93,7 +94,7 @@ class ReservationServiceImpl(
         @Valid filters: ReservationFilter
     ): PagedResDTO<Any> {
         var spec: Specification<Reservation> = Specification.where(null)
-        // Customer username TODO:
+        // Customer username
         filters.customerUsername?.takeIf { it.isNotBlank() }?.let { name ->
             spec = spec.and { root, _, cb ->
                 cb.like(cb.lower(root.get("customerUsername")), "${name.lowercase()}%")
@@ -286,6 +287,62 @@ class ReservationServiceImpl(
             totalElements = pageResult.totalElements,
             elementsInPage = pageResult.numberOfElements,
             content = if (isCustomer) pageResult.content.map { it.toCustomerReservationResDTO() } else pageResult.content.map { it.toStaffReservationResDTO() }
+        )
+    }
+
+    override fun getOverlappingReservations(
+        vehicleId: Long,
+        desiredStart: LocalDateTime,
+        desiredEnd: LocalDateTime,
+        page: Int,
+        size: Int,
+        sortBy: String,
+        sortOrder: String
+    ): PagedResDTO<StaffReservationResDTO> {
+        val vehicle = vehicleService.getVehicleById(vehicleId)
+        var spec: Specification<Reservation> = Specification.where(null)
+        // Vehicle
+        spec = spec.and { root, _, cb ->
+            cb.equal(root.get<Vehicle>("vehicle"), vehicle)
+        }
+        // Only considers reservations that overlap the desired date range.
+        spec = spec.and { root, _, cb ->
+            cb.and(
+                cb.lessThan(
+                    root.get("plannedPickUpDate"),
+                    desiredEnd
+                ),
+                cb.greaterThan(
+                    root.get("plannedDropOffDate"),
+                    desiredStart
+                )
+            )
+        }
+        // Sorting
+        val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
+        val sort: Sort = when (sortBy) {
+            // Sorting on Car model fields
+            in listOf("brand", "model", "year") -> {
+                Sort.by(sortOrd, "vehicle.carModel.$sortBy")
+            }
+            // Sorting on Vehicle fields
+            in listOf("licensePlate", "vin") -> {
+                Sort.by(sortOrd, "vehicle.$sortBy")
+            }
+            // Sorting on Reservation fields
+            else -> {
+                Sort.by(sortOrd, sortBy)
+            }
+        }
+        val pageable: Pageable = PageRequest.of(page, size, sort)
+        val pageResult = reservationRepository.findAll(spec, pageable)
+
+        return PagedResDTO(
+            currentPage = pageResult.number,
+            totalPages = pageResult.totalPages,
+            totalElements = pageResult.totalElements,
+            elementsInPage = pageResult.numberOfElements,
+            content = pageResult.content.map { it.toStaffReservationResDTO() }
         )
     }
 
