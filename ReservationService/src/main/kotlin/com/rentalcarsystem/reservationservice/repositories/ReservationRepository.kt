@@ -33,7 +33,6 @@ interface ReservationRepository : JpaRepository<Reservation, Long>, JpaSpecifica
         """
         SELECT v FROM Vehicle v
         WHERE v.carModel = :carModel
-        AND v.status <> 'IN_MAINTENANCE'
         AND NOT EXISTS (
             SELECT r FROM Reservation r
             WHERE r.vehicle = v

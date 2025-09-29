@@ -1,6 +1,5 @@
 package com.rentalcarsystem.reservationservice.filters
 
-import com.rentalcarsystem.reservationservice.enums.CarStatus
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.PositiveOrZero
@@ -17,7 +16,6 @@ data class VehicleFilter(
     @field:Max(2100, message = "Parameter 'year' must be a valid year")
     @field:Min(1900, message = "Parameter 'year' must be a valid year")
     val year: Int? = null,
-    val status: CarStatus? = null,
     @field:PositiveOrZero(message = "Parameter 'minKmTravelled' must be positive")
     val minKmTravelled: Double? = null,
     @field:PositiveOrZero(message = "Parameter 'maxKmTravelled' must be positive")

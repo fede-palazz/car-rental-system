@@ -1,6 +1,5 @@
 package com.rentalcarsystem.reservationservice.models
 
-import com.rentalcarsystem.reservationservice.enums.CarStatus
 import jakarta.persistence.*
 
 @Entity
@@ -15,10 +14,6 @@ class Vehicle(
     // Many Vehicles can refer to the same CarModel
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     var carModel: CarModel,
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var status: CarStatus,
 
     @Column(nullable = false)
     var kmTravelled: Double,

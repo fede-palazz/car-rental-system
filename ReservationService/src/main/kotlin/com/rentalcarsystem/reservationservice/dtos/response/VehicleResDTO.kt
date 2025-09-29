@@ -1,13 +1,11 @@
 package com.rentalcarsystem.reservationservice.dtos.response
 
-import com.rentalcarsystem.reservationservice.enums.CarStatus
 import com.rentalcarsystem.reservationservice.models.Vehicle
 
 data class VehicleResDTO(
     val id: Long,
     val licensePlate: String,
     val vin: String,
-    val status: CarStatus,
     val kmTravelled: Double,
     val pendingCleaning: Boolean,
     val pendingRepair: Boolean,
@@ -21,7 +19,6 @@ fun Vehicle.toResDTO() = VehicleResDTO(
     this.getId()!!,
     this.licensePlate,
     this.vin,
-    this.status,
     this.kmTravelled,
     this.pendingCleaning,
     this.pendingRepair,

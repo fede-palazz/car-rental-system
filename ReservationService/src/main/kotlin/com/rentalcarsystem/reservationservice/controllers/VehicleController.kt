@@ -64,7 +64,6 @@ class VehicleController(private val vehicleService: VehicleService) {
             "brand",
             "model",
             "year",
-            "status",
             "kmTravelled",
             "pendingCleaning",
             "pendingRepair"
@@ -145,7 +144,6 @@ class VehicleController(private val vehicleService: VehicleService) {
         val allowedSortFields = listOf(
             "licensePlate",
             "vin",
-            "status",
             "kmTravelled",
             "pendingCleaning",
             "pendingRepair"

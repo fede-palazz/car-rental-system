@@ -77,12 +77,6 @@ class VehicleServiceImpl(
                 cb.equal(carModelJoin.get<Int>("year"), year)
             }
         }
-        // Status
-        filters.status?.takeIf { it.toString().isNotBlank() }?.let { status ->
-            spec = spec.and { root, _, cb ->
-                cb.like(cb.lower(root.get("status")), status.toString().lowercase())
-            }
-        }
         // Km travelled
         filters.minKmTravelled?.let { minKm ->
             spec = spec.and { root, _, cb ->
@@ -186,7 +180,6 @@ class VehicleServiceImpl(
         val vehicleToUpdate = getVehicleById(vehicleId)
         // Update properties
         vehicleToUpdate.licensePlate = vehicle.licensePlate ?: vehicleToUpdate.licensePlate
-        vehicleToUpdate.status = vehicle.status
         vehicleToUpdate.kmTravelled = vehicle.kmTravelled
         vehicleToUpdate.pendingCleaning = vehicle.pendingCleaning ?: false
         vehicleToUpdate.pendingRepair = vehicle.pendingRepair ?: false
