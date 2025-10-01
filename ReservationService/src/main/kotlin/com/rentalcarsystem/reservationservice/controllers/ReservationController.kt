@@ -86,8 +86,11 @@ class ReservationController(
         val username = jwt.getClaimAsString("preferred_username")
         requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
 
-        if (isCustomer && filters.customerUsername!=null && filters.customerUsername != username) {
-            throw FailureException(ResponseEnum.FORBIDDEN)
+        if (isCustomer) {
+            if (filters.customerUsername != null) {
+                throw FailureException(ResponseEnum.FORBIDDEN)
+            }
+            filters.customerUsername = username
         }
 
         if (isCustomer && (filters.wasChargedFee != null || filters.wasDeliveryLate != null ||

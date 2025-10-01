@@ -53,7 +53,7 @@ data class ReservationFilter(
     val minDirtinessLevel: Int? = null,
     @field:Max(5, message = "Parameter 'maxDirtinessLevel' must be less than or equal to 5")
     val maxDirtinessLevel: Int? = null,
-    val customerUsername: String? = null,
+    var customerUsername: String? = null,
     val pickUpStaffUsername: String? = null,
     val dropOffStaffUsername: String? = null,
 )
