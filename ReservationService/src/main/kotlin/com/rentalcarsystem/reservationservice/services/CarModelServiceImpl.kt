@@ -319,9 +319,6 @@ class CarModelServiceImpl(
             // The final condition is: such a reservation exists for the given Vehicle. If this is NOT true, the subquery will include the Vehicle.
             val hasNoOverlappingReservations = cb.not(cb.exists(overlappingReservationsVehicles))
 
-            // Only considers vehicles that are currently not in maintenance.
-            val notInMaintenance = cb.notEqual(vehicleRoot.get<CarStatus>("status"), CarStatus.IN_MAINTENANCE)
-
             // Creates an inner subquery that returns the ids of all vehicles that have at least one overlapping maintenance
             val overlappingMaintenancesVehicles = subquery.subquery(Long::class.java)
             // maintenanceRoot is the root of this subquery — we’re querying the Maintenance table.
@@ -351,8 +348,8 @@ class CarModelServiceImpl(
             // The final condition is: such a maintenance exists for the given Vehicle. If this is NOT true, the subquery will include the Vehicle.
             val hasNoOverlappingMaintenances = cb.not(cb.exists(overlappingMaintenancesVehicles))
 
-            // Assembles the subquery filters: Belongs to current CarModel AND is not reserved during the desired time AND Is not in maintenance AND is not in maintenance during the desired time
-            subquery.where(cb.and(modelMatch, hasNoOverlappingReservations, notInMaintenance, hasNoOverlappingMaintenances))
+            // Assembles the subquery filters: Belongs to current CarModel AND is not reserved during the desired time AND is not in maintenance during the desired time
+            subquery.where(cb.and(modelMatch, hasNoOverlappingReservations, hasNoOverlappingMaintenances))
             // The subquery returns the ID of the CarModel associated with each matching Vehicle.
             subquery.select(vehicleRoot.get<CarModel>("carModel").get("id"))
             // The final condition is: such a vehicle exists for the given CarModel. If this is true, the outer query will include the CarModel in the result.

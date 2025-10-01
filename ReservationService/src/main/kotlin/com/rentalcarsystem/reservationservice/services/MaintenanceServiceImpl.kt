@@ -5,7 +5,6 @@ import com.rentalcarsystem.reservationservice.dtos.request.toEntity
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
-import com.rentalcarsystem.reservationservice.enums.CarStatus
 import com.rentalcarsystem.reservationservice.enums.MaintenanceType
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
@@ -140,8 +139,6 @@ class MaintenanceServiceImpl(
             throw IllegalArgumentException("A newly created maintenance record cannot be completed")
         }
         vehicle.addMaintenance(maintenance)
-        // Set vehicle status to maintenance
-        vehicle.status = CarStatus.IN_MAINTENANCE
         return maintenanceRepository.save(maintenance).toResDTO()
     }
 
@@ -151,16 +148,11 @@ class MaintenanceServiceImpl(
         @Valid maintenanceReq: MaintenanceReqDTO,
     ): MaintenanceResDTO {
         // Check if maintenance record exists
-        val vehicle = vehicleService.getVehicleById(vehicleId)
         val maintenance = getActualMaintenanceById(maintenanceId)
         checkMaintenanceVehicleMatch(vehicleId, maintenance)
         // Check maintenance status
         if (maintenance.completed) {
             throw IllegalArgumentException("Maintenance record with ID $maintenanceId is already completed")
-        }
-        // Check if incoming request will close the maintenance
-        if (maintenanceReq.completed) {
-            vehicle.status = CarStatus.AVAILABLE
         }
         maintenance.defects = maintenanceReq.defects
         maintenance.completed = maintenanceReq.completed
