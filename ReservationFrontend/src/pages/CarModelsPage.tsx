@@ -148,9 +148,9 @@ function CarModelsPage({
                 </div>
                 <div className="grow flex flex-col">
                     {
-                        <div className="grid grid-cols-3 mt-3 justify-between mx-8">
-                            <div></div>
-                            <div className="flex gap-2 w-full items-center">
+                        <div className="grid grid-cols-12 mt-3 justify-between mx-8">
+                            <div className="col-span-3"></div>
+                            <div className="flex gap-2 col-span-6 w-full items-center">
                                 <div className="flex flex-col w-full items-center gap-2">
                                     <div className="text-center text-base font-semibold">
                                         Car availability range
@@ -207,7 +207,7 @@ function CarModelsPage({
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex gap-3 justify-end items-end">
+                            <div className="flex col-span-3 gap-3 justify-end items-end">
                                 {!filtersSidebarOpen && (
                                     <Select value={sort} onValueChange={setSort}>
                                         <SelectTrigger className="w-[200px] overflow-x-clip">
@@ -295,9 +295,7 @@ function CarModelsPage({
                                     setFilter({...filter, search: value});
                                 }}
                                 //onKeyDown={() => fetchModels(filter)}
-                            >
-
-                            </Input>
+                            ></Input>
                             <Button
                                 size="icon"
                                 variant="default"
