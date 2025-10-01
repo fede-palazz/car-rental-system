@@ -24,6 +24,7 @@ import { DateRange } from "react-day-picker";
 import UserAPI from "./API/UserAPI.ts";
 import { toast } from "sonner";
 import { setCsrfToken } from "./API/csrfToken.ts";
+import ChangeVehicleOrDeleteReservationDialog from "./components/Forms/Reservation/ChangeVehicleOrDeleteReservationDialog.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -152,7 +153,9 @@ function App() {
             </Route>
             <Route
               path={"/reservations"}
-              element={<ReservationsPage />}>
+              element={
+                user ? <ReservationsPage /> : <Navigate to="/"></Navigate>
+              }>
               <Route
                 path="pick-up-date"
                 element={
@@ -160,6 +163,15 @@ function App() {
                     <Navigate to="/reservations"></Navigate>
                   ) : (
                     <SetActualPickupDateDialog />
+                  )
+                }></Route>
+              <Route
+                path="change-vehicle"
+                element={
+                  user && user.role == UserRole.CUSTOMER ? (
+                    <Navigate to="/reservations"></Navigate>
+                  ) : (
+                    <ChangeVehicleOrDeleteReservationDialog />
                   )
                 }></Route>
               <Route

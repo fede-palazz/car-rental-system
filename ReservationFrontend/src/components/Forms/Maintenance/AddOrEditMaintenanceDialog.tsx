@@ -9,24 +9,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Control, useForm } from "react-hook-form";
+import { Form } from "@/components/ui/form";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { MaintenanceReqDTO } from "@/models/dtos/request/MaintenanceReqDTO";
 import MaintenancesAPI from "@/API/MaintenancesAPI";
 import { Maintenance } from "@/models/Maintenance";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useParams } from "react-router-dom";
-import { toast } from "sonner";
+import AddOrEditMaintenanceForm from "./AddOrEditMaintenanceForm";
 
 const maintenanceSchema = z.object({
   defects: z.string().min(1, "Defects must not be blank"),
@@ -119,6 +110,11 @@ export default function AddOrEditMaintenanceDialog() {
         </DialogHeader>
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <AddOrEditMaintenanceForm
+              control={
+                form.control as unknown as Control
+              }></AddOrEditMaintenanceForm>
+            {/*
             <FormField
               control={form.control}
               name="type"
@@ -196,7 +192,7 @@ export default function AddOrEditMaintenanceDialog() {
                   </FormControl>
                 </FormItem>
               )}
-            />
+            />*/}
             <DialogFooter className="col-span-full ">
               <div className="flex items-center justify-between w-full">
                 <Button
