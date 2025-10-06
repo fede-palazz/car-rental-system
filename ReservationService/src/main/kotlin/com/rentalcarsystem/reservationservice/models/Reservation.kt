@@ -53,5 +53,6 @@ class Reservation(
     // Staff members who handled the reservation
     var pickUpStaffUsername : String?=null,
     var dropOffStaffUsername : String?=null,
+    var updatedVehicleStaffUsername : String?=null,
 
     ) : BaseEntity<Long>()

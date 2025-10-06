@@ -1,11 +1,7 @@
 package com.rentalcarsystem.reservationservice.repositories
 
 import com.rentalcarsystem.reservationservice.enums.ReservationStatus
-import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Reservation
-import com.rentalcarsystem.reservationservice.models.Vehicle
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -28,33 +24,6 @@ interface ReservationRepository : JpaRepository<Reservation, Long>, JpaSpecifica
         @Param("startDate") startDate: LocalDateTime,
         @Param("endDate") endDate: LocalDateTime
     ): Int
-
-    @Query(
-        """
-        SELECT v FROM Vehicle v
-        WHERE v.carModel = :carModel
-        AND NOT EXISTS (
-            SELECT r FROM Reservation r
-            WHERE r.vehicle = v
-            AND r.plannedPickUpDate < :desiredEndWithBuffer
-            AND r.plannedDropOffDate > :desiredStartWithBuffer
-        )
-        AND NOT EXISTS (
-            SELECT m FROM Maintenance m
-            WHERE m.vehicle = v
-            AND m.startDate <= :desiredEnd
-            AND m.plannedEndDate >= :desiredStart
-        )
-        """
-    )
-    fun findAvailableVehiclesByModelAndDateRange(
-        @Param("carModel") carModel: CarModel,
-        @Param("desiredStartWithBuffer") desiredStartWithBuffer: LocalDateTime,
-        @Param("desiredEndWithBuffer") desiredEndWithBuffer: LocalDateTime,
-        @Param("desiredStart") desiredStart: LocalDateTime,
-        @Param("desiredEnd") desiredEnd: LocalDateTime,
-        pageable: Pageable
-    ): Page<Vehicle>
 
     fun existsByCustomerUsernameAndStatus(customerUsername: String, status: ReservationStatus): Boolean
 

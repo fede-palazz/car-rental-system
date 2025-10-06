@@ -19,6 +19,7 @@ CREATE TABLE reservations
     dirtiness_level          INTEGER,
     pick_up_staff_username   VARCHAR(255),
     drop_off_staff_username  VARCHAR(255),
+    updated_vehicle_staff_username VARCHAR(255),
     CONSTRAINT pk_reservations PRIMARY KEY (id)
 );
 
@@ -32,14 +33,14 @@ INSERT INTO reservations (
     planned_drop_off_date, actual_drop_off_date,
     status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
-    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username
+    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
              1, 'customer1', 1, '2025-04-01 09:00:00',
              '2025-04-03 10:00:00', '2025-04-03 10:00:00',
              '2025-04-10 10:00:00', '2025-04-10 09:45:00',
              'CONFIRMED',
              320.00,
-             NULL, FALSE, FALSE, 0, 0, 'staff', 'staff'
+             NULL, FALSE, FALSE, 0, 0, 'staff', 'staff', 'staff'
          );
 
 
@@ -50,14 +51,14 @@ INSERT INTO reservations (
     planned_drop_off_date, actual_drop_off_date,
     status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
-    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username
+    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
              2, 'customer2', 2, '2025-04-05 12:00:00',
              '2025-04-06 09:00:00', '2025-04-06 10:30:00',
              '2025-04-12 09:00:00', '2025-04-12 10:00:00',
              'CONFIRMED',
              280.00,
-             TRUE, TRUE, TRUE, 2, 1, 'staff', 'staff'
+             TRUE, TRUE, TRUE, 2, 1, 'staff', 'staff', 'staff'
          );
 
 -- Reservation 3: Cancelled before pickup
@@ -67,14 +68,14 @@ INSERT INTO reservations (
     planned_drop_off_date, actual_drop_off_date,
     status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
-    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username
+    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
              3, 'customer1', 3, '2025-04-07 15:00:00',
              '2025-04-09 08:00:00', NULL,
              '2025-05-15 08:00:00', NULL,
              'CONFIRMED',
              269.50,
-             NULL, NULL, NULL, NULL, NULL, NULL, NULL
+             NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
          );
 
 -- Reservation 4: Accident involved
@@ -84,13 +85,13 @@ INSERT INTO reservations (
     planned_drop_off_date, actual_drop_off_date,
     status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
-    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username
+    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
              4, 'customer2', 4, '2025-04-10 11:00:00',
              '2025-04-11 09:00:00', '2025-04-11 09:15:00',
              '2025-04-17 09:00:00', '2025-04-17 10:00:00',
              'CONFIRMED',
              700.00,
-             TRUE, TRUE, TRUE, 3, 2, 'staff', 'staff'
+             TRUE, TRUE, TRUE, 3, 2, 'staff', 'staff', 'staff'
          );
 SELECT setval('reservations_seq', (SELECT MAX(id) FROM reservations));

@@ -23,6 +23,7 @@ import com.rentalcarsystem.reservationservice.filters.PaymentRecordFilter
 import com.rentalcarsystem.reservationservice.filters.ReservationFilter
 import com.rentalcarsystem.reservationservice.models.*
 import com.rentalcarsystem.reservationservice.repositories.ReservationRepository
+import com.rentalcarsystem.reservationservice.repositories.VehicleRepository
 import jakarta.persistence.criteria.Join
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -51,6 +52,7 @@ import java.time.temporal.ChronoUnit
 class ReservationServiceImpl(
     private val carModelService: CarModelService,
     private val vehicleService: VehicleService,
+    private val vehicleRepository: VehicleRepository,
     private val reservationRepository: ReservationRepository,
     private val userManagementRestClient: RestClient,
     private val paymentServiceRestClient: RestClient,
@@ -374,7 +376,10 @@ class ReservationServiceImpl(
         val reservation = getReservationById(reservationId)
         // Check if reservation is still active (car not returned yet)
         if (reservation.status == ReservationStatus.DELIVERED) {
-            throw IllegalArgumentException("The reservation $reservationId has already been finalized")
+            throw FailureException(
+                ResponseEnum.RESERVATION_WRONG_STATUS,
+                "The reservation $reservationId has already been finalized"
+            )
         }
         if (actualPickUpDate.actualPickUpDate.isBefore(reservation.plannedPickUpDate)) {
             throw IllegalArgumentException("The actual pick-up date cannot be before the planned pick-up date: ${reservation.plannedPickUpDate}")
@@ -393,14 +398,12 @@ class ReservationServiceImpl(
         reservationId: Long,
         @Valid finalizeReq: FinalizeReservationReqDTO
     ): StaffReservationResDTO {
-        val reservation = reservationRepository.findById(reservationId).orElseThrow {
-            FailureException(
-                ResponseEnum.RESERVATION_NOT_FOUND,
-                "The requested reservation with id $reservationId was not found"
-            )
-        }
+        val reservation =  getReservationById(reservationId)
         if (reservation.status == ReservationStatus.CONFIRMED) {
-            throw IllegalArgumentException("The vehicle of reservation $reservationId has not been picked up yet")
+            throw FailureException(
+                ResponseEnum.RESERVATION_WRONG_STATUS,
+                "The vehicle of reservation $reservationId has not been picked up yet"
+            )
         }
         if (finalizeReq.actualDropOffDate.isBefore(reservation.plannedDropOffDate)) {
             throw IllegalArgumentException("The actual drop-off date cannot be before the planned drop off date: ${reservation.plannedDropOffDate}")
@@ -465,6 +468,36 @@ class ReservationServiceImpl(
         if (updatedCustomerRes != null && updatedCustomerRes.eligibilityScore != newScore) {
             throw RuntimeException("Failed to update customer's score")
         }
+        return reservation.toStaffReservationResDTO()
+    }
+
+    override fun updateReservationVehicle(
+        updatedVehicleStaffUsername: String,
+        reservationId: Long,
+        vehicleId: Long
+    ): StaffReservationResDTO {
+        val reservation = getReservationById(reservationId)
+        if (reservation.status == ReservationStatus.CANCELLED
+            || reservation.status == ReservationStatus.PICKED_UP
+            || reservation.status == ReservationStatus.DELIVERED) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_WRONG_STATUS,
+                "Cannot update reservation $reservationId as it has already been cancelled, picked up or delivered"
+            )
+        }
+        val vehicle = vehicleRepository.findAvailableVehicleByIdAndDateRange(
+            vehicleId = vehicleService.getVehicleById(vehicleId).getId()!!,
+            reservationToExcludeId = reservation.getId()!!,
+            desiredStartWithBuffer = reservation.plannedPickUpDate.minusDays(reservationBufferDays),
+            desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),
+            desiredStart = reservation.plannedPickUpDate,
+            desiredEnd = reservation.plannedDropOffDate
+        ) ?: throw FailureException(
+            ResponseEnum.VEHICLE_NOT_AVAILABLE,
+            "The requested vehicle is not available for the selected dates"
+        )
+        reservation.updatedVehicleStaffUsername = updatedVehicleStaffUsername
+        vehicle.addReservation(reservation)
         return reservation.toStaffReservationResDTO()
     }
 
@@ -621,7 +654,7 @@ class ReservationServiceImpl(
                 "Your score is too low to reserve a vehicle of category ${carModel.category}"
             )
         }
-        val vehicle = reservationRepository.findAvailableVehiclesByModelAndDateRange(
+        val vehicle = vehicleRepository.findAvailableVehiclesByModelAndDateRange(
             carModel = carModel,
             desiredStartWithBuffer = reservation.plannedPickUpDate.minusDays(reservationBufferDays),
             desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),

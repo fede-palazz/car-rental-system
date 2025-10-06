@@ -36,6 +36,7 @@ enum class ResponseEnum(
     RESERVATION_INSUFFICIENT_SCORE(4401, "Insufficient score", HttpStatus.CONFLICT),
     RESERVATION_FORBIDDEN(4402, "Forbidden reservation", HttpStatus.FORBIDDEN),
     RESERVATION_PENDING(4403, "Pending reservation", HttpStatus.CONFLICT),
+    RESERVATION_WRONG_STATUS(4404, "Wrong reservation status", HttpStatus.CONFLICT),
 
     // Payment error
     PAYMENT_ERROR(4500, "Payment error", HttpStatus.INTERNAL_SERVER_ERROR);

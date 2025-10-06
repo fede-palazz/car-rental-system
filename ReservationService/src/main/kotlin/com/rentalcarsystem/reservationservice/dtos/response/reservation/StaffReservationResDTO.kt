@@ -12,6 +12,7 @@ data class StaffReservationResDTO(
     val dirtinessLevel: Int?,
     val pickUpStaffUsername: String?,
     val dropOffStaffUsername: String?,
+    val updatedVehicleStaffUsername: String?,
 )
 
 fun Reservation.toStaffReservationResDTO() = StaffReservationResDTO(
@@ -24,4 +25,5 @@ fun Reservation.toStaffReservationResDTO() = StaffReservationResDTO(
     dirtinessLevel = this.dirtinessLevel,
     pickUpStaffUsername = this.pickUpStaffUsername,
     dropOffStaffUsername = this.dropOffStaffUsername,
+    updatedVehicleStaffUsername = this.updatedVehicleStaffUsername,
 )

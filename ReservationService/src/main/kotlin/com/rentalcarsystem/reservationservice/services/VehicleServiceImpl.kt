@@ -140,7 +140,7 @@ class VehicleServiceImpl(
             FailureException(ResponseEnum.CAR_MODEL_NOT_FOUND, "Car model with ID $carModelId not found")
         }
         val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
-        val pageResult = reservationRepository.findAvailableVehiclesByModelAndDateRange(
+        val pageResult = vehicleRepository.findAvailableVehiclesByModelAndDateRange(
             carModel = carModel,
             desiredStartWithBuffer = desiredStart.minusDays(reservationBufferDays),
             desiredEndWithBuffer = desiredEnd.plusDays(reservationBufferDays),

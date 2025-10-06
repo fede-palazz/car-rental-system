@@ -389,6 +389,7 @@ class ReservationController(
             ),
             ApiResponse(responseCode = "400", content = [Content()]),
             ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()])
         ]
     )
@@ -434,6 +435,7 @@ class ReservationController(
             ),
             ApiResponse(responseCode = "400", content = [Content()]),
             ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()])
         ]
     )
@@ -453,6 +455,42 @@ class ReservationController(
 
         val updatedReservation = reservationService.finalizeReservation(username, reservationId, finalizeReservation)
         logger.info("Finalized reservation {}: {}", reservationId, mapper.writeValueAsString(updatedReservation))
+        return ResponseEntity.ok(updatedReservation)
+    }
+
+    @Operation(
+        summary = "Update reservation's vehicle",
+        description = "Updates the vehicle of the given reservation with the given vehicle, only if it is available in the date range of such reservation",
+        responses = [
+            ApiResponse(
+                responseCode = "200", content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = StaffReservationResDTO::class)
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()])
+        ]
+    )
+    @PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
+    @PutMapping("{reservationId}/vehicle/{vehicleId}")
+    fun updateReservationVehicle(
+        @PathVariable reservationId: Long,
+        @PathVariable vehicleId: Long
+    ): ResponseEntity<StaffReservationResDTO> {
+        require(reservationId > 0) { "Invalid reservation id $reservationId: it must be a positive number" }
+        require(vehicleId > 0) { "Invalid vehicle id $vehicleId: it must be a positive number" }
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val updatedReservation = reservationService.updateReservationVehicle(username, reservationId, vehicleId)
+        logger.info("Updated vehicle of reservation {}: {}", reservationId, mapper.writeValueAsString(updatedReservation))
         return ResponseEntity.ok(updatedReservation)
     }
 

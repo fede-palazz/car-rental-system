@@ -47,6 +47,12 @@ interface ReservationService {
         @Valid finalizeReq: FinalizeReservationReqDTO
     ): StaffReservationResDTO
 
+    fun updateReservationVehicle(
+        updatedVehicleStaffUsername: String,
+        reservationId: Long,
+        vehicleId: Long
+    ): StaffReservationResDTO
+
     fun deleteReservation(reservationId: Long)
 
     fun createPaymentRequest(reservationId: Long, customerUsername: String): PaymentResDTO
