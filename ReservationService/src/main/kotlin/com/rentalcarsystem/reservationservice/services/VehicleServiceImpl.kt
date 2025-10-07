@@ -16,6 +16,7 @@ import com.rentalcarsystem.reservationservice.repositories.CarModelRepository
 import com.rentalcarsystem.reservationservice.repositories.VehicleRepository
 import jakarta.persistence.criteria.Join
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -36,6 +37,8 @@ class VehicleServiceImpl(
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long
 ) : VehicleService {
+    private val logger = LoggerFactory.getLogger(VehicleServiceImpl::class.java)
+
     override fun getVehicles(
         page: Int,
         size: Int,
@@ -211,12 +214,14 @@ class VehicleServiceImpl(
         maintenanceVehicles.forEach { vehicle ->
             if (vehicle.status == CarStatus.AVAILABLE) {
                 vehicle.status = CarStatus.IN_MAINTENANCE
+                logger.info("Set Vehicle {} as in maintenance", vehicle.getId()!!)
             }
         }
         val reservationVehicles = vehicleRepository.findByReservationPlannedPickUpDateBetween(today, endOfToday)
         reservationVehicles.forEach { vehicle ->
             if (vehicle.status == CarStatus.AVAILABLE) {
                 vehicle.status = CarStatus.RENTED
+                logger.info("Set Vehicle {} as rented", vehicle.getId()!!)
             }
         }
     }

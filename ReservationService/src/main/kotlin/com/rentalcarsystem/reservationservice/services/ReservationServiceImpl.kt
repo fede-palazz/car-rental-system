@@ -1,6 +1,5 @@
 package com.rentalcarsystem.reservationservice.services
 
-import com.rentalcarsystem.reservationservice.controllers.MaintenanceController
 import com.rentalcarsystem.reservationservice.dtos.request.PaymentReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.UserUpdateReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.reservation.ActualPickUpDateReqDTO
@@ -16,6 +15,7 @@ import com.rentalcarsystem.reservationservice.dtos.response.reservation.StaffRes
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.toCustomerReservationResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.toStaffReservationResDTO
 import com.rentalcarsystem.reservationservice.enums.CarCategory
+import com.rentalcarsystem.reservationservice.enums.CarStatus
 import com.rentalcarsystem.reservationservice.enums.ReservationStatus
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
@@ -35,6 +35,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -42,6 +43,7 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -57,6 +59,7 @@ class ReservationServiceImpl(
     private val userManagementRestClient: RestClient,
     private val paymentServiceRestClient: RestClient,
     private val keycloakTokenRestClient: RestClient,
+    private val taskScheduler: TaskScheduler,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long,
     @Value("\${spring.security.oauth2.client.registration.keycloak.client-id}")
@@ -66,7 +69,7 @@ class ReservationServiceImpl(
     @Value("\${reservation.expiration-offset-minutes}")
     private val expirationOffsetMinutes: Long
 ) : ReservationService {
-    private val logger = LoggerFactory.getLogger(MaintenanceController::class.java)
+    private val logger = LoggerFactory.getLogger(ReservationServiceImpl::class.java)
 
     fun getAccessToken(): String {
         val body = LinkedMultiValueMap<String, String>().apply {
@@ -460,7 +463,7 @@ class ReservationServiceImpl(
             eligibilityScore = newScore
         )
         val updatedCustomerRes =
-            userManagementRestClient.put().uri("/username/{username}", reservation.customerUsername).body(updatedCustomer)
+            userManagementRestClient.put().uri("/{userId}", customer.id).body(updatedCustomer)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                     APPLICATION_JSON
                 ).retrieve().body<UserResDTO>()
@@ -468,6 +471,7 @@ class ReservationServiceImpl(
         if (updatedCustomerRes != null && updatedCustomerRes.eligibilityScore != newScore) {
             throw RuntimeException("Failed to update customer's score")
         }
+        reservation.vehicle?.let { scheduleVehicleAvailabilityUpdate(it) }
         return reservation.toStaffReservationResDTO()
     }
 
@@ -683,5 +687,16 @@ class ReservationServiceImpl(
             reservation.status = ReservationStatus.EXPIRED
             logger.info("Set Reservation {} as expired", reservation.getId()!!)
         }
+    }
+
+    fun scheduleVehicleAvailabilityUpdate(vehicle: Vehicle) {
+        val runAt = Instant.now().plus(reservationBufferDays, ChronoUnit.DAYS)
+        taskScheduler.schedule({
+            if (vehicle.status == CarStatus.RENTED) {
+                vehicle.status = CarStatus.AVAILABLE
+                vehicleRepository.save(vehicle)
+                logger.info("Set Vehicle {} as available", vehicle.getId()!!)
+            }
+        }, runAt)
     }
 }
