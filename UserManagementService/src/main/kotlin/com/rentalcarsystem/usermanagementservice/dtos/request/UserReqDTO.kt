@@ -22,7 +22,7 @@ data class UserReqDTO(
     val phone: String,
     @field:NotBlank(message = "Address must not be blank")
     val address: String,
-    @field:NotNull(message = "Category must not be blank")
+    @field:NotNull(message = "Role must not be null")
     val role: UserRole,
 )
 

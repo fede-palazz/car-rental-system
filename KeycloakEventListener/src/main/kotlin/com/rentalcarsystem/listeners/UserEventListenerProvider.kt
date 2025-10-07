@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture
 class UserEventListenerProvider(
     private val session: KeycloakSession,
     private val webhookUrl: String,
-    private val enabledEvents: Set<EventType> = setOf(EventType.REGISTER, EventType.LOGIN),
+    private val enabledEvents: Set<EventType> = setOf(EventType.REGISTER, EventType.UPDATE_PROFILE, EventType.LOGIN),
     private val retryAttempts: Int = 3,
     private val timeoutMs: Int = 5000
 ) : EventListenerProvider {
@@ -30,20 +30,41 @@ class UserEventListenerProvider(
 
     override fun onEvent(event: Event) {
         when (event.type) {
-            event.type -> {
-                logger.info("Registrato")
+            EventType.REGISTER -> {
+                logger.info("User Registration Event")
+                handleUserRegistration(event)
             }
 
-            event.type -> {
-                logger.info("Update")
+            EventType.UPDATE_PROFILE -> {
+                logger.info("User Update profile Event")
             }
 
-            event.type -> {
-                logger.info("MACHINELEAJOPFHOAUHNAçNF")
+            EventType.LOGIN -> {
+                logger.info("User Login Event")
+
+                val realm = session.context.realm
+                val user = session.users().getUserById(realm, event.userId)
+                val payload = UserEventPayload(
+                    eventType = "LOGIN",
+                    userId = event.userId,
+                    username = user.username,
+                    email = user.email,
+                    firstName = user.firstName,
+                    lastName = user.lastName,
+                    timestamp = event.time,
+                    realmId = event.realmId,
+                    clientId = event.clientId,
+                    ipAddress = event.ipAddress,
+                    sessionId = event.sessionId,
+                    userAttributes = user.attributes.mapValues { it.value.firstOrNull() },
+                    details = event.details
+                )
+                val jsonPayload = objectMapper.writeValueAsString(payload)
+                logger.info(jsonPayload)
             }
 
             else -> {
-                logger.info("Stocazzo")
+                logger.info("Unmapped event occurred: " + event.type)
             }
         }
     }
@@ -72,20 +93,15 @@ class UserEventListenerProvider(
         val user = session.users().getUserById(realm, event.userId)
 
         if (user != null) {
-            val payload = UserEventPayload(
-                eventType = "REGISTER",
-                userId = event.userId,
+            val payload = UserReqDTO(
+                //userId = event.userId,
                 username = user.username,
                 email = user.email,
                 firstName = user.firstName,
                 lastName = user.lastName,
-                timestamp = event.time,
-                realmId = event.realmId,
-                clientId = event.clientId,
-                ipAddress = event.ipAddress,
-                sessionId = event.sessionId,
-                userAttributes = user.attributes.mapValues { it.value.firstOrNull() },
-                details = event.details
+                phone = user.attributes.getValue("phone").toString(),
+                address = user.attributes.getValue("address").toString(),
+                role = "CUSTOMER"
             )
 
             sendWebhookAsync(payload)
@@ -108,12 +124,12 @@ class UserEventListenerProvider(
             details = event.details
         )
 
-        sendWebhookAsync(payload)
+        //sendWebhookAsync(payload)
         logger.info("User login event processed for: ${event.userId}")
     }
 
 
-    private fun sendWebhookAsync(payload: UserEventPayload) {
+    private fun sendWebhookAsync(payload: UserReqDTO) {
         CompletableFuture.runAsync {
             sendWebhookWithRetry(payload, retryAttempts)
         }.exceptionally { ex ->
@@ -122,7 +138,7 @@ class UserEventListenerProvider(
         }
     }
 
-    private fun sendWebhookWithRetry(payload: UserEventPayload, attemptsLeft: Int) {
+    private fun sendWebhookWithRetry(payload: UserReqDTO, attemptsLeft: Int) {
         try {
             val success = sendWebhook(payload)
             if (!success && attemptsLeft > 1) {
@@ -135,20 +151,20 @@ class UserEventListenerProvider(
                 Thread.sleep(1000)
                 sendWebhookWithRetry(payload, attemptsLeft - 1)
             } else {
-                logger.error("All webhook attempts failed for event: ${payload.eventType}", e)
+                logger.error("All webhook attempts failed", e)
             }
         }
     }
 
-    private fun sendWebhook(payload: UserEventPayload): Boolean {
+    private fun sendWebhook(payload: UserReqDTO): Boolean {
         return try {
             val jsonPayload = objectMapper.writeValueAsString(payload)
 
             val httpPost = HttpPost(webhookUrl).apply {
                 setHeader("Content-Type", "application/json")
                 setHeader("User-Agent", "Keycloak-Event-Listener/1.0")
-                setHeader("X-Event-Type", payload.eventType)
-                setHeader("X-User-Id", payload.userId)
+//                setHeader("X-Event-Type", payload.eventType)
+//                setHeader("X-User-Id", payload.userId)
                 entity = StringEntity(jsonPayload, "UTF-8")
             }
 
@@ -159,22 +175,22 @@ class UserEventListenerProvider(
 
             when (statusCode) {
                 in 200..299 -> {
-                    logger.debug("Webhook sent successfully for ${payload.eventType}: $statusCode")
+                    logger.debug("Webhook sent successfully : $statusCode")
                     true
                 }
 
                 in 400..499 -> {
-                    logger.error("Webhook client error for ${payload.eventType}: $statusCode")
+                    logger.error("Webhook client error: $statusCode")
                     false // Don't retry client errors
                 }
 
                 else -> {
-                    logger.warn("Webhook server error for ${payload.eventType}: $statusCode")
+                    logger.warn("Webhook server error: $statusCode")
                     false // Retry server errors
                 }
             }
         } catch (e: Exception) {
-            logger.error("Error sending webhook for ${payload.eventType}", e)
+            logger.error("Error sending webhook: ", e)
             false
         }
     }
@@ -201,4 +217,14 @@ data class UserEventPayload(
     val userAttributes: Map<String, String?>? = null,
     val details: Map<String, String>? = null,
     val createdAt: String = Instant.now().toString()
+)
+
+data class UserReqDTO(
+    val username: String,
+    val firstName: String,
+    val lastName: String,
+    val email: String,
+    val phone: String,
+    val address: String,
+    val role: String,
 )

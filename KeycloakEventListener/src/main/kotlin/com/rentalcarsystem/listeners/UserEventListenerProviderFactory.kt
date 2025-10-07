@@ -31,8 +31,8 @@ class UserEventListenerProviderFactory : EventListenerProviderFactory {
     override fun init(configScope: Config.Scope) {
         logger.info("Initializing UserEventListenerProviderFactory")
         config = EventListenerConfig(
-            webhookUrl = configScope.get("webhookUrl", "http://localhost:8080/keycloak/events"),
-            enabledEvents = parseEnabledEvents(configScope.get("enabledEvents", "REGISTER,LOGIN")),
+            webhookUrl = configScope.get("webhookUrl", "http://localhost:8081/api/v1/users"),
+            enabledEvents = parseEnabledEvents(configScope.get("enabledEvents", "REGISTER,LOGIN,UPDATE_PROFILE")),
             retryAttempts = configScope.getInt("retryAttempts", 3),
             timeoutMs = configScope.getInt("timeoutMs", 5000)
         )
@@ -70,7 +70,7 @@ class UserEventListenerProviderFactory : EventListenerProviderFactory {
                 .also { events ->
                     if (events.isEmpty()) {
                         logger.warn("No valid events configured, using defaults")
-                        setOf(EventType.REGISTER, EventType.LOGIN)
+                        setOf(EventType.REGISTER, EventType.LOGIN, EventType.UPDATE_PROFILE)
                     } else {
                         logger.info("Enabled events: ${events.joinToString()}")
                         events
