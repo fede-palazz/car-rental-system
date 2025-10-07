@@ -6,13 +6,13 @@ import com.rentalcarsystem.reservationservice.dtos.request.toEntity
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.VehicleResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
+import com.rentalcarsystem.reservationservice.enums.CarStatus
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.VehicleFilter
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Vehicle
 import com.rentalcarsystem.reservationservice.repositories.CarModelRepository
-import com.rentalcarsystem.reservationservice.repositories.ReservationRepository
 import com.rentalcarsystem.reservationservice.repositories.VehicleRepository
 import jakarta.persistence.criteria.Join
 import jakarta.validation.Valid
@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
@@ -31,7 +32,6 @@ import java.time.LocalDateTime
 @Transactional
 class VehicleServiceImpl(
     private val carModelRepository: CarModelRepository,
-    private val reservationRepository: ReservationRepository,
     private val vehicleRepository: VehicleRepository,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long
@@ -200,5 +200,24 @@ class VehicleServiceImpl(
 
     override fun deleteAllByCarModelId(carModelId: Long) {
         vehicleRepository.deleteAllByCarModelId(carModelId)
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * *") // runs every day at midnight
+    fun updateVehicleStatusAtMidnight() {
+        val today = LocalDateTime.now()
+        val endOfToday = today.plusMinutes(1439) // from 00:00 to 23:59
+        val maintenanceVehicles = vehicleRepository.findByMaintenanceStartDateBetween(today, endOfToday)
+        maintenanceVehicles.forEach { vehicle ->
+            if (vehicle.status == CarStatus.AVAILABLE) {
+                vehicle.status = CarStatus.IN_MAINTENANCE
+            }
+        }
+        val reservationVehicles = vehicleRepository.findByReservationPlannedPickUpDateBetween(today, endOfToday)
+        reservationVehicles.forEach { vehicle ->
+            if (vehicle.status == CarStatus.AVAILABLE) {
+                vehicle.status = CarStatus.RENTED
+            }
+        }
     }
 }

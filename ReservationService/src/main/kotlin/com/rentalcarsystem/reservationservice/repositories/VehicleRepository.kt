@@ -83,4 +83,26 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
         @Param("desiredStart") desiredStart: LocalDateTime,
         @Param("desiredEnd") desiredEnd: LocalDateTime
     ): Vehicle?
+
+    @Query(
+        """
+        SELECT m.vehicle FROM Maintenance m
+        WHERE m.startDate BETWEEN :start AND :end
+        """
+    )
+    fun findByMaintenanceStartDateBetween(
+        @Param("start") start: LocalDateTime,
+        @Param("end") end: LocalDateTime
+    ): List<Vehicle>
+
+    @Query(
+        """
+        SELECT r.vehicle FROM Reservation r
+        WHERE r.plannedPickUpDate BETWEEN :start AND :end
+        """
+    )
+    fun findByReservationPlannedPickUpDateBetween(
+        @Param("start") start: LocalDateTime,
+        @Param("end") end: LocalDateTime
+    ): List<Vehicle>
 }
