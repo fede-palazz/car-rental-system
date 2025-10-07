@@ -3,6 +3,7 @@ package com.rentalcarsystem.reservationservice.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
+import com.rentalcarsystem.reservationservice.dtos.request.FinalizeMaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
@@ -73,8 +74,7 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
             "upcomingServiceNeeds",
             "startDate",
             "plannedEndDate",
-            "actualEndDate",
-            "fleetManagerUsername"
+            "actualEndDate"
         )
         if (sortBy !in allowedSortFields) {
             throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedSortFields")
@@ -185,6 +185,55 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         return ResponseEntity
             .created(location) // sets status 201 and Location header
             .body(createdMaintenance)
+    }
+
+    @Operation(
+        summary = "Finalize maintenance",
+        description = "Finalizes the given maintenance by setting the actual end date and the completed flag",
+        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = [Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = FinalizeMaintenanceReqDTO::class)
+            )]
+        ),
+        responses = [
+            ApiResponse(
+                responseCode = "200", content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = MaintenanceResDTO::class)
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()])
+        ]
+    )
+    @PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
+    @PutMapping("{maintenanceId}/finalize")
+    fun finalizeMaintenance(
+        @PathVariable vehicleId: Long,
+        @PathVariable maintenanceId: Long,
+        @RequestBody finalizeMaintenance: FinalizeMaintenanceReqDTO
+    ): ResponseEntity<MaintenanceResDTO> {
+        require(vehicleId > 0) { "Invalid vehicle id $vehicleId: it must be a positive number" }
+        require(maintenanceId > 0) { "Invalid maintenance id $maintenanceId: it must be a positive number" }
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val updatedMaintenance = maintenanceService.finalizeMaintenance(vehicleId, maintenanceId, finalizeMaintenance, username)
+        logger.info(
+            "Finalized maintenance record {} for vehicle {}: {}",
+            maintenanceId,
+            vehicleId,
+            mapper.writeValueAsString(updatedMaintenance)
+        )
+        return ResponseEntity.ok(updatedMaintenance)
     }
 
     @Operation(

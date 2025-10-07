@@ -27,6 +27,8 @@ enum class ResponseEnum(
 
     // Maintenance errors
     MAINTENANCE_NOT_FOUND(4300, "Maintenance record not found", HttpStatus.NOT_FOUND),
+    MAINTENANCE_WRONG_VEHICLE(4301, "Maintenance record does not belong to the specified vehicle", HttpStatus.CONFLICT),
+    MAINTENANCE_WRONG_STATUS(4302, "Wrong maintenance status", HttpStatus.CONFLICT),
 
     // Note errors
     NOTE_NOT_FOUND(4400, "Note not found", HttpStatus.NOT_FOUND),

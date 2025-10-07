@@ -11,25 +11,22 @@ data class MaintenanceReqDTO(
     @field:NotBlank(message = "Defects cannot be blank")
     val defects: String,
     @field:JsonDeserialize(using = CustomBooleanDeserializer::class)
-    val completed: Boolean,
-    @field:NotBlank(message = "Type cannot be blank")
+    val completed: Boolean?,
     val type: MaintenanceType,
     @field:NotBlank(message = "Upcoming service needs cannot be blank")
     val upcomingServiceNeeds: String,
-    @field:NotBlank(message = "Start date cannot be blank")
     val startDate: LocalDateTime,
-    @field:NotBlank(message = "Planned end date cannot be blank")
     val plannedEndDate: LocalDateTime,
     val actualEndDate: LocalDateTime?,
 )
 
 fun MaintenanceReqDTO.toEntity(username: String) = Maintenance(
     defects = this.defects,
-    completed = this.completed,
+    completed = this.completed ?: false,
     type = this.type,
     upcomingServiceNeeds = this.upcomingServiceNeeds,
     startDate = this.startDate,
     plannedEndDate = this.plannedEndDate,
     actualEndDate = this.actualEndDate,
-    fleetManagerUsername = username,
+    startFleetManagerUsername = username,
 )

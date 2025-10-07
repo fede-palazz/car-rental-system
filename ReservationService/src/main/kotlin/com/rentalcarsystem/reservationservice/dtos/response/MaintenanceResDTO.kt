@@ -12,8 +12,7 @@ data class MaintenanceResDTO(
     val upcomingServiceNeeds: String,
     val startDate: LocalDateTime,
     val plannedEndDate: LocalDateTime,
-    val actualEndDate: LocalDateTime?,
-    val fleetManagerUsername: String,
+    val actualEndDate: LocalDateTime?
 )
 
 fun Maintenance.toResDTO() = MaintenanceResDTO(
@@ -24,6 +23,5 @@ fun Maintenance.toResDTO() = MaintenanceResDTO(
     upcomingServiceNeeds = this.upcomingServiceNeeds,
     startDate = this.startDate,
     plannedEndDate = this.plannedEndDate,
-    actualEndDate = this.actualEndDate,
-    fleetManagerUsername = this.fleetManagerUsername,
+    actualEndDate = this.actualEndDate
 )

@@ -20,6 +20,5 @@ data class MaintenanceFilter(
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     val minActualEndDate: LocalDate? = null,
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    val maxActualEndDate: LocalDate? = null,
-    val fleetManagerUsername: String? = null
+    val maxActualEndDate: LocalDate? = null
 )

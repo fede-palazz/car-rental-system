@@ -26,11 +26,12 @@ class Maintenance(
     @Column(nullable = false)
     var plannedEndDate: LocalDateTime,
 
-    var actualEndDate: LocalDateTime?=null,
+    var actualEndDate: LocalDateTime? = null,
 
     @Column(nullable = false)
-    val fleetManagerUsername: String,
+    var startFleetManagerUsername: String,
 
+    var endFleetManagerUsername: String? = null,
 
     // A Maintenance Record belongs to one Vehicle only
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

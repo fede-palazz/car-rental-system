@@ -1,10 +1,12 @@
 package com.rentalcarsystem.reservationservice.services
 
+import com.rentalcarsystem.reservationservice.dtos.request.FinalizeMaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.toEntity
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
+import com.rentalcarsystem.reservationservice.enums.CarStatus
 import com.rentalcarsystem.reservationservice.enums.MaintenanceType
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
@@ -96,12 +98,6 @@ class MaintenanceServiceImpl(
                 cb.lessThanOrEqualTo(root.get("actualEndDate"), maxActualEndDate)
             }
         }
-        // fleetManagerUsername
-        filters.fleetManagerUsername?.takeIf { it.isNotBlank() }?.let { fleetManagerUsername ->
-            spec = spec.and { root, _, cb ->
-                cb.like(cb.lower(root.get("fleetManagerUsername")), "${fleetManagerUsername.lowercase()}%")
-            }
-        }
         // Vehicle
         spec = spec.and { root, _, cb ->
             cb.equal(root.get<Vehicle>("vehicle"), vehicle)
@@ -142,6 +138,29 @@ class MaintenanceServiceImpl(
         return maintenanceRepository.save(maintenance).toResDTO()
     }
 
+    override fun finalizeMaintenance(
+        vehicleId: Long,
+        maintenanceId: Long,
+        finalizeMaintenanceReq: FinalizeMaintenanceReqDTO,
+        username: String
+    ): MaintenanceResDTO {
+        // Check if maintenance record exists
+        val maintenance = getActualMaintenanceById(maintenanceId)
+        checkMaintenanceVehicleMatch(vehicleId, maintenance)
+        // Check maintenance status
+        if (maintenance.completed) {
+            throw FailureException(ResponseEnum.MAINTENANCE_WRONG_STATUS, "Maintenance record with ID $maintenanceId was already finalized")
+        }
+        if (finalizeMaintenanceReq.actualEndDate.isBefore(maintenance.startDate)) {
+            throw IllegalArgumentException("Actual end date must be after start date")
+        }
+        maintenance.actualEndDate = finalizeMaintenanceReq.actualEndDate
+        maintenance.completed = true
+        maintenance.endFleetManagerUsername = username
+        maintenance.vehicle?.status = CarStatus.AVAILABLE
+        return maintenance.toResDTO()
+    }
+
     override fun updateMaintenance(
         vehicleId: Long,
         maintenanceId: Long,
@@ -152,15 +171,13 @@ class MaintenanceServiceImpl(
         checkMaintenanceVehicleMatch(vehicleId, maintenance)
         // Check maintenance status
         if (maintenance.completed) {
-            throw IllegalArgumentException("Maintenance record with ID $maintenanceId is already completed")
+            throw FailureException(ResponseEnum.MAINTENANCE_WRONG_STATUS, "Maintenance record with ID $maintenanceId is already completed")
         }
         maintenance.defects = maintenanceReq.defects
-        maintenance.completed = maintenanceReq.completed
         maintenance.type = maintenanceReq.type
         maintenance.upcomingServiceNeeds = maintenanceReq.upcomingServiceNeeds
         maintenance.startDate = maintenanceReq.startDate
         maintenance.plannedEndDate = maintenanceReq.plannedEndDate
-        maintenance.actualEndDate = maintenanceReq.actualEndDate ?: maintenance.actualEndDate
         return maintenance.toResDTO()
     }
 
@@ -179,7 +196,7 @@ class MaintenanceServiceImpl(
 
     private fun checkMaintenanceVehicleMatch(vehicleId: Long, maintenance: Maintenance) {
         if (maintenance.vehicle?.getId() != vehicleId) {
-            throw IllegalArgumentException("Maintenance record with ID ${maintenance.getId()} does not belong to vehicle with ID $vehicleId")
+            throw FailureException(ResponseEnum.MAINTENANCE_WRONG_VEHICLE, "Maintenance record with ID ${maintenance.getId()} does not belong to vehicle with ID $vehicleId")
         }
     }
 }
