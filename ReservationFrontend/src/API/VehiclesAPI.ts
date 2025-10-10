@@ -159,12 +159,52 @@ async function editVehicleById(
   }
 }
 
+async function getAvailableVehicles(
+  carModelId: number,
+  desiredStartDate: Date,
+  desiredEndDate: Date,
+  order: string = "asc",
+  sort: string = "vin",
+  page: number = 0,
+  size: number = 9
+): Promise<PagedResDTO<Vehicle>> {
+  const queryParams = `carModelId=${carModelId}&desiredStart=${desiredStartDate.toISOString()}&desiredEnd=${desiredEndDate.toISOString()}&order=${encodeURIComponent(
+    order
+  )}&sort=${encodeURIComponent(sort)}&page=${encodeURIComponent(
+    page
+  )}&size=${encodeURIComponent(size)}`;
+
+  const response = await fetch(baseURL + `vehicles/available?${queryParams}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.ok) {
+    const res = await response.json();
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    }
+    throw new Error(
+      errDetail.error || "Something went wrong, please reload the page"
+    );
+  }
+}
+
 const VehicleAPI = {
   getAllVehicles,
   getVehicleById,
   deleteVehicleById,
   createVehicle,
   editVehicleById,
+  getAvailableVehicles,
 };
 
 export default VehicleAPI;

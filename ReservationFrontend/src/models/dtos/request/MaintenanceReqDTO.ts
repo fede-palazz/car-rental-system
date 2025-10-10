@@ -1,6 +1,7 @@
 export interface MaintenanceReqDTO {
+  startDate: Date;
+  plannedEndDate: Date;
   defects: string;
-  completed: boolean;
   type: string;
-  upcomingServiceNeeds?: string;
+  upcomingServiceNeeds: string;
 }

@@ -20,10 +20,25 @@ import { useParams } from "react-router-dom";
 import AddOrEditMaintenanceForm from "./AddOrEditMaintenanceForm";
 
 const maintenanceSchema = z.object({
+  startDate: z
+    .date({
+      required_error: "Start Date is required",
+      invalid_type_error: "Start Date must be a valid date",
+    })
+    .refine((date) => date >= new Date(), {
+      message: "Start Date cannot be in the past",
+    }),
+  plannedEndDate: z
+    .date({
+      required_error: "Planned End Date is required",
+      invalid_type_error: "Planned End Date must be a valid date",
+    })
+    .refine((date) => date >= new Date(), {
+      message: "Planned End Date cannot be in the past",
+    }),
   defects: z.string().min(1, "Defects must not be blank"),
   type: z.string().min(1, "Type must not be blank"),
-  upcomingServiceNeeds: z.string().optional(),
-  completed: z.boolean(),
+  upcomingServiceNeeds: z.string(), //.optional(),
 });
 
 export default function AddOrEditMaintenanceDialog() {
@@ -36,9 +51,10 @@ export default function AddOrEditMaintenanceDialog() {
   const form = useForm<MaintenanceReqDTO>({
     resolver: zodResolver(maintenanceSchema),
     defaultValues: {
+      startDate: new Date(),
+      plannedEndDate: undefined,
       defects: "",
       type: "",
-      completed: false,
       upcomingServiceNeeds: "",
     },
   });

@@ -16,23 +16,43 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { Reservation } from "@/models/Reservation";
 import ChangeVehicleOrDeleteReservationForm from "./ChangeVehicleOrDeleteReservationForm";
 import AddOrEditMaintenanceForm from "../Maintenance/AddOrEditMaintenanceForm";
+import { useState } from "react";
+import MaintenancesAPI from "@/API/MaintenancesAPI";
+import { MaintenanceReqDTO } from "@/models/dtos/request/MaintenanceReqDTO";
+import ReservationsAPI from "@/API/ReservationsAPI";
+import { toast } from "sonner";
 
 const editVehicleSchema = z.object({
   reservationId: z.number({
     required_error: "Reservation is required",
     invalid_type_error: "Reservation id must be a number",
   }),
-  vehicleId: z.number({
+  newVehicleId: z.number({
     required_error: "Vehicle is required",
     invalid_type_error: "Vehicle id must be a number",
   }),
 });
 
 const maintenanceSchema = z.object({
+  startDate: z
+    .date({
+      required_error: "Start Date is required",
+      invalid_type_error: "Start Date must be a valid date",
+    })
+    .refine((date) => date >= new Date(), {
+      message: "Start Date cannot be in the past",
+    }),
+  plannedEndDate: z
+    .date({
+      required_error: "Planned End Date is required",
+      invalid_type_error: "Planned End Date must be a valid date",
+    })
+    .refine((date) => date >= new Date(), {
+      message: "Planned End Date cannot be in the past",
+    }),
   defects: z.string().min(1, "Defects must not be blank"),
   type: z.string().min(1, "Type must not be blank"),
-  upcomingServiceNeeds: z.string().optional(),
-  completed: z.boolean(),
+  upcomingServiceNeeds: z.string(), //.optional(),
 });
 
 const {
@@ -72,14 +92,68 @@ function StepperizedForm({
       reservationId: reservation.id,
       oldVehicleId: reservation.vehicleId,
       newVehicleId: undefined,
+      //Maintenance
+      startDate: new Date(),
+      plannedEndDate: undefined,
       defects: "",
       type: "",
-      completed: false,
       upcomingServiceNeeds: "",
     },
   });
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState<boolean>(false);
 
-  function onSubmit() {}
+  function handleChangeReservationVehicle() {
+    const newVehicleId = form.getValues("newVehicleId");
+    ReservationsAPI.updateReservationVehicle(reservation.id, newVehicleId)
+      .then(() => {
+        toast.success("Reservation changed successfully");
+        methods.next();
+      })
+      .catch((err) => {
+        toast.error(err.message);
+        console.log(err);
+        navigate(-1);
+      });
+  }
+
+  function handleDeleteReservation() {
+    ReservationsAPI.deleteReservationById(reservation.id)
+      .then(() => {
+        toast.success("Reservation deleted successfully");
+        methods.next();
+      })
+      .catch((err) => {
+        toast.error(err.message);
+        console.log(err);
+        navigate(-1);
+      });
+  }
+
+  function handleMaintenanceCreate() {
+    const oldVehicleId = form.getValues("oldVehicleId");
+    //Maintenance
+    const startDate = form.getValues("startDate");
+    const plannedEndDate = form.getValues("plannedEndDate");
+    const defects = form.getValues("defects");
+    const type = form.getValues("type");
+    const upcomingServiceNeeds = form.getValues("upcomingServiceNeeds");
+
+    const reqDTO: MaintenanceReqDTO = {
+      startDate,
+      plannedEndDate,
+      defects,
+      type,
+      upcomingServiceNeeds,
+    };
+    MaintenancesAPI.createMaintenance(oldVehicleId, reqDTO)
+      .then(() => {
+        navigate(-1);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 
   return (
     <Dialog
@@ -95,7 +169,9 @@ function StepperizedForm({
           msOverflowStyle: "none", // For IE and Edge
         }}>
         <DialogHeader>
-          <DialogTitle>{"Edit Reservation"}</DialogTitle>
+          <DialogTitle>
+            {methods.isFirst ? "Edit Reservation's Vehicle" : "Add Maintenance"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -106,10 +182,9 @@ function StepperizedForm({
                   of={step.id}
                   type="button"
                   onClick={async (event) => {
-                    // todo just return
                     event.stopPropagation();
                     const valid = await form.trigger();
-                    //if (!valid) return;
+                    if (!valid) return;
                     methods.goTo(step.id);
                   }}>
                   <StepperTitle>{step.title}</StepperTitle>
@@ -118,77 +193,79 @@ function StepperizedForm({
             </StepperNavigation>
             {methods.switch({
               reservation: ({ Component }) => (
-                <Component
-                  control={form.control as unknown as Control}></Component>
+                <>
+                  <Component
+                    control={form.control}
+                    currentVehicleId={reservation.vehicleId}
+                    onVehicleSelection={(newVehicleId) => {
+                      form.setValue("newVehicleId", newVehicleId);
+                    }}
+                    carModelId={reservation.carModelId}
+                    desiredStartDate={reservation.plannedPickUpDate}
+                    desiredEndDate={reservation.plannedDropOffDate}></Component>
+                  {deleting && (
+                    <div className="text-lg text-center w-full font-semibold text-warning">
+                      Are you absolutely sure to delete the reservation?
+                    </div>
+                  )}
+                </>
               ),
               maintenance: ({ Component }) => (
                 <Component control={form.control}></Component>
               ),
-              /*review: ({ Component }) => {
-                const { featureIds, ...rest } =
-                  form.getValues() as CarModelCreateDTO;
-
-                const reviewData: CarModel = {
-                  ...rest,
-                  features: featureIds.map((id) => {
-                    return {
-                      id: id,
-                      description: "",
-                    };
-                  }),
-                  id: 0,
-                };
-                return (
-                  <div className="flex w-full col-span-full">
-                    <Component model={reviewData} form></Component>
-                  </div>
-                );
-              },*/
             })}
 
             <DialogFooter className="col-span-full">
               <StepperControls className="w-full justify-between">
                 <Button
                   variant="secondary"
-                  onClick={methods.prev}
-                  disabled={methods.isFirst}>
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleCancel();
+                  }}>
                   <span className="material-symbols-outlined items-center md-18">
                     {"close"}
                   </span>
                   {"Cancel"}
                 </Button>
-
-                <Button
-                  variant="default"
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (methods.isLast) {
-                      onSubmit();
-                      return;
-                    }
-                    methods.beforeNext(async () => {
-                      const valid = await form.trigger();
-                      if (!valid) {
-                        return false;
+                <div className="flex flex-row gap-2">
+                  <Button
+                    variant="destructive"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (deleting) {
+                        handleDeleteReservation();
+                      } else {
+                        setDeleting(true);
                       }
-                      if (!valid) return false;
-                      return true;
-                    });
-                  }}>
-                  {
-                    /*methods.isLast ? (model ? "Edit" : "Create") : "Next"*/ "CIAO"
-                  }
-                  <span className="material-symbols-outlined  md-18">
-                    {
-                      /*methods.isLast
-                      ? model
-                        ? "edit"
-                        : "add"
-                      : "arrow_forward"*/ "edit"
-                    }
-                  </span>
-                </Button>
+                    }}>
+                    Delete
+                    <span className="material-symbols-outlined  md-18">
+                      delete
+                    </span>
+                  </Button>
+                  <Button
+                    variant="default"
+                    type="button"
+                    onClick={async (event) => {
+                      event.stopPropagation();
+                      const valid = await form.trigger();
+                      if (!valid) return;
+                      if (methods.isLast) {
+                        handleMaintenanceCreate();
+                        return;
+                      } else {
+                        handleChangeReservationVehicle();
+                      }
+                    }}
+                    disabled={form.watch("newVehicleId") == undefined}>
+                    {methods.isFirst ? "Change" : "Create"}
+                    <span className="material-symbols-outlined  md-18">
+                      {methods.isFirst ? "swap_driving_apps" : "add"}
+                    </span>
+                  </Button>
+                </div>
               </StepperControls>
             </DialogFooter>
           </form>
@@ -201,26 +278,6 @@ function StepperizedForm({
 export default function ChangeVehicleOrDeleteReservationDialog() {
   const navigate = useNavigate();
   const reservation: Reservation = useOutletContext();
-
-  const handleEdit = (/*values: CarModelCreateDTO*/) => {
-    /*CarModelAPI.editModelById(values, Number(model!.id))
-      .then(() => {
-        navigate(-1);
-      })
-      .catch((err) => {
-        console.log(err);
-      });*/
-  };
-
-  const handleCreate = (/*values: CarModelCreateDTO*/) => {
-    /*CarModelAPI.createModel(values)
-      .then(() => {
-        navigate(-1);
-      })
-      .catch((err) => {
-        console.log(err);
-      });*/
-  };
 
   return (
     <StepperProvider labelOrientation="vertical">

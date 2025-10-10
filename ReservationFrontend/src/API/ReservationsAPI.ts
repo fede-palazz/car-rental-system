@@ -15,7 +15,7 @@ async function getAllReservations(
   sort: string = "brand",
   page: number = 0,
   size: number = 9,
-  isCustomer=true,
+  isCustomer = true
 ): Promise<PagedResDTO<Reservation>> {
   const queryParams =
     (filter
@@ -262,6 +262,37 @@ async function payReservation(id: number) {
   }
 }
 
+async function updateReservationVehicle(
+  reservationId: number,
+  newVehicleId: number
+) {
+  const response = await fetch(
+    baseURL + `reservations/${reservationId}/vehicle/${newVehicleId}`,
+    {
+      method: "PUT",
+      headers: {
+        "X-CSRF-TOKEN": getCsrfToken(),
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    }
+    throw new Error(
+      errDetail.error || "Something went wrong, please reload the page"
+    );
+  }
+}
+
 const ReservationsAPI = {
   getAllReservations,
   deleteReservationById,
@@ -270,6 +301,7 @@ const ReservationsAPI = {
   finalizeReservation,
   createReservation,
   payReservation,
+  updateReservationVehicle,
 };
 
 export default ReservationsAPI;

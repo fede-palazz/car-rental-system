@@ -13,7 +13,6 @@ import VehicleFiltersSidebar from "@/components/Sidebars/VehicleFiltersSidebar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "@/components/ui/data-table";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
-import { toast } from "sonner";
 
 const VehiclesPage = () => {
   const navigate = useNavigate();
