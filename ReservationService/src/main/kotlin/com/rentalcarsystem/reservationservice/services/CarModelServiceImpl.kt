@@ -291,14 +291,18 @@ class CarModelServiceImpl(
             val reservationRoot = overlappingReservationsVehicles.from(Reservation::class.java)
             // Ensures the inner subquery's Reservation.vehicle matches the subquery’s Vehicle (i.e., the one being tested).
             val reservationVehicleMatch = cb.equal(reservationRoot.get<Vehicle>("vehicle"), vehicleRoot)
-            // Only considers reservations that overlap the desired date range.
+            // Only considers reservations that overlap the desired date range. If actualDropOffDate is null, it uses plannedDropOffDate
+            val effectiveDropOff = cb.coalesce<LocalDateTime>(
+                reservationRoot.get("actualDropOffDate"),
+                reservationRoot.get("plannedDropOffDate")
+            )
             val overlappingReservation = cb.and(
                 cb.lessThan(
                     reservationRoot.get("plannedPickUpDate"),
                     desiredEnd.plusDays(reservationBufferDays)
                 ),
                 cb.greaterThan(
-                    reservationRoot.get("plannedDropOffDate"),
+                    effectiveDropOff,
                     desiredStart.minusDays(reservationBufferDays)
                 )
             )
@@ -325,14 +329,18 @@ class CarModelServiceImpl(
             val maintenanceRoot = overlappingMaintenancesVehicles.from(Maintenance::class.java)
             // Ensures the inner subquery's Maintenance.vehicle matches the subquery’s Vehicle (i.e., the one being tested).
             val maintenanceVehicleMatch  = cb.equal(maintenanceRoot.get<Vehicle>("vehicle"), vehicleRoot)
-            // Only considers maintenances that overlap the desired date range.
+            // Only considers maintenances that overlap the desired date range. If actualEndDate is null, it uses plannedEndDate
+            val effectiveEndDate = cb.coalesce<LocalDateTime>(
+                maintenanceRoot.get("actualEndDate"),
+                maintenanceRoot.get("plannedEndDate")
+            )
             val overlappingMaintenance = cb.and(
                 cb.lessThanOrEqualTo(
                     maintenanceRoot.get("startDate"),
                     desiredEnd
                 ),
                 cb.greaterThanOrEqualTo(
-                    maintenanceRoot.get("plannedEndDate"),
+                    effectiveEndDate,
                     desiredStart
                 )
             )

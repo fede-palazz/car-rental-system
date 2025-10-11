@@ -33,13 +33,13 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
             SELECT r FROM Reservation r
             WHERE r.vehicle = v
             AND r.plannedPickUpDate < :desiredEndWithBuffer
-            AND r.plannedDropOffDate > :desiredStartWithBuffer
+            AND COALESCE(r.actualDropOffDate, r.plannedDropOffDate) > :desiredStartWithBuffer
         )
         AND NOT EXISTS (
             SELECT m FROM Maintenance m
             WHERE m.vehicle = v
             AND m.startDate <= :desiredEnd
-            AND m.plannedEndDate >= :desiredStart
+            AND COALESCE(m.actualEndDate, m.plannedEndDate) >= :desiredStart
         )
         """
     )
@@ -65,13 +65,13 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
             WHERE r.vehicle = v
             AND r.id <> :reservationToExcludeId
             AND r.plannedPickUpDate < :desiredEndWithBuffer
-            AND r.plannedDropOffDate > :desiredStartWithBuffer
+            AND COALESCE(r.actualDropOffDate, r.plannedDropOffDate) > :desiredStartWithBuffer
         )
         AND NOT EXISTS (
             SELECT m FROM Maintenance m
             WHERE m.vehicle = v
             AND m.startDate <= :desiredEnd
-            AND m.plannedEndDate >= :desiredStart
+            AND COALESCE(m.actualEndDate, m.plannedEndDate) >= :desiredStart
         )
         """
     )
