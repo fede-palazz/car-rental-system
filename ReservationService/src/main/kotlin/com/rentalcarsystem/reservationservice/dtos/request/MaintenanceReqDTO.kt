@@ -2,6 +2,7 @@ package com.rentalcarsystem.reservationservice.dtos.request
 
 import com.rentalcarsystem.reservationservice.enums.MaintenanceType
 import com.rentalcarsystem.reservationservice.models.Maintenance
+import jakarta.validation.constraints.Future
 import jakarta.validation.constraints.NotBlank
 import java.time.LocalDateTime
 
@@ -11,7 +12,9 @@ data class MaintenanceReqDTO(
     val type: MaintenanceType,
     @field:NotBlank(message = "Upcoming service needs cannot be blank")
     val upcomingServiceNeeds: String,
+    @field:Future(message = "Parameter 'startDate' must be a future date")
     val startDate: LocalDateTime,
+    @field:Future(message = "Parameter 'plannedEndDate' must be a future date")
     val plannedEndDate: LocalDateTime,
 )
 

@@ -16,7 +16,12 @@ interface NoteService {
         @Valid filters: NoteFilter,
     ): PagedResDTO<NoteResDTO>
 
-    fun createNote(vehicleId: Long, @Valid noteReq: NoteReqDTO): NoteResDTO
+    fun createNote(
+        vehicleId: Long,
+        @Valid noteReq: NoteReqDTO,
+        username: String
+    ): NoteResDTO
+
     fun updateNote(id: Long, vehicleId: Long, @Valid noteReq: NoteReqDTO): NoteResDTO
     fun deleteNote(vehicleId: Long, noteId: Long)
 }

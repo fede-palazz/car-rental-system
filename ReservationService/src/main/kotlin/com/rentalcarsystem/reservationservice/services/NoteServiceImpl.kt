@@ -79,10 +79,14 @@ class NoteServiceImpl(
         )
     }
 
-    override fun createNote(vehicleId: Long, @Valid noteReq: NoteReqDTO): NoteResDTO {
+    override fun createNote(
+        vehicleId: Long,
+        @Valid noteReq: NoteReqDTO,
+        username: String
+    ): NoteResDTO {
         // Get the corresponding vehicle
         val vehicle = vehicleService.getVehicleById(vehicleId)
-        val noteToSave = noteReq.toEntity()
+        val noteToSave = noteReq.toEntity(username)
         vehicle.addNote(noteToSave)
         return noteRepository.save(noteToSave).toResDTO()
     }
@@ -101,8 +105,6 @@ class NoteServiceImpl(
         }
         // Update the fields
         note.content = noteReq.content
-        note.author = noteReq.author
-        note.date = noteReq.date ?: note.date
         return note.toResDTO()
     }
 
