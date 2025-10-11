@@ -162,9 +162,6 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         require(maintenanceRecord.startDate.isBefore(maintenanceRecord.plannedEndDate)) {
             "Start date must be before planned end date"
         }
-        if (maintenanceRecord.actualEndDate != null && maintenanceRecord.actualEndDate.isBefore(maintenanceRecord.plannedEndDate)) {
-            throw IllegalArgumentException("Actual end date must be after planned end date")
-        }
         val authentication = SecurityContextHolder.getContext().authentication
 
         // Extract username
@@ -267,9 +264,6 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         }
         require(maintenance.startDate.isBefore(maintenance.plannedEndDate)) {
             "Start date must be before planned end date"
-        }
-        if (maintenance.actualEndDate != null && maintenance.actualEndDate.isBefore(maintenance.plannedEndDate)) {
-            throw IllegalArgumentException("Actual end date must be after planned end date")
         }
         val updatedMaintenance = maintenanceService.updateMaintenance(vehicleId, maintenanceId, maintenance)
         logger.info(
