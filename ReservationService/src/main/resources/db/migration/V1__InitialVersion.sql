@@ -44,7 +44,6 @@ CREATE TABLE maintenances
 (
     id                     BIGINT                      NOT NULL,
     defects                VARCHAR(255)                NOT NULL,
-    completed              BOOLEAN                     NOT NULL,
     type                   VARCHAR(255),
     upcoming_service_needs VARCHAR(255)                NOT NULL,
     start_date             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -252,26 +251,26 @@ VALUES (1, 'Routine check completed. No issues found.', 'John Doe', '2024-03-01 
 SELECT setval('notes_seq', (SELECT MAX(id) FROM notes));
 
 -- Maintenance records
-INSERT INTO maintenances (id, defects, completed, type, upcoming_service_needs, start_date, planned_end_date,
+INSERT INTO maintenances (id, defects, type, upcoming_service_needs, start_date, planned_end_date,
                           actual_end_date, start_fleet_manager_username, end_fleet_manager_username, vehicle_id)
-VALUES (1, 'Brake pads worn out', true, 'BRAKES', 'Check brake fluid in 5000 km',
+VALUES (1, 'Brake pads worn out', 'BRAKES', 'Check brake fluid in 5000 km',
         '2025-04-20 10:15:30'::timestamp, '2025-04-22 10:15:30'::timestamp, '2025-04-22 12:15:30'::timestamp,
         'fleetmanager', 'fleetmanager', 3),
-       (2, 'Battery voltage low', true, 'BATTERY', 'May require replacement soon',
+       (2, 'Battery voltage low', 'BATTERY', 'May require replacement soon',
         '2024-03-02 14:30:45'::timestamp, '2024-03-05 16:30:45'::timestamp, '2024-03-05 18:30:45'::timestamp,
         'fleetmanager', 'fleetmanager', 7),
-       (3, 'Engine oil level low', true, 'OIL_CHANGE', 'Next oil change due in 10,000 km',
+       (3, 'Engine oil level low', 'OIL_CHANGE', 'Next oil change due in 10,000 km',
         '2025-04-22 14:30:45'::timestamp, '2025-04-23 16:30:45'::timestamp, '2025-04-23 18:30:45'::timestamp,
         'fleetmanager', 'fleetmanager', 6),
-       (4, 'Transmission fluid dirty', true, 'ENGINE', 'Flush and refill in next service',
+       (4, 'Transmission fluid dirty', 'ENGINE', 'Flush and refill in next service',
         '2024-03-04 11:10:00'::timestamp, '2024-03-08 16:30:45'::timestamp, '2024-03-09 18:30:45'::timestamp,
         'fleetmanager', 'fleetmanager', 4),
-       (5, 'Minor dent on rear door', true, 'CHASSIS', 'Inspect paint job next visit',
+       (5, 'Minor dent on rear door', 'CHASSIS', 'Inspect paint job next visit',
         '2024-03-05 16:45:22'::timestamp, '2024-03-06 18:45:22'::timestamp, '2024-03-06 20:45:22'::timestamp,
         'fleetmanager', 'fleetmanager', 8),
-       (6, 'Check engine light on', true, 'OTHER', 'Further diagnostics required',
+       (6, 'Check engine light on', 'OTHER', 'Further diagnostics required',
         '2024-03-06 08:05:55'::timestamp, '2024-03-06 10:05:55'::timestamp, '2024-03-06 12:05:55'::timestamp,
         'fleetmanager', 'fleetmanager', 6),
-       (7, 'Tires tread low', true, 'TIRES', 'Next inspection in 5000 km', '2024-03-07 12:30:40'::timestamp,
+       (7, 'Tires tread low', 'TIRES', 'Next inspection in 5000 km', '2024-03-07 12:30:40'::timestamp,
         '2024-03-08 14:30:40'::timestamp, '2024-03-08 16:30:40'::timestamp, 'fleetmanager', 'fleetmanager', 11);
 SELECT setval('maintenances_seq', (SELECT MAX(id) FROM maintenances));

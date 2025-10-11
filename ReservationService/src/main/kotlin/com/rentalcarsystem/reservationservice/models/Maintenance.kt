@@ -10,9 +10,6 @@ class Maintenance(
     @Column(nullable = false)
     var defects: String,
 
-    @Column(nullable = false)
-    var completed: Boolean,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     var type: MaintenanceType,

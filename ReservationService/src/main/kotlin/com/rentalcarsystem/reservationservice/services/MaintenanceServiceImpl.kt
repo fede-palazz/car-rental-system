@@ -47,12 +47,6 @@ class MaintenanceServiceImpl(
                 cb.like(cb.lower(root.get("defects")), "${defects.lowercase()}%")
             }
         }
-        // Completed
-        filters.completed?.let { completed ->
-            spec = spec.and { root, _, cb ->
-                cb.equal(root.get<Boolean>("completed"), completed)
-            }
-        }
         // Type
         filters.type?.let { type ->
             spec = spec.and { root, _, cb ->
@@ -131,9 +125,6 @@ class MaintenanceServiceImpl(
         // the desired maintenance period
         val vehicle = vehicleService.getVehicleById(vehicleId)
         val maintenance = maintenanceReq.toEntity(username)
-        if (maintenance.completed) {
-            throw IllegalArgumentException("A newly created maintenance record cannot be completed")
-        }
         vehicle.addMaintenance(maintenance)
         return maintenanceRepository.save(maintenance).toResDTO()
     }
@@ -148,14 +139,13 @@ class MaintenanceServiceImpl(
         val maintenance = getActualMaintenanceById(maintenanceId)
         checkMaintenanceVehicleMatch(vehicleId, maintenance)
         // Check maintenance status
-        if (maintenance.completed) {
+        if (maintenance.actualEndDate != null) {
             throw FailureException(ResponseEnum.MAINTENANCE_WRONG_STATUS, "Maintenance record with ID $maintenanceId was already finalized")
         }
         if (finalizeMaintenanceReq.actualEndDate.isBefore(maintenance.startDate)) {
             throw IllegalArgumentException("Actual end date must be after start date")
         }
         maintenance.actualEndDate = finalizeMaintenanceReq.actualEndDate
-        maintenance.completed = true
         maintenance.endFleetManagerUsername = username
         maintenance.vehicle?.status = CarStatus.AVAILABLE
         return maintenance.toResDTO()
@@ -170,7 +160,7 @@ class MaintenanceServiceImpl(
         val maintenance = getActualMaintenanceById(maintenanceId)
         checkMaintenanceVehicleMatch(vehicleId, maintenance)
         // Check maintenance status
-        if (maintenance.completed) {
+        if (maintenance.actualEndDate != null) {
             throw FailureException(ResponseEnum.MAINTENANCE_WRONG_STATUS, "Maintenance record with ID $maintenanceId is already completed")
         }
         maintenance.defects = maintenanceReq.defects

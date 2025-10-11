@@ -69,7 +69,6 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         // Retrieve MaintenanceResDTO fields' names
         val allowedSortFields = listOf(
             "defects",
-            "completed",
             "type",
             "upcomingServiceNeeds",
             "startDate",
