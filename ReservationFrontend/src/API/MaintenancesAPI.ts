@@ -10,12 +10,12 @@ async function getMaintenancesByVehicleId(
   vehicleId: number,
   filter?: MaintenanceFilter,
   order: string = "asc",
-  sort: string = "date",
+  sort: string = "startDate",
   page: number = 0,
   size: number = 9
 ): Promise<PagedResDTO<Maintenance>> {
   const queryParams =
-    (filter
+    (filter != undefined
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
           .map(
@@ -43,6 +43,7 @@ async function getMaintenancesByVehicleId(
     return res;
   } else {
     const errDetail = await response.json();
+    console.log(errDetail);
     if (Array.isArray(errDetail.errors)) {
       throw new Error(
         errDetail.errors[0].msg ||

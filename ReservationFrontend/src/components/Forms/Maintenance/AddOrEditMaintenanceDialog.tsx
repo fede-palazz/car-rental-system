@@ -19,27 +19,32 @@ import { Maintenance } from "@/models/Maintenance";
 import { useParams } from "react-router-dom";
 import AddOrEditMaintenanceForm from "./AddOrEditMaintenanceForm";
 
-const maintenanceSchema = z.object({
-  startDate: z
-    .date({
-      required_error: "Start Date is required",
-      invalid_type_error: "Start Date must be a valid date",
-    })
-    .refine((date) => date >= new Date(), {
-      message: "Start Date cannot be in the past",
-    }),
-  plannedEndDate: z
-    .date({
-      required_error: "Planned End Date is required",
-      invalid_type_error: "Planned End Date must be a valid date",
-    })
-    .refine((date) => date >= new Date(), {
-      message: "Planned End Date cannot be in the past",
-    }),
-  defects: z.string().min(1, "Defects must not be blank"),
-  type: z.string().min(1, "Type must not be blank"),
-  upcomingServiceNeeds: z.string(), //.optional(),
-});
+const maintenanceSchema = z
+  .object({
+    startDate: z
+      .date({
+        required_error: "Start Date is required",
+        invalid_type_error: "Start Date must be a valid date",
+      })
+      .refine((date) => date >= new Date(), {
+        message: "Start Date cannot be in the past",
+      }),
+    plannedEndDate: z
+      .date({
+        required_error: "Planned End Date is required",
+        invalid_type_error: "Planned End Date must be a valid date",
+      })
+      .refine((date) => date >= new Date(), {
+        message: "Planned End Date cannot be in the past",
+      }),
+    defects: z.string().min(1, "Defects must not be blank"),
+    type: z.string().min(1, "Type must not be blank"),
+    upcomingServiceNeeds: z.string(), //.optional(),
+  })
+  .refine((data) => data.plannedEndDate > data.startDate, {
+    path: ["plannedEndDate"],
+    message: "End date must be after start date",
+  });
 
 export default function AddOrEditMaintenanceDialog() {
   const navigate = useNavigate();

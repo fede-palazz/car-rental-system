@@ -31,7 +31,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { format } from "date-fns";
-import { toast } from "sonner";
 
 function VehicleDetailsPage() {
   const navigate = useNavigate();
@@ -208,30 +207,40 @@ function VehicleDetailsPage() {
                                       <span className="material-symbols-outlined">
                                         build
                                       </span>
-                                      {maintenance.type}
+                                      {maintenance.type
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                        maintenance.type.slice(1).toLowerCase()}
                                     </CardTitle>
                                     <CardDescription className="items-center flex gap-1">
                                       <span className="material-symbols-outlined md-18">
                                         event
                                       </span>
-                                      {format(maintenance.date, "dd/MM/yyyy")}
+                                      {"Started in " +
+                                        format(
+                                          maintenance.startDate,
+                                          "dd/MM/yyyy"
+                                        )}
                                     </CardDescription>
                                   </div>
                                   <Badge
                                     variant="outline"
                                     className={cn(
                                       "px-2 align-center py-1",
-                                      maintenance.completed
+                                      maintenance.actualEndDate
                                         ? "bg-green-100 text-green-700 border-green-300"
                                         : "bg-red-100 text-red-700 border-red-300"
                                     )}>
                                     <span className="material-symbols-outlined text-inherit-size md-18 mr-1 align-middle">
-                                      {maintenance.completed
+                                      {maintenance.actualEndDate
                                         ? "check_circle"
                                         : "error"}
                                     </span>
-                                    {maintenance.completed
-                                      ? "Completed"
+                                    {maintenance.actualEndDate
+                                      ? `Completed in ${format(
+                                          maintenance.actualEndDate,
+                                          "dd/MM/yyyy"
+                                        )}`
                                       : "Not Completed"}
                                   </Badge>
                                 </CardHeader>
