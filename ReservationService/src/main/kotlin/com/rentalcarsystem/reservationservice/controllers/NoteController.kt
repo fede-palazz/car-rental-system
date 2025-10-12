@@ -150,25 +150,34 @@ class NoteController(private val noteService: NoteService) {
                 )]
             ),
             ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "403", content = [Content()]),
             ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()]),
         ]
     )
     @PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
     @PutMapping("{id}")
     fun updateNote(
-        @PathVariable id: Long,
         @PathVariable vehicleId: Long,
+        @PathVariable("id") noteId: Long,
         @RequestBody note: NoteReqDTO
     ): ResponseEntity<NoteResDTO> {
         if (vehicleId <= 0) {
             throw IllegalArgumentException("Invalid vehicle id $vehicleId: it must be a positive number")
         }
-        if (id <= 0) {
-            throw IllegalArgumentException("Invalid note id $id: it must be a positive number")
+        if (noteId <= 0) {
+            throw IllegalArgumentException("Invalid note id $noteId: it must be a positive number")
         }
-        val updatedNote = noteService.updateNote(id, vehicleId, note)
-        logger.info("Updated note {} for vehicle {}: {}", id, vehicleId, mapper.writeValueAsString(updatedNote))
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val updatedNote = noteService.updateNote(vehicleId, noteId, note, username)
+        logger.info("Updated note {} for vehicle {}: {}", noteId, vehicleId, mapper.writeValueAsString(updatedNote))
         return ResponseEntity.ok(updatedNote)
     }
 
@@ -178,7 +187,9 @@ class NoteController(private val noteService: NoteService) {
         responses = [
             ApiResponse(responseCode = "204", content = [Content()]),
             ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "403", content = [Content()]),
             ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()]),
         ]
     )
@@ -194,7 +205,14 @@ class NoteController(private val noteService: NoteService) {
         if (noteId <= 0) {
             throw IllegalArgumentException("Invalid note id $noteId: it must be a positive number")
         }
-        noteService.deleteNote(vehicleId, noteId)
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        noteService.deleteNote(vehicleId, noteId, username)
         logger.info("Deleted note {} for vehicle {}", noteId, vehicleId)
         return ResponseEntity.noContent().build()
     }

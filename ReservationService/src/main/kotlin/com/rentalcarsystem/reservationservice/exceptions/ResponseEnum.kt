@@ -32,6 +32,8 @@ enum class ResponseEnum(
 
     // Note errors
     NOTE_NOT_FOUND(4400, "Note not found", HttpStatus.NOT_FOUND),
+    NOTE_WRONG_VEHICLE(4401, "Note does not belong to the specified vehicle", HttpStatus.CONFLICT),
+    NOTE_WRONG_AUTHOR(4402, "User is not authorized to update or delete note", HttpStatus.FORBIDDEN),
 
     // Reservation errors
     RESERVATION_NOT_FOUND(4400, "Requested reservation not found", HttpStatus.NOT_FOUND),

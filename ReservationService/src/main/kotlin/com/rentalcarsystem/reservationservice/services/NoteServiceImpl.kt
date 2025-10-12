@@ -96,24 +96,39 @@ class NoteServiceImpl(
             .orElseThrow { FailureException(ResponseEnum.NOTE_NOT_FOUND, "Note with ID $id not found") }
     }
 
-    override fun updateNote(id: Long, vehicleId: Long, @Valid noteReq: NoteReqDTO): NoteResDTO {
-        val vehicle = vehicleService.getVehicleById(vehicleId)
-        val note = getNoteById(id)
+    override fun updateNote(
+        vehicleId: Long,
+        noteId: Long,
+        @Valid noteReq: NoteReqDTO,
+        username: String
+    ): NoteResDTO {
+        val note = getNoteById(noteId)
         // Ensure the note belongs to the correct vehicle
-        if (note.vehicle?.getId() != vehicle.getId()) {
-            throw IllegalArgumentException("Note with ID $id does not belong to vehicle with ID $vehicleId")
+        if (note.vehicle?.getId() != vehicleId) {
+            throw FailureException(ResponseEnum.NOTE_WRONG_VEHICLE, "Note with ID $noteId does not belong to vehicle with ID $vehicleId")
         }
-        // Update the fields
+        // Ensure logged-in user is the author of the note
+        if (note.author != username) {
+            throw FailureException(ResponseEnum.NOTE_WRONG_AUTHOR, "User $username is not authorized to update note with ID $noteId")
+        }
         note.content = noteReq.content
         return note.toResDTO()
     }
 
-    override fun deleteNote(vehicleId: Long, noteId: Long) {
+    override fun deleteNote(
+        vehicleId: Long,
+        noteId: Long,
+        username: String
+    ) {
         val vehicle = vehicleService.getVehicleById(vehicleId)
         val note = getNoteById(noteId)
         // Ensure the note belongs to the correct vehicle
         if (note.vehicle?.getId() != vehicleId) {
             throw IllegalArgumentException("Note with ID $noteId does not belong to vehicle with ID $vehicleId")
+        }
+        // Ensure logged-in user is the author of the note
+        if (note.author != username) {
+            throw FailureException(ResponseEnum.NOTE_WRONG_AUTHOR, "User $username is not authorized to delete note with ID $noteId")
         }
         // Remove note from both sides
         vehicle.removeNote(note)
