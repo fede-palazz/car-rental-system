@@ -1,6 +1,7 @@
 package com.rentalcarsystem.listeners
 
 
+import com.rentalcarsystem.services.KafkaProducerService
 import org.keycloak.Config
 import org.keycloak.events.EventListenerProvider
 import org.keycloak.events.EventListenerProviderFactory
@@ -8,24 +9,22 @@ import org.keycloak.events.EventType
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.KeycloakSessionFactory
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationContext
 
 class UserEventListenerProviderFactory : EventListenerProviderFactory {
 
     companion object {
         private const val PROVIDER_ID = "custom-event-listener"
         private val logger = LoggerFactory.getLogger(UserEventListenerProviderFactory::class.java)
+        var applicationContext: ApplicationContext? = null
     }
 
     private lateinit var config: EventListenerConfig
 
     override fun create(session: KeycloakSession): EventListenerProvider {
-        return UserEventListenerProvider(
-            session = session,
-            webhookUrl = config.webhookUrl,
-            enabledEvents = config.enabledEvents,
-            retryAttempts = config.retryAttempts,
-            timeoutMs = config.timeoutMs
-        )
+        val kafkaService = applicationContext?.getBean(KafkaProducerService::class.java)
+            ?: throw IllegalStateException("KafkaProducerService not found in Spring context")
+        return UserEventListenerProvider(kafkaService, session)
     }
 
     override fun init(configScope: Config.Scope) {
