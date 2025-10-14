@@ -1,8 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0" // Updated to support Java 23
     kotlin("plugin.spring") version "2.1.0"
-    id("org.springframework.boot") version "3.4.4"
-    id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "com.rentalcarsystem"
@@ -11,7 +9,7 @@ description = "Keycloak User Events Listener"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(23)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -28,16 +26,21 @@ dependencies {
     compileOnly("org.keycloak:keycloak-server-spi-private:${keycloakVersion}")
     compileOnly("org.keycloak:keycloak-services:${keycloakVersion}")
 
-	implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    // Kafka Client
+    implementation("org.apache.kafka:kafka-clients:3.6.0") {
+        exclude(group = "org.slf4j")
+    }
+
+    // Jackson for JSON serialization
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
+
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.springframework.kafka:spring-kafka")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testImplementation("org.springframework.kafka:spring-kafka-test")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+//	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+//	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Logging (provided by Keycloak)
+//    compileOnly("org.jboss.logging:jboss-logging:3.5.3.Final")
 }
 
 kotlin {
@@ -46,21 +49,27 @@ kotlin {
 	}
 }
 
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
+tasks.register<Jar>("fatJar") {
+    archiveClassifier.set("all")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-// Create a fat JAR with dependencies
-//tasks.jar {
-//    archiveClassifier.set("")
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//
-//    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }) {
-//        exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
-//    }
-//}
+// Exclude SLF4J and other libraries provided by Keycloak
+    val excludePatterns = listOf(
+        "META-INF/*.SF",
+        "META-INF/*.DSA",
+        "META-INF/*.RSA",
+        "META-INF/MANIFEST.MF",
+        "**/module-info.class"
+    )
 
-// Configure main class for Spring Boot
-springBoot {
-    mainClass.set("com.rentalcarsystem.KeycloakEventListenerApplication")
+    from(configurations.runtimeClasspath.get().map {
+        if (it.isDirectory) it else zipTree(it)
+    }) {
+        exclude(excludePatterns)
+        // Exclude SLF4J classes since Keycloak provides them
+        exclude("org/slf4j/**")
+        exclude("org/apache/logging/slf4j/**")
+    }
+
+    from(sourceSets.main.get().output)
 }

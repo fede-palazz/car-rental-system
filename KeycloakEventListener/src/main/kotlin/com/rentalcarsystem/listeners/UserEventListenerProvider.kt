@@ -17,14 +17,12 @@ import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
 class UserEventListenerProvider(
-    private val kafkaProducerService: KafkaProducerService,
     private val session: KeycloakSession,
 ) : EventListenerProvider {
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(UserEventListenerProvider::class.java)
-        private val objectMapper = ObjectMapper().registerKotlinModule()
-    }
+    private val kafkaProducerService = KafkaProducerService.getInstance()
+    private val logger = LoggerFactory.getLogger(UserEventListenerProvider::class.java)
+
 
     override fun onEvent(event: Event) {
         when (event.type) {
@@ -42,9 +40,7 @@ class UserEventListenerProvider(
                 logger.info("User Login Event")
             }
 
-            else -> {
-                logger.info("Unmapped event occurred: " + event.type)
-            }
+            else -> logger.trace("Event type: {}", event.type)
         }
     }
 
@@ -69,28 +65,32 @@ class UserEventListenerProvider(
 
 
     override fun close() {
-        // Cleanup resources if needed
+        // Don't close the producer here as it's shared across all instances
         logger.debug("CustomEventListenerProvider closed")
     }
 
     private fun handleUserEvent(event: Event) {
-        val realm = session.context.realm
-        val user = session.users().getUserById(realm, event.userId)
-        val payload = UserEventPayload(
-            eventType = event.type.toString(),
-            userId = event.userId,
-            username = user.username,
-            email = user.email,
-            firstName = user.firstName,
-            lastName = user.lastName,
-            timestamp = event.time,
-            realmId = event.realmId,
-            clientId = event.clientId,
-            ipAddress = event.ipAddress,
-            sessionId = event.sessionId,
-            userAttributes = user.attributes.mapValues { it.value.firstOrNull() },
-            details = event.details
-        )
-        kafkaProducerService.publishUserEvent(payload)
+        try {
+            val realm = session.context.realm
+            val user = session.users().getUserById(realm, event.userId)
+            val payload = UserEventPayload(
+                eventType = event.type.toString(),
+                userId = event.userId,
+                username = user.username,
+                email = user.email,
+                firstName = user.firstName,
+                lastName = user.lastName,
+                timestamp = event.time,
+                realmId = event.realmId,
+                clientId = event.clientId,
+                ipAddress = event.ipAddress,
+                sessionId = event.sessionId,
+                userAttributes = user.attributes.mapValues { it.value.firstOrNull() },
+                details = event.details
+            )
+            kafkaProducerService.publishUserEvent(payload)
+        } catch (e: Exception) {
+            logger.error("Error handling user registration event", e)
+        }
     }
 }
