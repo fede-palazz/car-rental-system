@@ -291,19 +291,15 @@ class CarModelServiceImpl(
             val reservationRoot = overlappingReservationsVehicles.from(Reservation::class.java)
             // Ensures the inner subquery's Reservation.vehicle matches the subquery’s Vehicle (i.e., the one being tested).
             val reservationVehicleMatch = cb.equal(reservationRoot.get<Vehicle>("vehicle"), vehicleRoot)
-            // Only considers reservations that overlap the desired date range. If actualDropOffDate is null, it uses plannedDropOffDate
-            val effectiveDropOff = cb.coalesce<LocalDateTime>(
-                reservationRoot.get("actualDropOffDate"),
-                reservationRoot.get("plannedDropOffDate")
-            )
+            // Only considers reservations that overlap the desired date range.
             val overlappingReservation = cb.and(
                 cb.lessThan(
                     reservationRoot.get("plannedPickUpDate"),
                     desiredEnd.plusDays(reservationBufferDays)
                 ),
                 cb.greaterThan(
-                    effectiveDropOff,
-                    desiredStart.minusDays(reservationBufferDays)
+                    reservationRoot.get("bufferedDropOffDate"),
+                    desiredStart
                 )
             )
             // Ensures that, if a reservation is given, the vehicle associated to such reservation won't be considered as overlapping with itself

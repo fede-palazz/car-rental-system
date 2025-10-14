@@ -151,7 +151,6 @@ class VehicleServiceImpl(
         val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
         val pageResult = vehicleRepository.findAvailableVehiclesByModelAndDateRange(
             carModel = carModel,
-            desiredStartWithBuffer = desiredStart.minusDays(reservationBufferDays),
             desiredEndWithBuffer = desiredEnd.plusDays(reservationBufferDays),
             desiredStart = desiredStart,
             desiredEnd = desiredEnd,

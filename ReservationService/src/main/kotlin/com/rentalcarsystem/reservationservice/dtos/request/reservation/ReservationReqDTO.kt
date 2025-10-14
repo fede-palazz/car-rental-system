@@ -15,11 +15,12 @@ data class ReservationReqDTO(
     val plannedDropOffDate: LocalDateTime,
 )
 
-fun ReservationReqDTO.toEntity(totalAmount: Double, customerUsername: String) = Reservation(
+fun ReservationReqDTO.toEntity(totalAmount: Double, customerUsername: String, defaultBufferDays: Long) = Reservation(
     customerUsername = customerUsername,
     creationDate = LocalDateTime.now(),
     plannedPickUpDate = plannedPickUpDate,
     plannedDropOffDate = plannedDropOffDate,
+    bufferedDropOffDate = plannedDropOffDate.plusDays(defaultBufferDays),
     status = ReservationStatus.PENDING,
     totalAmount = totalAmount
 )

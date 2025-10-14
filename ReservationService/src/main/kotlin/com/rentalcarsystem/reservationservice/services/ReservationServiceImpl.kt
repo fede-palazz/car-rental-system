@@ -366,7 +366,7 @@ class ReservationServiceImpl(
             reservation.plannedPickUpDate.toLocalDate(),
             reservation.plannedDropOffDate.toLocalDate()
         ) + 1
-        val reservationToSave = reservation.toEntity(vehicle.carModel.rentalPrice * days, customerUsername)
+        val reservationToSave = reservation.toEntity(vehicle.carModel.rentalPrice * days, customerUsername, reservationBufferDays)
         vehicle.addReservation(reservationToSave)
         return reservationRepository.save(reservationToSave).toCustomerReservationResDTO()
     }
@@ -492,7 +492,6 @@ class ReservationServiceImpl(
         val vehicle = vehicleRepository.findAvailableVehicleByIdAndDateRange(
             vehicleId = vehicleService.getVehicleById(vehicleId).getId()!!,
             reservationToExcludeId = reservation.getId()!!,
-            desiredStartWithBuffer = reservation.plannedPickUpDate.minusDays(reservationBufferDays),
             desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),
             desiredStart = reservation.plannedPickUpDate,
             desiredEnd = reservation.plannedDropOffDate
@@ -660,7 +659,6 @@ class ReservationServiceImpl(
         }
         val vehicle = vehicleRepository.findAvailableVehiclesByModelAndDateRange(
             carModel = carModel,
-            desiredStartWithBuffer = reservation.plannedPickUpDate.minusDays(reservationBufferDays),
             desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),
             desiredStart = reservation.plannedPickUpDate,
             desiredEnd = reservation.plannedDropOffDate,

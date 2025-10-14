@@ -34,6 +34,8 @@ class Reservation(
 
     var actualDropOffDate: LocalDateTime? = null,
 
+    var bufferedDropOffDate: LocalDateTime,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: ReservationStatus,

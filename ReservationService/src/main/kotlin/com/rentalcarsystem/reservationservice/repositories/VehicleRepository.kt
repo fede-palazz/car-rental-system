@@ -33,7 +33,7 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
             SELECT r FROM Reservation r
             WHERE r.vehicle = v
             AND r.plannedPickUpDate < :desiredEndWithBuffer
-            AND COALESCE(r.actualDropOffDate, r.plannedDropOffDate) > :desiredStartWithBuffer
+            AND r.bufferedDropOffDate > :desiredStart
         )
         AND NOT EXISTS (
             SELECT m FROM Maintenance m
@@ -45,7 +45,6 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
     )
     fun findAvailableVehiclesByModelAndDateRange(
         @Param("carModel") carModel: CarModel,
-        @Param("desiredStartWithBuffer") desiredStartWithBuffer: LocalDateTime,
         @Param("desiredEndWithBuffer") desiredEndWithBuffer: LocalDateTime,
         @Param("desiredStart") desiredStart: LocalDateTime,
         @Param("desiredEnd") desiredEnd: LocalDateTime,
@@ -65,7 +64,7 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
             WHERE r.vehicle = v
             AND r.id <> :reservationToExcludeId
             AND r.plannedPickUpDate < :desiredEndWithBuffer
-            AND COALESCE(r.actualDropOffDate, r.plannedDropOffDate) > :desiredStartWithBuffer
+            AND r.bufferedDropOffDate > :desiredStart
         )
         AND NOT EXISTS (
             SELECT m FROM Maintenance m
@@ -78,7 +77,6 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
     fun findAvailableVehicleByIdAndDateRange(
         @Param("vehicleId") vehicleId: Long,
         @Param("reservationToExcludeId") reservationToExcludeId: Long,
-        @Param("desiredStartWithBuffer") desiredStartWithBuffer: LocalDateTime,
         @Param("desiredEndWithBuffer") desiredEndWithBuffer: LocalDateTime,
         @Param("desiredStart") desiredStart: LocalDateTime,
         @Param("desiredEnd") desiredEnd: LocalDateTime
