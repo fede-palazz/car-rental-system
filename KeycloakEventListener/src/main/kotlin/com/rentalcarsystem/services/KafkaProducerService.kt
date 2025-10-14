@@ -1,13 +1,13 @@
 package com.rentalcarsystem.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ser.std.StringSerializer
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rentalcarsystem.model.UserEventPayload
 import io.vertx.core.impl.logging.LoggerFactory
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
 class KafkaProducerService private constructor() {
