@@ -37,6 +37,10 @@ data class ReservationFilter(
     val minActualDropOffDate: LocalDateTime? = null,
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     val maxActualDropOffDate: LocalDateTime? = null,
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    val minBufferedDropOffDate: LocalDateTime? = null,
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    val maxBufferedDropOffDate: LocalDateTime? = null,
     val status: ReservationStatus? = null,
     @field:PositiveOrZero(message = "Parameter 'minTotalAmount' must be positive")
     val minTotalAmount: Double? = null,

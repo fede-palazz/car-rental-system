@@ -94,7 +94,8 @@ class ReservationController(
             filters.customerUsername = username
         }
 
-        if (isCustomer && (filters.wasChargedFee != null || filters.wasDeliveryLate != null ||
+        if (isCustomer && (filters.minBufferedDropOffDate != null || filters.maxBufferedDropOffDate != null ||
+                filters.wasChargedFee != null || filters.wasDeliveryLate != null ||
                 filters.wasInvolvedInAccident != null || filters.minDamageLevel != null ||
                 filters.maxDamageLevel != null || filters.minDirtinessLevel != null ||
                 filters.maxDirtinessLevel != null || filters.pickUpStaffUsername != null ||
@@ -124,6 +125,7 @@ class ReservationController(
         )
         val allowedStaffSortFields = listOf(
             "customerUsername",
+            "bufferedDropOffDate",
             "wasDeliveryLate",
             "wasChargedFee",
             "wasInvolvedInAccident",
@@ -288,6 +290,7 @@ class ReservationController(
             "actualPickUpDate",
             "plannedDropOffDate",
             "actualDropOffDate",
+            "bufferedDropOffDate",
             "status",
             "totalAmount",
             "customerUsername",
@@ -357,6 +360,7 @@ class ReservationController(
             "actualPickUpDate",
             "plannedDropOffDate",
             "actualDropOffDate",
+            "bufferedDropOffDate",
             "status",
             "totalAmount",
             "customerUsername",

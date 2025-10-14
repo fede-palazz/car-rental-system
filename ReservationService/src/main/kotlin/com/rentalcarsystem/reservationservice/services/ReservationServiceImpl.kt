@@ -198,6 +198,17 @@ class ReservationServiceImpl(
                 cb.lessThanOrEqualTo(root.get("actualDropOffDate"), maxActualDropOffDate)
             }
         }
+        // Buffered drop-off date
+        filters.minBufferedDropOffDate?.let { minBufferedDropOffDate ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("bufferedDropOffDate"), minBufferedDropOffDate)
+            }
+        }
+        filters.maxBufferedDropOffDate?.let { maxBufferedDropOffDate ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("bufferedDropOffDate"), maxBufferedDropOffDate)
+            }
+        }
         // Status
         filters.status?.let { status ->
             spec = spec.and { root, _, cb ->
