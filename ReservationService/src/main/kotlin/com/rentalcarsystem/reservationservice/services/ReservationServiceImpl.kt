@@ -43,8 +43,8 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
-import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 @Service
@@ -401,23 +401,24 @@ class ReservationServiceImpl(
         reservationId: Long,
         @Valid finalizeReq: FinalizeReservationReqDTO
     ): StaffReservationResDTO {
-        val reservation =  getReservationById(reservationId)
-        if (reservation.status == ReservationStatus.CONFIRMED) {
+        val reservation = getReservationById(reservationId)
+        if (reservation.status != ReservationStatus.PICKED_UP) {
             throw FailureException(
                 ResponseEnum.RESERVATION_WRONG_STATUS,
                 "The vehicle of reservation $reservationId has not been picked up yet"
             )
         }
-        if (finalizeReq.actualDropOffDate.isBefore(reservation.plannedDropOffDate)) {
-            throw IllegalArgumentException("The actual drop-off date cannot be before the planned drop off date: ${reservation.plannedDropOffDate}")
+        if (finalizeReq.actualDropOffDate.isBefore(reservation.actualPickUpDate)) {
+            throw IllegalArgumentException("The actual drop-off date cannot be before the actual pick-up date: ${reservation.actualPickUpDate}")
         }
         reservation.actualDropOffDate = finalizeReq.actualDropOffDate
+        reservation.bufferedDropOffDate = finalizeReq.bufferedDropOffDate
+        reservation.status = ReservationStatus.DELIVERED
         reservation.wasDeliveryLate = finalizeReq.wasDeliveryLate
         reservation.wasChargedFee = finalizeReq.wasChargedFee
         reservation.wasInvolvedInAccident = finalizeReq.wasInvolvedInAccident
         reservation.damageLevel = finalizeReq.damageLevel
         reservation.dirtinessLevel = finalizeReq.dirtinessLevel
-        reservation.status = ReservationStatus.DELIVERED
         reservation.dropOffStaffUsername = dropOffStaffUsername
         val token = getAccessToken()
         val customer = userManagementRestClient.get().uri("/username/{username}", reservation.customerUsername)
@@ -471,7 +472,11 @@ class ReservationServiceImpl(
         if (updatedCustomerRes != null && updatedCustomerRes.eligibilityScore != newScore) {
             throw RuntimeException("Failed to update customer's score")
         }
-        reservation.vehicle?.let { scheduleVehicleAvailabilityUpdate(it) }
+        if (reservation.bufferedDropOffDate.isAfter(LocalDateTime.now())) {
+            reservation.vehicle?.let { scheduleVehicleAvailabilityUpdate(it, reservation.bufferedDropOffDate) }
+        } else if (reservation.vehicle?.status == CarStatus.RENTED) {
+            reservation.vehicle?.status = CarStatus.AVAILABLE
+        }
         return reservation.toStaffReservationResDTO()
     }
 
@@ -687,8 +692,8 @@ class ReservationServiceImpl(
         }
     }
 
-    fun scheduleVehicleAvailabilityUpdate(vehicle: Vehicle) {
-        val runAt = Instant.now().plus(reservationBufferDays, ChronoUnit.DAYS)
+    fun scheduleVehicleAvailabilityUpdate(vehicle: Vehicle, bufferedDropOffDate: LocalDateTime) {
+        val runAt = bufferedDropOffDate.atZone(ZoneId.of("Europe/Rome")).toInstant()
         taskScheduler.schedule({
             if (vehicle.status == CarStatus.RENTED) {
                 vehicle.status = CarStatus.AVAILABLE

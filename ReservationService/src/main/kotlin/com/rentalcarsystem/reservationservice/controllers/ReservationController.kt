@@ -11,6 +11,7 @@ import com.rentalcarsystem.reservationservice.dtos.response.PaymentRecordResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PaymentResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.CustomerReservationResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.StaffReservationResDTO
+import com.rentalcarsystem.reservationservice.enums.ReservationStatus
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.CarModelFilter
@@ -312,6 +313,93 @@ class ReservationController(
     }
 
     @Operation(
+        summary = "Get overlapping reservations by reservation",
+        description = "Returns all reservations belonging to the given vehicle and overlapping the given date range," +
+                "from the reservation's start date to the desired buffered end date.",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(
+                    mediaType = "application/json",
+                    array = ArraySchema(
+                        schema = Schema(implementation = PagedResDTO::class)
+                    )
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()])
+        ]
+    )
+    @PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
+    @GetMapping("{reservationId}/overlapping")
+    fun getOverlappingReservationsByReservationId(
+        @PathVariable reservationId: Long,
+        @RequestParam("bufferedDropOffDate", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) bufferedDropOffDate: LocalDateTime,
+        @RequestParam("page", defaultValue = "0") page: Int,
+        @RequestParam("size", defaultValue = "10") size: Int,
+        @RequestParam("sort", defaultValue = "creationDate") sortBy: String,
+        @RequestParam("order", defaultValue = "asc") sortOrder: String,
+    ): ResponseEntity<PagedResDTO<StaffReservationResDTO>> {
+        require(reservationId > 0) { "Invalid reservation id $reservationId: it must be a positive number" }
+        require(page >= 0) { "Parameter 'page' must be greater than or equal to zero" }
+        require(size > 0) { "Parameter 'size' must be greater than zero" }
+        val allowedSortFields = listOf(
+            "licensePlate",
+            "vin",
+            "brand",
+            "model",
+            "year",
+            "creationDate",
+            "plannedPickUpDate",
+            "actualPickUpDate",
+            "plannedDropOffDate",
+            "actualDropOffDate",
+            "status",
+            "totalAmount",
+            "customerUsername",
+            "wasDeliveryLate",
+            "wasChargedFee",
+            "wasInvolvedInAccident",
+            "damageLevel",
+            "dirtinessLevel",
+            "pickUpStaffUsername",
+            "dropOffStaffUsername"
+        )
+        if (sortBy !in allowedSortFields) {
+            throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedSortFields")
+        }
+        if (sortOrder !in listOf("asc", "desc")) {
+            throw IllegalArgumentException("Parameter 'sortOrder' invalid. Allowed values: ['asc', 'desc']")
+        }
+
+        val reservation = reservationService.getReservationById(reservationId)
+        if (reservation.status != ReservationStatus.PICKED_UP) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_WRONG_STATUS,
+                "The vehicle of reservation $reservationId has not been picked up yet"
+            )
+        }
+        if (bufferedDropOffDate.isBefore(reservation.actualPickUpDate)) {
+            throw IllegalArgumentException("The buffered drop-off date cannot be before the actual pick-up date: ${reservation.actualPickUpDate}")
+        }
+
+        return ResponseEntity.ok(
+            reservationService.getOverlappingReservations(
+                vehicleId = reservation.vehicle?.getId()!!,
+                desiredStart = reservation.actualPickUpDate!!,
+                desiredEnd = bufferedDropOffDate,
+                page = page,
+                size = size,
+                sortBy = sortBy,
+                sortOrder = sortOrder
+            )
+        )
+    }
+
+    @Operation(
         summary = "Add a new reservation",
         description = "Adds a new reservation for: the given customer, a vehicle of the given model and the given date range, and returns the created reservation with JSON schema according to the role",
         requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -446,6 +534,9 @@ class ReservationController(
         @RequestBody finalizeReservation: FinalizeReservationReqDTO
     ): ResponseEntity<StaffReservationResDTO> {
         require(reservationId > 0) { "Invalid reservation id $reservationId: it must be a positive number" }
+        require(finalizeReservation.bufferedDropOffDate.isAfter(finalizeReservation.actualDropOffDate)) {
+            "Parameter 'bufferedDropOffDate' must be after 'actualDropOffDate'"
+        }
         val authentication = SecurityContextHolder.getContext().authentication
 
         // Extract username
