@@ -302,13 +302,18 @@ class ReservationServiceImpl(
         page: Int,
         size: Int,
         sortBy: String,
-        sortOrder: String
+        sortOrder: String,
+        reservationToExcludeId: Long
     ): PagedResDTO<StaffReservationResDTO> {
         val vehicle = vehicleService.getVehicleById(vehicleId)
         var spec: Specification<Reservation> = Specification.where(null)
         // Vehicle
         spec = spec.and { root, _, cb ->
             cb.equal(root.get<Vehicle>("vehicle"), vehicle)
+        }
+        // Exclude the reservation reservationToExcludeId, or exclude none if reservationToExcludeId is not specified and defaults to 0
+        spec = spec.and { root, _, cb ->
+            cb.notEqual(root.get<Long>("id"), reservationToExcludeId)
         }
         // Only considers reservations that overlap the desired date range.
         spec = spec.and { root, _, cb ->
@@ -410,6 +415,22 @@ class ReservationServiceImpl(
         }
         if (finalizeReq.actualDropOffDate.isBefore(reservation.actualPickUpDate)) {
             throw IllegalArgumentException("The actual drop-off date cannot be before the actual pick-up date: ${reservation.actualPickUpDate}")
+        }
+        val overlappingReservationsAmount = getOverlappingReservations(
+            vehicleId = reservation.vehicle?.getId()!!,
+            desiredStart = reservation.actualPickUpDate!!,
+            desiredEnd = finalizeReq.bufferedDropOffDate,
+            page = 0,
+            size = 1,
+            sortBy = "creationDate",
+            sortOrder = "asc",
+            reservationToExcludeId = reservationId
+        ).totalElements
+        if (overlappingReservationsAmount > 0) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_CONFLICT,
+                "The vehicle of reservation $reservationId has $overlappingReservationsAmount overlapping reservations"
+            )
         }
         reservation.actualDropOffDate = finalizeReq.actualDropOffDate
         reservation.bufferedDropOffDate = finalizeReq.bufferedDropOffDate

@@ -31,6 +31,7 @@ interface ReservationService {
         size: Int,
         sortBy: String,
         sortOrder: String,
+        reservationToExcludeId: Long = 0
     ): PagedResDTO<StaffReservationResDTO>
 
     fun createReservation(customerUsername: String, @Valid reservation: ReservationReqDTO): Any

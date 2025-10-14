@@ -394,7 +394,8 @@ class ReservationController(
                 page = page,
                 size = size,
                 sortBy = sortBy,
-                sortOrder = sortOrder
+                sortOrder = sortOrder,
+                reservationToExcludeId = reservationId
             )
         )
     }

@@ -28,7 +28,8 @@ import org.springframework.validation.annotation.Validated
 @Transactional
 class MaintenanceServiceImpl(
     private val maintenanceRepository: MaintenanceRepository,
-    private val vehicleService: VehicleService
+    private val vehicleService: VehicleService,
+    private val reservationService: ReservationService
 ) : MaintenanceService {
 
     override fun getMaintenances(
@@ -121,9 +122,22 @@ class MaintenanceServiceImpl(
         @Valid maintenanceReq: MaintenanceReqDTO,
         username: String
     ): MaintenanceResDTO {
-        // TODO: Add check to handle case if such vehicle had already been reserved in days overlapping
-        // the desired maintenance period
         val vehicle = vehicleService.getVehicleById(vehicleId)
+        val overlappingReservationsAmount = reservationService.getOverlappingReservations(
+            vehicleId = vehicleId,
+            desiredStart = maintenanceReq.startDate,
+            desiredEnd = maintenanceReq.plannedEndDate,
+            page = 0,
+            size = 1,
+            sortBy = "creationDate",
+            sortOrder = "asc"
+        ).totalElements
+        if (overlappingReservationsAmount > 0) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_CONFLICT,
+                "The vehicle $vehicleId has $overlappingReservationsAmount overlapping reservations"
+            )
+        }
         val maintenance = maintenanceReq.toEntity(username)
         vehicle.addMaintenance(maintenance)
         return maintenanceRepository.save(maintenance).toResDTO()
