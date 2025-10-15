@@ -162,6 +162,7 @@ services:
       - ./keycloak/providers:/opt/keycloak/providers
     depends_on:
       - postgres-keycloak
+      - kafka
 
   postgres-keycloak:
     image: postgres:17.4
