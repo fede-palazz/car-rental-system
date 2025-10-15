@@ -17,6 +17,7 @@ interface ReservationService {
     fun getReservations(
         page: Int,
         size: Int,
+        singlePage: Boolean,
         sortBy: String,
         sortOrder: String,
         isCustomer: Boolean,
@@ -29,6 +30,7 @@ interface ReservationService {
         desiredEnd: LocalDateTime,
         page: Int,
         size: Int,
+        singlePage: Boolean,
         sortBy: String,
         sortOrder: String,
         reservationToExcludeId: Long = 0

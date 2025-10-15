@@ -89,10 +89,10 @@ class ReservationServiceImpl(
         return response["access_token"] as String
     }
 
-
     override fun getReservations(
         page: Int,
         size: Int,
+        singlePage: Boolean,
         sortBy: String,
         sortOrder: String,
         isCustomer: Boolean,
@@ -294,7 +294,8 @@ class ReservationServiceImpl(
                 Sort.by(sortOrd, sortBy)
             }
         }
-        val pageable: Pageable = PageRequest.of(page, size, sort)
+        val actualSize = if (singlePage) reservationRepository.count().toInt() else size
+        val pageable: Pageable = PageRequest.of(page, actualSize, sort)
         val pageResult = reservationRepository.findAll(spec, pageable)
 
         return PagedResDTO(
@@ -312,6 +313,7 @@ class ReservationServiceImpl(
         desiredEnd: LocalDateTime,
         page: Int,
         size: Int,
+        singlePage: Boolean,
         sortBy: String,
         sortOrder: String,
         reservationToExcludeId: Long
@@ -355,7 +357,8 @@ class ReservationServiceImpl(
                 Sort.by(sortOrd, sortBy)
             }
         }
-        val pageable: Pageable = PageRequest.of(page, size, sort)
+        val actualSize = if (singlePage) reservationRepository.count().toInt() else size
+        val pageable: Pageable = PageRequest.of(page, actualSize, sort)
         val pageResult = reservationRepository.findAll(spec, pageable)
 
         return PagedResDTO(
@@ -433,6 +436,7 @@ class ReservationServiceImpl(
             desiredEnd = finalizeReq.bufferedDropOffDate,
             page = 0,
             size = 1,
+            singlePage = false,
             sortBy = "creationDate",
             sortOrder = "asc",
             reservationToExcludeId = reservationId

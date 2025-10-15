@@ -129,6 +129,7 @@ class MaintenanceServiceImpl(
             desiredEnd = maintenanceReq.plannedEndDate,
             page = 0,
             size = 1,
+            singlePage = false,
             sortBy = "creationDate",
             sortOrder = "asc"
         ).totalElements

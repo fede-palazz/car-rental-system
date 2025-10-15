@@ -68,6 +68,7 @@ class ReservationController(
     fun getReservations(
         @RequestParam("page", defaultValue = "0") page: Int,
         @RequestParam("size", defaultValue = "10") size: Int,
+        @RequestParam("singlePage", defaultValue = "false") singlePage: Boolean,
         @RequestParam("sort", defaultValue = "creationDate") sortBy: String,
         @RequestParam("order", defaultValue = "asc") sortOrder: String,
         @ModelAttribute filters: ReservationFilter
@@ -146,7 +147,7 @@ class ReservationController(
         }
         return ResponseEntity.ok(
             reservationService.getReservations(
-                page, size, sortBy, sortOrder, isCustomer, filters
+                page, size, singlePage, sortBy, sortOrder, isCustomer, filters
             )
         )
     }
@@ -291,6 +292,7 @@ class ReservationController(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredEnd: LocalDateTime,
         @RequestParam("page", defaultValue = "0") page: Int,
         @RequestParam("size", defaultValue = "10") size: Int,
+        @RequestParam("singlePage", defaultValue = "false") singlePage: Boolean,
         @RequestParam("sort", defaultValue = "creationDate") sortBy: String,
         @RequestParam("order", defaultValue = "asc") sortOrder: String,
     ): ResponseEntity<PagedResDTO<StaffReservationResDTO>> {
@@ -334,7 +336,7 @@ class ReservationController(
         }
         return ResponseEntity.ok(
             reservationService.getOverlappingReservations(
-                vehicleId, desiredStart, desiredEnd, page, size, sortBy, sortOrder
+                vehicleId, desiredStart, desiredEnd, page, size, singlePage, sortBy, sortOrder
             )
         )
     }
@@ -367,6 +369,7 @@ class ReservationController(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) bufferedDropOffDate: LocalDateTime,
         @RequestParam("page", defaultValue = "0") page: Int,
         @RequestParam("size", defaultValue = "10") size: Int,
+        @RequestParam("singlePage", defaultValue = "false") singlePage: Boolean,
         @RequestParam("sort", defaultValue = "creationDate") sortBy: String,
         @RequestParam("order", defaultValue = "asc") sortOrder: String,
     ): ResponseEntity<PagedResDTO<StaffReservationResDTO>> {
@@ -421,6 +424,7 @@ class ReservationController(
                 desiredEnd = bufferedDropOffDate,
                 page = page,
                 size = size,
+                singlePage = singlePage,
                 sortBy = sortBy,
                 sortOrder = sortOrder,
                 reservationToExcludeId = reservationId
