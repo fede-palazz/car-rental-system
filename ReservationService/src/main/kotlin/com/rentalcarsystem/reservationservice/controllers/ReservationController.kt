@@ -11,6 +11,7 @@ import com.rentalcarsystem.reservationservice.dtos.response.PaymentRecordResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PaymentResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.CustomerReservationResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.StaffReservationResDTO
+import com.rentalcarsystem.reservationservice.dtos.response.reservation.toStaffReservationResDTO
 import com.rentalcarsystem.reservationservice.enums.ReservationStatus
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
@@ -148,6 +149,29 @@ class ReservationController(
                 page, size, sortBy, sortOrder, isCustomer, filters
             )
         )
+    }
+
+    @Operation(
+        summary = "Get reservation by id",
+        description = "Retrieves a reservation having the specified id or throws an exception if the reservation is not found",
+        responses = [
+            ApiResponse(
+                responseCode = "200", content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = StaffReservationResDTO::class)
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "401", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()]),
+        ]
+    )
+    @PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
+    @GetMapping("/{reservationId}")
+    fun getReservationById(@PathVariable reservationId: Long): ResponseEntity<StaffReservationResDTO> {
+        require(reservationId > 0) { "Invalid reservation id $reservationId: it must be a positive number" }
+        return ResponseEntity.ok(reservationService.getReservationById(reservationId).toStaffReservationResDTO())
     }
 
     @Operation(
