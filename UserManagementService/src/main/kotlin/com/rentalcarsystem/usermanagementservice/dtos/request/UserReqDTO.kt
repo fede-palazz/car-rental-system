@@ -12,16 +12,22 @@ const val INITIAL_ELIGIBILITY_SCORE = 100.0
 data class UserReqDTO(
     @field:NotBlank(message = "Username must not be blank")
     val username: String,
+
     @field:NotBlank(message = "First name must not be blank")
     val firstName: String,
+
     @field:NotBlank(message = "Last name must not be blank")
     val lastName: String,
+
     @field:Email(message = "Email must be valid")
     val email: String,
-    @field:Size(min = 10, max = 15, message = "Phone number must be between 10 and 15 digits")
+
+    @field:NotBlank(message = "Phone number must not be blank")
     val phone: String,
+
     @field:NotBlank(message = "Address must not be blank")
     val address: String,
+
     @field:NotNull(message = "Role must not be null")
     val role: UserRole,
 )

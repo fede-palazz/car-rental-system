@@ -1,53 +1,75 @@
 plugins {
-    kotlin("jvm") version "2.1.10"
-    `java-library`
+    kotlin("jvm") version "2.1.0" // Updated to support Java 23
+    kotlin("plugin.spring") version "2.1.0"
 }
 
 group = "com.rentalcarsystem"
 version = "0.0.1-SNAPSHOT"
+description = "Keycloak User Events Listener"
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 val keycloakVersion = "26.2.4"
 
 dependencies {
-    testImplementation(kotlin("test"))
-
     // Keycloak dependencies (provided scope)
-    compileOnly("org.keycloak:keycloak-core:$keycloakVersion")
-    compileOnly("org.keycloak:keycloak-server-spi:$keycloakVersion")
-    compileOnly("org.keycloak:keycloak-server-spi-private:$keycloakVersion")
-    compileOnly("org.keycloak:keycloak-services:$keycloakVersion")
+    compileOnly("org.keycloak:keycloak-core:${keycloakVersion}")
+    compileOnly("org.keycloak:keycloak-server-spi:${keycloakVersion}")
+    compileOnly("org.keycloak:keycloak-server-spi-private:${keycloakVersion}")
+    compileOnly("org.keycloak:keycloak-services:${keycloakVersion}")
 
-    // Jackson for JSON processing
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+    // Kafka Client
+    implementation("org.apache.kafka:kafka-clients:3.6.0") {
+        exclude(group = "org.slf4j")
+    }
 
-    // HTTP client
-    implementation("org.apache.httpcomponents:httpclient:4.5.14")
+    // Jackson for JSON serialization
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
 
-    // Logging
-    compileOnly("org.slf4j:slf4j-api:2.0.7")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+//	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+//	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // Kotlin stdlib
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    // Logging (provided by Keycloak)
+//    compileOnly("org.jboss.logging:jboss-logging:3.5.3.Final")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
-    jvmToolchain(21)
+	compilerOptions {
+		freeCompilerArgs.addAll("-Xjsr305=strict")
+	}
 }
 
-// Create a fat JAR with dependencies
-tasks.jar {
-    archiveClassifier.set("")
+tasks.register<Jar>("fatJar") {
+    archiveClassifier.set("all")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }) {
-        exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
+// Exclude SLF4J and other libraries provided by Keycloak
+    val excludePatterns = listOf(
+        "META-INF/*.SF",
+        "META-INF/*.DSA",
+        "META-INF/*.RSA",
+        "META-INF/MANIFEST.MF",
+        "**/module-info.class"
+    )
+
+    from(configurations.runtimeClasspath.get().map {
+        if (it.isDirectory) it else zipTree(it)
+    }) {
+        exclude(excludePatterns)
+        // Exclude SLF4J classes since Keycloak provides them
+        exclude("org/slf4j/**")
+        exclude("org/apache/logging/slf4j/**")
     }
+
+    from(sourceSets.main.get().output)
 }
