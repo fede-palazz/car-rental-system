@@ -19,6 +19,7 @@ interface UserService {
     fun getUserById(userId: Long): UserResDTO
     fun getUserByUsername(username: String, loggedUsername: String, roles: List<String>): UserResDTO
     fun getActualUserById(userId: Long): User
+    fun getActualUserByUsername(username: String): User
     fun addUser(@Valid userReq: UserReqDTO): UserResDTO
     fun updateUser(userId: Long, @Valid userReq: UserUpdateReqDTO): UserResDTO
     fun deleteUser(userId: Long)
