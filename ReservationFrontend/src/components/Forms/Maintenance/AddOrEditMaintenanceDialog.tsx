@@ -18,6 +18,7 @@ import MaintenancesAPI from "@/API/MaintenancesAPI";
 import { Maintenance } from "@/models/Maintenance";
 import { useParams } from "react-router-dom";
 import AddOrEditMaintenanceForm from "./AddOrEditMaintenanceForm";
+import { MaintenanceType } from "@/models/enums/MaintenanceType";
 
 const maintenanceSchema = z
   .object({
@@ -38,8 +39,15 @@ const maintenanceSchema = z
         message: "Planned End Date cannot be in the past",
       }),
     defects: z.string().min(1, "Defects must not be blank"),
-    type: z.string().min(1, "Type must not be blank"),
-    upcomingServiceNeeds: z.string(), //.optional(),
+    type: z.nativeEnum(MaintenanceType, {
+      errorMap: (issue) => {
+        if (issue.code === "invalid_type") {
+          return { message: "Maintenance Type Type is required" };
+        }
+        return { message: "Invalid maintenance type selected" };
+      },
+    }),
+    upcomingServiceNeeds: z.string(),
   })
   .refine((data) => data.plannedEndDate > data.startDate, {
     path: ["plannedEndDate"],
@@ -59,7 +67,7 @@ export default function AddOrEditMaintenanceDialog() {
       startDate: new Date(),
       plannedEndDate: undefined,
       defects: "",
-      type: "",
+      type: undefined,
       upcomingServiceNeeds: "",
     },
   });
@@ -132,88 +140,8 @@ export default function AddOrEditMaintenanceDialog() {
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             <AddOrEditMaintenanceForm
-              control={
-                form.control as unknown as Control
-              }></AddOrEditMaintenanceForm>
-            {/*
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Type*</FormLabel>
-                  <FormControl>
-                    <Input
-                      startIcon={
-                        <span className="material-symbols-outlined items-center md-18">
-                          build
-                        </span>
-                      }
-                      placeholder={"Type"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="defects"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Defects*</FormLabel>
-                  <FormControl>
-                    <Input
-                      startIcon={
-                        <span className="material-symbols-outlined items-center md-18">
-                          report_problem
-                        </span>
-                      }
-                      placeholder={"Defects"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="upcomingServiceNeeds"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Upcoming service Needs*</FormLabel>
-                  <FormControl>
-                    <Input
-                      startIcon={
-                        <span className="material-symbols-outlined items-center md-18">
-                          build_circle
-                        </span>
-                      }
-                      placeholder={"Upcoming service needs"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="completed"
-              render={({ field }) => (
-                <FormItem className="flex items-center mb-2">
-                  <FormLabel>Completed</FormLabel>
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />*/}
+              control={form.control as unknown as Control}
+              vehicleId={Number(vehicleId)}></AddOrEditMaintenanceForm>
             <DialogFooter className="col-span-full ">
               <div className="flex items-center justify-between w-full">
                 <Button

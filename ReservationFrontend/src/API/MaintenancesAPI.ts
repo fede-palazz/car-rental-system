@@ -91,6 +91,7 @@ async function createMaintenance(
   vehicleId: number,
   maintenanceDTO: MaintenanceReqDTO
 ): Promise<Maintenance> {
+  console.log(maintenanceDTO);
   const response = await fetch(baseURL + `vehicles/${vehicleId}/maintenances`, {
     method: "POST",
     credentials: "include",
@@ -98,7 +99,11 @@ async function createMaintenance(
       "X-CSRF-TOKEN": getCsrfToken(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(maintenanceDTO),
+    body: JSON.stringify({
+      ...maintenanceDTO,
+      startDate: maintenanceDTO.startDate.toISOString(),
+      plannedEndDate: maintenanceDTO.plannedEndDate.toISOString(),
+    }),
   });
   if (response.ok) {
     const res = await response.json();

@@ -1,5 +1,4 @@
 import VehicleAPI from "@/API/VehiclesAPI";
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { FormField, FormItem, FormMessage } from "@/components/ui/form";
 import PaginationWrapper from "@/components/ui/paginationWrapper";
@@ -247,6 +246,9 @@ function ChangeVehicleOrDeleteReservationForm({
         enableMultiRowSelection={false}
         onRowSelection={(newVehicleId: number | undefined) => {
           onVehicleSelection(newVehicleId);
+        }}
+        getRowId={(row: Vehicle) => {
+          return row.id.toString();
         }}
       />
       <FormField

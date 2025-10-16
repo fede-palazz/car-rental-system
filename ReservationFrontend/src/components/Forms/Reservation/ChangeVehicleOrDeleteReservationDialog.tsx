@@ -9,24 +9,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Control, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
 import { defineStepper } from "@/components/ui/stepper";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Reservation } from "@/models/Reservation";
 import ChangeVehicleOrDeleteReservationForm from "./ChangeVehicleOrDeleteReservationForm";
 import AddOrEditMaintenanceForm from "../Maintenance/AddOrEditMaintenanceForm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MaintenancesAPI from "@/API/MaintenancesAPI";
 import { MaintenanceReqDTO } from "@/models/dtos/request/MaintenanceReqDTO";
 import ReservationsAPI from "@/API/ReservationsAPI";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 const editVehicleSchema = z.object({
-  reservationId: z.number({
-    required_error: "Reservation is required",
-    invalid_type_error: "Reservation id must be a number",
-  }),
   newVehicleId: z.number({
     required_error: "Vehicle is required",
     invalid_type_error: "Vehicle id must be a number",
@@ -52,7 +49,7 @@ const maintenanceSchema = z.object({
     }),
   defects: z.string().min(1, "Defects must not be blank"),
   type: z.string().min(1, "Type must not be blank"),
-  upcomingServiceNeeds: z.string(), //.optional(),
+  upcomingServiceNeeds: z.string(),
 });
 
 const {
@@ -81,7 +78,7 @@ function StepperizedForm({
   reservation,
   handleCancel,
 }: {
-  reservation: Reservation;
+  reservation?: Reservation;
   handleCancel: () => void;
 }) {
   const methods = useStepper();
@@ -89,8 +86,6 @@ function StepperizedForm({
   const form = useForm({
     resolver: zodResolver(methods.current.schema as z.ZodTypeAny),
     defaultValues: {
-      reservationId: reservation.id,
-      oldVehicleId: reservation.vehicleId,
       newVehicleId: undefined,
       //Maintenance
       startDate: new Date(),
@@ -104,6 +99,7 @@ function StepperizedForm({
   const [deleting, setDeleting] = useState<boolean>(false);
 
   function handleChangeReservationVehicle() {
+    if (!reservation) return;
     const newVehicleId = form.getValues("newVehicleId");
     ReservationsAPI.updateReservationVehicle(reservation.id, newVehicleId)
       .then(() => {
@@ -118,6 +114,7 @@ function StepperizedForm({
   }
 
   function handleDeleteReservation() {
+    if (!reservation) return;
     ReservationsAPI.deleteReservationById(reservation.id)
       .then(() => {
         toast.success("Reservation deleted successfully");
@@ -131,7 +128,8 @@ function StepperizedForm({
   }
 
   function handleMaintenanceCreate() {
-    const oldVehicleId = form.getValues("oldVehicleId");
+    if (!reservation) return;
+    const oldVehicleId = reservation?.vehicleId;
     //Maintenance
     const startDate = form.getValues("startDate");
     const plannedEndDate = form.getValues("plannedEndDate");
@@ -173,103 +171,112 @@ function StepperizedForm({
             {methods.isFirst ? "Edit Reservation's Vehicle" : "Add Maintenance"}
           </DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <StepperNavigation className="col-span-full">
-              {methods.all.map((step) => (
-                <StepperStep
-                  key={step.id}
-                  of={step.id}
-                  type="button"
-                  onClick={async (event) => {
-                    event.stopPropagation();
-                    const valid = await form.trigger();
-                    if (!valid) return;
-                    methods.goTo(step.id);
-                  }}>
-                  <StepperTitle>{step.title}</StepperTitle>
-                </StepperStep>
-              ))}
-            </StepperNavigation>
-            {methods.switch({
-              reservation: ({ Component }) => (
-                <>
-                  <Component
-                    control={form.control}
-                    currentVehicleId={reservation.vehicleId}
-                    onVehicleSelection={(newVehicleId) => {
-                      form.setValue("newVehicleId", newVehicleId);
-                    }}
-                    carModelId={reservation.carModelId}
-                    desiredStartDate={reservation.plannedPickUpDate}
-                    desiredEndDate={reservation.plannedDropOffDate}></Component>
-                  {deleting && (
-                    <div className="text-lg text-center w-full font-semibold text-warning">
-                      Are you absolutely sure to delete the reservation?
-                    </div>
-                  )}
-                </>
-              ),
-              maintenance: ({ Component }) => (
-                <Component control={form.control}></Component>
-              ),
-            })}
-
-            <DialogFooter className="col-span-full">
-              <StepperControls className="w-full justify-between">
-                <Button
-                  variant="secondary"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleCancel();
-                  }}>
-                  <span className="material-symbols-outlined items-center md-18">
-                    {"close"}
-                  </span>
-                  {"Cancel"}
-                </Button>
-                <div className="flex flex-row gap-2">
-                  <Button
-                    variant="destructive"
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (deleting) {
-                        handleDeleteReservation();
-                      } else {
-                        setDeleting(true);
-                      }
-                    }}>
-                    Delete
-                    <span className="material-symbols-outlined  md-18">
-                      delete
-                    </span>
-                  </Button>
-                  <Button
-                    variant="default"
+        {!reservation ? (
+          <div className="flex items-center justify-center w-full min-h-[300px]">
+            <Spinner />
+          </div>
+        ) : (
+          <Form {...form}>
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              <StepperNavigation className="col-span-full">
+                {methods.all.map((step) => (
+                  <StepperStep
+                    key={step.id}
+                    of={step.id}
                     type="button"
                     onClick={async (event) => {
                       event.stopPropagation();
                       const valid = await form.trigger();
                       if (!valid) return;
-                      if (methods.isLast) {
-                        handleMaintenanceCreate();
-                        return;
-                      } else {
-                        handleChangeReservationVehicle();
-                      }
-                    }}
-                    disabled={form.watch("newVehicleId") == undefined}>
-                    {methods.isFirst ? "Change" : "Create"}
-                    <span className="material-symbols-outlined  md-18">
-                      {methods.isFirst ? "swap_driving_apps" : "add"}
+                      methods.goTo(step.id);
+                    }}>
+                    <StepperTitle>{step.title}</StepperTitle>
+                  </StepperStep>
+                ))}
+              </StepperNavigation>
+              {methods.switch({
+                reservation: ({ Component }) => (
+                  <>
+                    <Component
+                      control={form.control}
+                      currentVehicleId={reservation.vehicleId}
+                      onVehicleSelection={(newVehicleId) => {
+                        form.setValue("newVehicleId", newVehicleId);
+                      }}
+                      carModelId={reservation.carModelId}
+                      desiredStartDate={reservation.plannedPickUpDate}
+                      desiredEndDate={
+                        reservation.plannedDropOffDate
+                      }></Component>
+                    <div className="text-lg text-center col-span-full w-full font-semibold text-warning">
+                      {deleting &&
+                        "Are you absolutely sure to delete the reservation?"}
+                    </div>
+                  </>
+                ),
+                maintenance: ({ Component }) => (
+                  <Component control={form.control}></Component>
+                ),
+              })}
+              <DialogFooter className="col-span-full">
+                <StepperControls className="w-full justify-between">
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleCancel();
+                    }}>
+                    <span className="material-symbols-outlined items-center md-18">
+                      {"close"}
                     </span>
+                    {"Cancel"}
                   </Button>
-                </div>
-              </StepperControls>
-            </DialogFooter>
-          </form>
-        </Form>
+                  <div className="flex flex-row gap-2">
+                    {methods.isFirst && (
+                      <Button
+                        variant="destructive"
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (deleting) {
+                            handleDeleteReservation();
+                          } else {
+                            setDeleting(true);
+                          }
+                        }}>
+                        Delete
+                        <span className="material-symbols-outlined  md-18">
+                          delete
+                        </span>
+                      </Button>
+                    )}
+                    <Button
+                      variant="default"
+                      type="button"
+                      onClick={async (event) => {
+                        event.stopPropagation();
+                        const valid = await form.trigger();
+                        if (!valid) return;
+                        if (methods.isLast) {
+                          handleMaintenanceCreate();
+                          return;
+                        } else {
+                          handleChangeReservationVehicle();
+                        }
+                      }}
+                      disabled={form.watch("newVehicleId") == undefined}>
+                      {methods.isFirst ? "Change" : "Create"}
+                      <span className="material-symbols-outlined  md-18">
+                        {methods.isFirst ? "swap_driving_apps" : "add"}
+                      </span>
+                    </Button>
+                  </div>
+                </StepperControls>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -277,7 +284,25 @@ function StepperizedForm({
 
 export default function ChangeVehicleOrDeleteReservationDialog() {
   const navigate = useNavigate();
-  const reservation: Reservation = useOutletContext();
+  const location = useLocation();
+  const { reservationId } = useParams<{
+    reservationId: string;
+  }>();
+  const [reservation, setReservation] = useState<Reservation | undefined>(
+    undefined
+  );
+
+  useEffect(() => {
+    //if (location.pathname !== `/reservations/${vehicleId}`) return;
+    ReservationsAPI.getReservationById(Number(reservationId))
+      .then((reservation: Reservation) => {
+        console.log(reservation);
+        setReservation(reservation);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [reservationId, location.pathname]);
 
   return (
     <StepperProvider labelOrientation="vertical">

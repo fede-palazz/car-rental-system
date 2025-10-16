@@ -25,6 +25,7 @@ function ReservationsPage() {
   const navigate = useNavigate();
   const user = useContext(UserContext);
   const location = useLocation();
+  const prevPathRef = useRef<string | undefined>(undefined);
   const searchParams = new URLSearchParams(location.search);
   const paymentOutcome: boolean | null =
     searchParams.get("completed") === null
@@ -120,15 +121,26 @@ function ReservationsPage() {
   };
 
   useEffect(() => {
-    if (location.pathname !== "/reservations") return;
+    const currentPath = location.pathname;
+    const prevPath = prevPathRef.current;
 
-    fetchReservations(filter, order, sort);
-    if (paymentOutcome == null) return;
-    if (paymentOutcome) {
-      toast.success("Payment succeeded");
-    } else {
-      toast.error("Payment failed");
+    const isEnteringReservations =
+      prevPath == undefined ||
+      (!prevPath.includes("/reservations") &&
+        currentPath.includes("/reservations"));
+
+    if (isEnteringReservations) {
+      // Just entered the /reservations section
+      fetchReservations(filter, order, sort);
+
+      if (paymentOutcome != null) {
+        if (paymentOutcome) toast.success("Payment succeeded");
+        else toast.error("Payment failed");
+      }
     }
+
+    // Update the previous path reference for next navigation
+    prevPathRef.current = currentPath;
   }, [location, paymentOutcome, order, sort, user]);
 
   useEffect(() => {
@@ -592,7 +604,7 @@ function ReservationsPage() {
                 onClick={(e) => {
                   e.stopPropagation();
                   deletingOrEditingIdRef.current = reservation.id;
-                  navigate("change-vehicle");
+                  navigate(`change-vehicle/${reservation.id}`);
                 }}>
                 <span className="material-symbols-outlined md-18">
                   edit_road
@@ -605,7 +617,7 @@ function ReservationsPage() {
                   variant="secondary"
                   title="Start"
                   size="icon"
-                  disabled={!!reservation.actualPickUpDate}
+                  //disabled={!!reservation.actualPickUpDate}
                   onClick={(e) => {
                     e.stopPropagation();
                     deletingOrEditingIdRef.current = reservation.id;
@@ -618,14 +630,15 @@ function ReservationsPage() {
                 <Button
                   title="Finalize"
                   size="icon"
-                  disabled={
+                  //TODO
+                  /*disabled={
                     !!reservation.actualDropOffDate ||
                     !reservation.actualPickUpDate
-                  }
+                  }*/
                   onClick={(e) => {
                     e.stopPropagation();
                     deletingOrEditingIdRef.current = reservation.id;
-                    navigate("finalize");
+                    navigate(`finalize/${reservation.id}`);
                   }}>
                   <span className="material-symbols-outlined md-18">
                     handshake

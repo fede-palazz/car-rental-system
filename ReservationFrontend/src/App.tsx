@@ -166,7 +166,7 @@ function App() {
                   )
                 }></Route>
               <Route
-                path="change-vehicle"
+                path="change-vehicle/:reservationId"
                 element={
                   user && user.role == UserRole.CUSTOMER ? (
                     <Navigate to="/reservations"></Navigate>
@@ -175,7 +175,7 @@ function App() {
                   )
                 }></Route>
               <Route
-                path="finalize"
+                path="finalize/:reservationId"
                 element={
                   user && user.role == UserRole.CUSTOMER ? (
                     <Navigate to="/reservations"></Navigate>

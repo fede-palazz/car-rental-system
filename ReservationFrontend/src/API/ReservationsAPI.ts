@@ -93,6 +93,52 @@ async function getAllReservations(
     );
   }
 }
+
+async function getReservationById(id: number): Promise<Reservation> {
+  const response = await fetch(baseURL + `reservations/${id}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.ok) {
+    const res = await response.json();
+
+    const reservation = res as StaffReservationResDTO;
+
+    const { commonInfo, ...otherProperties } = reservation;
+
+    const returningReservation = {
+      ...commonInfo,
+      creationDate: new Date(commonInfo.creationDate),
+      plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+      plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+      actualDropOffDate: commonInfo.actualDropOffDate
+        ? new Date(commonInfo.actualDropOffDate)
+        : undefined,
+      actualPickUpDate: commonInfo.actualPickUpDate
+        ? new Date(commonInfo.actualPickUpDate)
+        : undefined,
+      ...otherProperties,
+    } as Reservation;
+
+    return returningReservation;
+  } else {
+    const errDetail = await response.json();
+    console.log(errDetail);
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    }
+    throw new Error(
+      errDetail.error || "Something went wrong, please reload the page"
+    );
+  }
+}
+
 async function deleteReservationById(id: number): Promise<null> {
   const response = await fetch(baseURL + `reservations/${id}`, {
     method: "DELETE",
@@ -106,6 +152,7 @@ async function deleteReservationById(id: number): Promise<null> {
     return null;
   } else {
     const errDetail = await response.json();
+    console.log(errDetail);
     if (Array.isArray(errDetail.errors)) {
       throw new Error(
         errDetail.errors[0].msg ||
@@ -293,6 +340,127 @@ async function updateReservationVehicle(
   }
 }
 
+async function getOverlappingReservations(
+  vehicleId: number,
+  desiredStartDate: Date,
+  desiredEndDate: Date,
+  singlePage: boolean = true,
+  order: string = "asc",
+  sort: string = "brand",
+  page: number = 0,
+  size: number = 10
+): Promise<PagedResDTO<Reservation>> {
+  const queryParams = `vehicleId=${vehicleId}&desiredStart=${desiredStartDate.toISOString()}&desiredEnd=${desiredEndDate.toISOString()}&singlePage=${singlePage}&order=${encodeURIComponent(
+    order
+  )}&sort=${encodeURIComponent(sort)}&page=${encodeURIComponent(
+    page
+  )}&size=${encodeURIComponent(size)}`;
+  const response = await fetch(
+    baseURL + `reservations/overlapping?${queryParams}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    console.log(res);
+    res.content = res.content.map((reservation: StaffReservationResDTO) => {
+      const { commonInfo, ...otherProperties } =
+        reservation as StaffReservationResDTO;
+      return {
+        ...commonInfo,
+        creationDate: new Date(commonInfo.creationDate),
+        plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+        plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+        actualDropOffDate: commonInfo.actualDropOffDate
+          ? new Date(commonInfo.actualDropOffDate)
+          : undefined,
+        actualPickUpDate: commonInfo.actualPickUpDate
+          ? new Date(commonInfo.actualPickUpDate)
+          : undefined,
+        ...otherProperties,
+      } as Reservation;
+    });
+    return res;
+  } else {
+    const errDetail = await response.json();
+    console.log(errDetail);
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    }
+    throw new Error(
+      errDetail.error || "Something went wrong, please reload the page"
+    );
+  }
+}
+
+async function getOverlappingReservationsByReservationId(
+  reservationId: number,
+  bufferedDropOffDate: Date,
+  singlePage: boolean = true,
+  order: string = "asc",
+  sort: string = "brand",
+  page: number = 0,
+  size: number = 10
+): Promise<PagedResDTO<Reservation>> {
+  const queryParams = `bufferedDropOffDate=${bufferedDropOffDate.toISOString()}&singlePage=${singlePage}&order=${encodeURIComponent(
+    order
+  )}&sort=${encodeURIComponent(sort)}&page=${encodeURIComponent(
+    page
+  )}&size=${encodeURIComponent(size)}`;
+  const response = await fetch(
+    baseURL + `reservations/${reservationId}/overlapping?${queryParams}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    console.log(res);
+    res.content = res.content.map((reservation: StaffReservationResDTO) => {
+      const { commonInfo, ...otherProperties } =
+        reservation as StaffReservationResDTO;
+      return {
+        ...commonInfo,
+        creationDate: new Date(commonInfo.creationDate),
+        plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+        plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+        actualDropOffDate: commonInfo.actualDropOffDate
+          ? new Date(commonInfo.actualDropOffDate)
+          : undefined,
+        actualPickUpDate: commonInfo.actualPickUpDate
+          ? new Date(commonInfo.actualPickUpDate)
+          : undefined,
+        ...otherProperties,
+      } as Reservation;
+    });
+    return res;
+  } else {
+    const errDetail = await response.json();
+    console.log(errDetail);
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    }
+    throw new Error(
+      errDetail.error || "Something went wrong, please reload the page"
+    );
+  }
+}
+
 const ReservationsAPI = {
   getAllReservations,
   deleteReservationById,
@@ -302,6 +470,9 @@ const ReservationsAPI = {
   createReservation,
   payReservation,
   updateReservationVehicle,
+  getOverlappingReservations,
+  getReservationById,
+  getOverlappingReservationsByReservationId,
 };
 
 export default ReservationsAPI;

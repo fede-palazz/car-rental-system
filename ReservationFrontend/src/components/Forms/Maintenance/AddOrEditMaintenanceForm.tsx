@@ -1,3 +1,4 @@
+import ReservationsAPI from "@/API/ReservationsAPI";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -23,13 +24,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { MaintenanceType } from "@/models/enums/MaintenanceType";
-import { Control } from "react-hook-form";
+import { Reservation } from "@/models/Reservation";
+import { useEffect, useState } from "react";
+import { Control, useWatch } from "react-hook-form";
+import { Link } from "react-router-dom";
 
 export default function AddOrEditMaintenanceForm({
   control,
+  vehicleId,
 }: {
   control: Control;
+  vehicleId?: number;
 }) {
   const maintenanceTypes = Object.entries(MaintenanceType).map(
     ([key, value]) => ({
@@ -37,6 +44,31 @@ export default function AddOrEditMaintenanceForm({
       value,
     })
   );
+
+  const [overlappingReservations, setOverlappingReservations] = useState<
+    Reservation[]
+  >([]);
+
+  const startDate = useWatch({ control, name: "startDate" });
+  const endDate = useWatch({ control, name: "plannedEndDate" });
+
+  useEffect(() => {
+    if (!startDate || !endDate || vehicleId == undefined) return;
+
+    ReservationsAPI.getOverlappingReservations(
+      vehicleId,
+      startDate,
+      endDate,
+      true
+    )
+      .then((res: PagedResDTO<Reservation>) => {
+        console.log(res.content);
+        setOverlappingReservations(res.content);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [vehicleId, startDate, endDate]);
 
   return (
     <>
@@ -87,21 +119,56 @@ export default function AddOrEditMaintenanceForm({
           </FormItem>
         )}
       />
+      <FormItem className="flex flex-col col-span-full w-full gap-2 items-center text-center">
+        {overlappingReservations.length != 0 && (
+          <>
+            <FormLabel className="text-warning w-full">
+              You cannot add a maintenance for this vehicle in this period.
+              There{" "}
+              {overlappingReservations.length != 1
+                ? "are these reservations"
+                : "is this reservation"}{" "}
+              in the same period:{" "}
+              {overlappingReservations.map((r, idx) => (
+                <span key={r.id}>
+                  <Link
+                    to={`/reservations/change-vehicle/${r.id}`}
+                    className="underline text-warning">
+                    {r.id}
+                  </Link>
+                  {idx < overlappingReservations.length - 1 ? ", " : ""}
+                </span>
+              ))}
+            </FormLabel>
+            <FormLabel className="text-warning w-full"></FormLabel>
+            <FormLabel className="text-warning w-full">
+              Change {overlappingReservations.length == 1 ? "its" : "their"}{" "}
+              vehicle or delete{" "}
+              {overlappingReservations.length == 1 ? "it" : "them"} to add the
+              maintenance. Click the reservation number to manage it.
+            </FormLabel>
+          </>
+        )}
+      </FormItem>
       <FormField
+        disabled={overlappingReservations.length != 0}
         control={control}
         name="type"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="col-span-full">
             <FormLabel>Type</FormLabel>
             <Popover>
-              <PopoverTrigger asChild>
+              <PopoverTrigger
+                asChild
+                disabled={overlappingReservations.length != 0}>
                 <FormControl>
                   <Button
+                    disabled={overlappingReservations.length != 0}
                     size="lg"
                     variant="ghost"
                     role="combobox"
                     className={cn(
-                      " text-foreground border border-input font-normal justify-between flex px-1.5",
+                      " text-foreground col-span-full border border-input font-normal justify-between flex px-1.5",
                       !field.value && " text-muted-foreground"
                     )}>
                     <span className="flex items-center gap-2">
@@ -109,14 +176,20 @@ export default function AddOrEditMaintenanceForm({
                         build
                       </span>
                       {field.value
-                        ? maintenanceTypes
-                            .find((type) => type.value === type.value)
-                            ?.label?.charAt(0)
-                            .toUpperCase() +
-                          (maintenanceTypes
-                            .find((type) => type.value === field.value)
-                            ?.label?.slice(1)
-                            .toLowerCase() || "")
+                        ? (() => {
+                            const selectedType = maintenanceTypes.find(
+                              (type) => type.value === field.value
+                            );
+                            if (!selectedType) return "Select type";
+                            // Format: capitalize first letter, replace underscores with spaces, rest lowercase
+                            const formatted =
+                              selectedType.label.charAt(0).toUpperCase() +
+                              selectedType.label
+                                .slice(1)
+                                .replace(/_/g, " ")
+                                .toLowerCase();
+                            return formatted;
+                          })()
                         : "Select type"}
                     </span>
                     <span className="material-symbols-outlined items-center md-18">
@@ -139,7 +212,10 @@ export default function AddOrEditMaintenanceForm({
                             field.onChange(type.value);
                           }}>
                           {type.label.charAt(0).toUpperCase() +
-                            type.label.slice(1).toLowerCase()}
+                            type.label
+                              .slice(1)
+                              .replace(/_/g, " ")
+                              .toLowerCase()}
                           <span
                             className={cn(
                               "ml-auto",
@@ -162,6 +238,7 @@ export default function AddOrEditMaintenanceForm({
         )}
       />
       <FormField
+        disabled={overlappingReservations.length != 0}
         control={control}
         name="defects"
         render={({ field }) => (
@@ -183,6 +260,7 @@ export default function AddOrEditMaintenanceForm({
         )}
       />
       <FormField
+        disabled={overlappingReservations.length != 0}
         control={control}
         name="upcomingServiceNeeds"
         render={({ field }) => (
