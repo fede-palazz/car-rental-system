@@ -69,7 +69,9 @@ function PendingReservation({
           <CardTitle className="flex items-center gap-2 text-lg">{`${reservation.brand} ${reservation.model} ${reservation.year}`}</CardTitle>
           <CardDescription className="items-center flex gap-1">
             <span className="material-symbols-outlined md-18">event</span>
-            {format(reservation.creationDate, "dd/MM/yyyy")}
+            {format(reservation.creationDate, "dd/MM/yyyy hh:mm", {
+              locale: undefined, // Use system/browser locale
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -162,14 +164,13 @@ function PendingReservation({
                 </li>
               </ul>
               <div className="grid grid-cols-2 items-center w-full gap-2 mt-8 mb-4">
-                <p className="text-xl font-extrabold text-center">
-
+                <p className="text-3xl font-extrabold text-center">
+                  {reservation.totalAmount} €
                 </p>
                 <div className="flex gap-1 justify-center items-center">
                   <div>
                     <Button
                       variant="ghost"
-
                       onClick={handleCancel}
                       className="text-sm text-destructive hover:text-destructive/60 w-1/2">
                       <span className="material-symbols-outlined md-18">
@@ -183,8 +184,7 @@ function PendingReservation({
                       size="lg"
                       className="text-lg"
                       onClick={() => {
-                        ReservationsAPI.payReservation(reservation.id, 1).then(
-                          //TODO change customer Id
+                        ReservationsAPI.payReservation(reservation.id).then(
                           (url) => {
                             if (url.redirectURL) {
                               window.location.href = url.redirectURL;
