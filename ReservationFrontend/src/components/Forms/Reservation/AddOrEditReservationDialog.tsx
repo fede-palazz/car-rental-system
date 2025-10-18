@@ -179,7 +179,15 @@ export default function AddOrEditReservationDialog() {
                   <DateTimePicker
                     modalPopover
                     className="!bg-background overflow-hidden"
-                    calendarDisabled={(val) => val < new Date()}
+                    calendarDisabled={(val) => {
+                      const plannedDropOffDate =
+                        form.getValues("plannedDropOffDate");
+                      // Disable dates before today and after plannedDropOffDate (if set)
+                      return (
+                        val < new Date() ||
+                        (plannedDropOffDate ? val > plannedDropOffDate : false)
+                      );
+                    }}
                     defaultPopupValue={field.value ? field.value : new Date()}
                     placeholder="Planned PickUp Date"
                     value={field.value}
@@ -199,10 +207,13 @@ export default function AddOrEditReservationDialog() {
                   <DateTimePicker
                     modalPopover
                     className="!bg-background overflow-hidden"
-                    calendarDisabled={(val) =>
-                      val < new Date() ||
-                      form.getValues("plannedPickUpDate") > val
-                    }
+                    calendarDisabled={(val) => {
+                      const plannedPickUp = form.getValues("plannedPickUpDate");
+                      return (
+                        val < new Date() ||
+                        (plannedPickUp ? val < plannedPickUp : false)
+                      );
+                    }}
                     defaultPopupValue={field.value ? field.value : new Date()}
                     placeholder="Planned DropOff Date"
                     value={field.value}
@@ -214,101 +225,6 @@ export default function AddOrEditReservationDialog() {
                 </FormItem>
               )}
             />
-            {/* <FormField
-              control={form.control}
-              name="carModelId"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Model</FormLabel>
-                  <Popover modal>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          disabled={
-                            !form.getValues("plannedPickUpDate") ||
-                            !form.getValues("plannedDropOffDate")
-                          }
-                          size="lg"
-                          variant="ghost"
-                          role="combobox"
-                          className={cn(
-                            "bg-background text-muted-foreground border border-input font-normal justify-between flex px-1.5",
-                            !field.value && " text-muted-foreground"
-                          )}>
-                          <span className="flex items-center text-foreground gap-2">
-                            <span className="material-symbols-outlined items-center md-18">
-                              directions_car
-                            </span>
-                            {field.value && availableModels != undefined
-                              ? (availableModels.find(
-                                  (model) => model.id == field.value
-                                )?.brand || "") +
-                                " " +
-                                (availableModels.find(
-                                  (model) => model.id == field.value
-                                )?.model || "") +
-                                " " +
-                                (availableModels.find(
-                                  (model) => model.id == field.value
-                                )?.year || "")
-                              : "Select model"}
-                          </span>
-                          <span className="material-symbols-outlined items-center md-18">
-                            expand_all
-                          </span>
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0 bg-input">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search model"
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No model found.</CommandEmpty>
-                          <CommandGroup>
-                            {availableModels.map((model) => (
-                              <CommandItem
-                                value={model.id.toString()}
-                                key={model.id}
-                                onSelect={() => {
-                                  field.onChange(model.id);
-                                }}>
-                                {model.brand +
-                                  " " +
-                                  model.model +
-                                  " " +
-                                  model.year}
-                                <span
-                                  className={cn(
-                                    "ml-auto",
-                                    model.id === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                    "material-symbols-outlined md-18"
-                                  )}>
-                                  check
-                                </span>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>
-                    {!form.getValues("plannedPickUpDate") ||
-                    !form.getValues("plannedDropOffDate")
-                      ? "Select pickup and dropoff dates before"
-                      : ""}
-                  </FormDescription>
-                  <FormMessage>
-                   
-                  </FormMessage>
-                </FormItem>
-              )}
-            />*/}
             <span className="text-destructive text-sm">
               {availableModels &&
                 !availableModels.find(
@@ -341,7 +257,7 @@ export default function AddOrEditReservationDialog() {
                     event.stopPropagation();
                     onSubmit();
                   }}>
-                  {"Create"}
+                  {"Reserve"}
                   <span className="material-symbols-outlined  md-18">
                     {"add"}
                   </span>
