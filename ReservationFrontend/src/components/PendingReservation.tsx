@@ -165,12 +165,12 @@ function PendingReservation({
                 <p className="text-3xl font-extrabold text-center">
                   {reservation.totalAmount.toFixed(2)} €
                 </p>
-                <div className="flex gap-1 justify-center items-center">
+                <div className="flex gap-3 justify-center items-center">
                   <div>
                     <Button
                       variant="ghost"
                       onClick={handleCancel}
-                      className="text-sm text-destructive hover:text-destructive/60 w-1/2">
+                      className="text-sm text-destructive hover:text-destructive/60">
                       <span className="material-symbols-outlined md-18">
                         cancel
                       </span>

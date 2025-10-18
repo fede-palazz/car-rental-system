@@ -206,8 +206,10 @@ export default function AddReservationDialog({
                     <Link
                       to={`/reservations`}
                       className="underline text-warning">
-                      Pay it before
+                      {" "}
+                      Pay or cancel{" "}
                     </Link>
+                    the pending one before
                   </span>
                 </FormLabel>
               )}
