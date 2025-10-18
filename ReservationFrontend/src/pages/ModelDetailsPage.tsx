@@ -4,46 +4,30 @@ import { CarModel } from "@/models/CarModel.ts";
 import { useContext, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import CarModelAPI from "@/API/CarModelsAPI";
 import CarModelDetailsList from "@/components/CarModelDetailsList";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { UserRole } from "@/models/enums/UserRole";
 import UserContext from "@/contexts/UserContext";
-import { DateRange } from "react-day-picker";
-import { toast } from "sonner";
 
-function ModelDetailsPage({ date }: { date?: DateRange }) {
+function ModelDetailsPage() {
   const user = useContext(UserContext);
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams<{ id: "string" }>();
+  const { carModelId } = useParams<{ carModelId: "string" }>();
   const [model, setModel] = useState<CarModel | undefined>(undefined);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
-
-  const handleDelete = () => {
-    CarModelAPI.deleteModelById(Number(id))
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        navigate("/models");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
 
   useEffect(() => {
-    if (location.pathname !== `/models/${id}`) return;
-    CarModelAPI.getModelById(Number(id))
+    if (location.pathname !== `/models/${carModelId}`) return;
+    CarModelAPI.getModelById(Number(carModelId))
       .then((model: CarModel) => {
         setModel(model);
       })
       .catch((err) => {
         console.log(err);
       });
-  }, [id, location.pathname]);
+  }, [carModelId, location.pathname]);
 
   return (
     <SidebarInset id="sidebar-inset" className="p-2 flex flex-col w-full">
@@ -101,7 +85,7 @@ function ModelDetailsPage({ date }: { date?: DateRange }) {
                         variant="destructive"
                         size="lg"
                         className="w-1/2"
-                        onClick={() => setDeleteConfirmationOpen(true)}>
+                        onClick={() => navigate("delete")}>
                         <span className="material-symbols-outlined md-18">
                           delete
                         </span>
@@ -134,28 +118,7 @@ function ModelDetailsPage({ date }: { date?: DateRange }) {
               </div>
             </div>
           </div>
-          <ConfirmationDialog
-            open={deleteConfirmationOpen}
-            handleSubmit={handleDelete}
-            title="Delete Confirmation"
-            submitButtonLabel="Delete"
-            submitButtonVariant="destructive"
-            content="Are you sure to delete this model?"
-            description="This action is irreversible"
-            descriptionClassName="text-warning"
-            handleCancel={() => {
-              setDeleteConfirmationOpen(false);
-            }}></ConfirmationDialog>
-          <Outlet
-            context={
-              user && user.role != UserRole.CUSTOMER
-                ? model
-                : {
-                    carModelId: id,
-                    plannedPickUpDate: date?.from,
-                    plannedDropOffDate: date?.to,
-                  }
-            }></Outlet>
+          <Outlet></Outlet>
         </div>
       )}
     </SidebarInset>

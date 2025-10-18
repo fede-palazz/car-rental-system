@@ -18,15 +18,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useNavigate, useOutletContext } from "react-router-dom";
-import { Reservation } from "@/models/Reservation";
-import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
 import { ReservationCreateDTO } from "@/models/dtos/request/ReservationCreateDTO";
 import ReservationsAPI from "@/API/ReservationsAPI";
 import CarModelAPI from "@/API/CarModelsAPI";
 import { CarModel } from "@/models/CarModel";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { toast } from "sonner";
+import UserContext from "@/contexts/UserContext";
+import { UserRole } from "@/models/enums/UserRole";
+import { Reservation } from "@/models/Reservation";
+import { ReservationStatus } from "@/models/enums/ReservationStatus";
 
 const reservationSchema = z
   .object({
@@ -58,37 +62,33 @@ const reservationSchema = z
     message: "Drop-off date must be after pick-up date",
   });
 
-export default function AddOrEditReservationDialog() {
+export default function AddReservationDialog({
+  plannedPickUpDate,
+  plannedDropOffDate,
+}: {
+  plannedPickUpDate: Date | undefined;
+  plannedDropOffDate: Date | undefined;
+}) {
+  const user = useContext(UserContext);
   const navigate = useNavigate();
-
-  const reservation:
-    | Reservation
-    | {
-        plannedPickUpDate: Date;
-        plannedDropOffDate: Date;
-        carModelId: number;
-      }
-    | undefined = useOutletContext();
+  const { carModelId } = useParams<{
+    carModelId: string;
+  }>();
 
   const [availableModels, setAvailableModels] = useState<
     CarModel[] | undefined
   >(undefined);
 
+  const [hasPendingReservation, setHasPendingReservation] = useState<
+    boolean | undefined
+  >(undefined);
+
   const form = useForm<ReservationCreateDTO>({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
-      carModelId:
-        reservation && reservation.carModelId
-          ? reservation.carModelId
-          : undefined,
-      plannedPickUpDate:
-        reservation && reservation.plannedPickUpDate
-          ? reservation.plannedPickUpDate
-          : undefined,
-      plannedDropOffDate:
-        reservation && reservation.plannedDropOffDate
-          ? reservation.plannedDropOffDate
-          : undefined,
+      carModelId: carModelId ? Number(carModelId) : undefined,
+      plannedPickUpDate: plannedPickUpDate ? plannedPickUpDate : undefined,
+      plannedDropOffDate: plannedDropOffDate ? plannedDropOffDate : undefined,
     },
   });
 
@@ -120,6 +120,29 @@ export default function AddOrEditReservationDialog() {
     }
   };
 
+  //TODO, does it return always the pending one?
+  function checkPendingReservation() {
+    ReservationsAPI.getAllReservations(
+      undefined,
+      "desc",
+      "plannedPickUpDate",
+      0,
+      9,
+      user && user.role == UserRole.CUSTOMER
+    )
+      .then((res: PagedResDTO<Reservation>) => {
+        if (user != undefined && user.role == UserRole.CUSTOMER) {
+          const pending = res.content.find(
+            (r) => r.status === ReservationStatus.PENDING
+          );
+          setHasPendingReservation(pending !== undefined);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   async function onSubmit() {
     const valid = await form.trigger();
     if (!valid) {
@@ -131,14 +154,18 @@ export default function AddOrEditReservationDialog() {
   const handleCreate = (values: ReservationCreateDTO) => {
     ReservationsAPI.createReservation(values)
       .then(() => {
+        toast.success("Reservation successfull");
         navigate(-1);
       })
       .catch((err) => {
         console.log(err);
+        toast.error(err);
+        navigate(-1);
       });
   };
 
   useEffect(() => {
+    checkPendingReservation();
     fetchAvailableModels();
     const subscription = form.watch((values) => {
       const { plannedPickUpDate, plannedDropOffDate } = values;
@@ -170,8 +197,24 @@ export default function AddOrEditReservationDialog() {
         </DialogHeader>
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <FormItem className="flex flex-col col-span-full w-full gap-2 items-center text-center">
+              {hasPendingReservation && (
+                <FormLabel className="text-warning w-full">
+                  You cannot do another reservation while you have a pending
+                  one.
+                  <span>
+                    <Link
+                      to={`/reservations`}
+                      className="underline text-warning">
+                      Pay it before
+                    </Link>
+                  </span>
+                </FormLabel>
+              )}
+            </FormItem>
             <FormField
               control={form.control}
+              disabled={hasPendingReservation !== false}
               name="plannedPickUpDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
@@ -200,6 +243,7 @@ export default function AddOrEditReservationDialog() {
             />
             <FormField
               control={form.control}
+              disabled={hasPendingReservation !== false}
               name="plannedDropOffDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
@@ -251,7 +295,7 @@ export default function AddOrEditReservationDialog() {
                   disabled={
                     !availableModels?.find(
                       (model) => model.id == form.getValues("carModelId")
-                    )
+                    ) || hasPendingReservation !== false
                   }
                   onClick={(event) => {
                     event.stopPropagation();

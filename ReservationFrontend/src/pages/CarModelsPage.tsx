@@ -7,11 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CarModel } from "@/models/CarModel.ts";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import DefaultCar from "../assets/defaultCarModel.png";
 import { Button } from "@/components/ui/button";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import CarModelAPI from "@/API/CarModelsAPI";
 import ModelFiltersSidebar from "@/components/Sidebars/ModelFiltersSidebar";
 import { ThemeToggler } from "@/components/ThemeToggler";
@@ -50,8 +49,6 @@ function CarModelsPage({
   const navigate = useNavigate();
   const location = useLocation();
   const [carModels, setCarModels] = useState<CarModel[] | undefined>(undefined);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
   const [filtersSidebarOpen, setFiltersSidebarOpen] = useState<boolean>(false);
   const [filter, setFilter] = useState<CarModelFilter>({
     brand: undefined,
@@ -71,7 +68,6 @@ function CarModelsPage({
   const [pageSize, setPageSize] = useState<number>(9);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const deletingOrEditingIdRef = useRef<number | undefined>(undefined);
 
   const fetchModels = (
     filter: CarModelFilter,
@@ -117,18 +113,6 @@ function CarModelsPage({
           console.log(err);
         });
     }
-  };
-
-  const handleDelete = () => {
-    CarModelAPI.deleteModelById(Number(deletingOrEditingIdRef.current))
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        deletingOrEditingIdRef.current = undefined;
-        fetchModels(filter, order, sort);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   };
 
   useEffect(() => {
@@ -325,7 +309,6 @@ function CarModelsPage({
                   size="lg"
                   onClick={(e) => {
                     e.stopPropagation();
-                    deletingOrEditingIdRef.current = undefined;
                     navigate("add");
                   }}>
                   <span className="material-symbols-outlined md-18">add</span>
@@ -393,8 +376,7 @@ function CarModelsPage({
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deletingOrEditingIdRef.current = model.id;
-                                  setDeleteConfirmationOpen(true);
+                                  navigate(`delete/${model.id}`);
                                 }}>
                                 <span className="material-symbols-outlined md-18">
                                   delete
@@ -405,8 +387,7 @@ function CarModelsPage({
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deletingOrEditingIdRef.current = model.id;
-                                  navigate("edit");
+                                  navigate(`edit/${model.id}`);
                                 }}>
                                 <span className="material-symbols-outlined md-18">
                                   edit
@@ -418,8 +399,7 @@ function CarModelsPage({
                               disabled={!date?.from || !date?.to}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                deletingOrEditingIdRef.current = model.id;
-                                navigate("reserve");
+                                navigate(`reserve/${model.id}`);
                               }}>
                               <span className="material-symbols-outlined md-18">
                                 event_upcoming
@@ -448,35 +428,7 @@ function CarModelsPage({
             )}
           </div>
         </div>
-        {user && user.role !== UserRole.CUSTOMER && (
-          <ConfirmationDialog
-            open={deleteConfirmationOpen}
-            handleSubmit={handleDelete}
-            title="Delete Confirmation"
-            submitButtonLabel="Delete"
-            submitButtonVariant="destructive"
-            content="Are you sure to delete this model?"
-            description="This action is irreversible"
-            descriptionClassName="text-warning"
-            handleCancel={() => {
-              deletingOrEditingIdRef.current = undefined;
-              setDeleteConfirmationOpen(false);
-            }}></ConfirmationDialog>
-        )}
-        <Outlet
-          context={
-            user && user.role !== UserRole.CUSTOMER
-              ? deletingOrEditingIdRef.current
-                ? carModels?.find(
-                    (model) => model.id === deletingOrEditingIdRef.current
-                  )
-                : undefined
-              : {
-                  plannedPickUpDate: date?.from,
-                  plannedDropOffDate: date?.to,
-                  carModelId: deletingOrEditingIdRef.current,
-                }
-          }></Outlet>
+        <Outlet></Outlet>
       </SidebarInset>
       {filtersSidebarOpen && (
         <ModelFiltersSidebar

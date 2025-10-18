@@ -21,8 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Reservation } from "@/models/Reservation";
-import { useContext, useEffect, useState } from "react";
-import UserContext from "@/contexts/UserContext";
+import { useEffect, useState } from "react";
 import ReservationsAPI from "@/API/ReservationsAPI";
 import { FinalizeReservationDTO } from "@/models/dtos/request/FinalizeReservationDTO";
 import { Switch } from "@/components/ui/switch";
@@ -32,7 +31,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 
 export default function FinalizeReservationDialog() {
-  const user = useContext(UserContext);
   const navigate = useNavigate();
   const { reservationId } = useParams<{
     reservationId: string;

@@ -21,10 +21,10 @@ import { defineStepper } from "@/components/ui/stepper";
 import ModelInfoForm from "./ModelInfoForm";
 import EngineInfoForm from "./EngineInfoForm";
 import CarModelDetailsList from "@/components/CarModelDetailsList";
-import { CarModelCreateDTO } from "@/models/dtos/CarModelCreateDTO";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { CarCategory } from "@/models/enums/CarCategory";
-import { toast } from "sonner";
+import { CarModelCreateDTO } from "@/models/dtos/request/CarModelCreateDTO";
+import { useEffect, useState } from "react";
 
 const modelInfoSchema = z.object({
   brand: z.string().min(1, "Brand must not be blank").max(50),
@@ -298,10 +298,25 @@ function StepperizedForm({
 
 export default function AddOrEditModelDialog() {
   const navigate = useNavigate();
-  const model: CarModel | undefined = useOutletContext();
+  const location = useLocation();
+  const { carModelId } = useParams<{
+    carModelId: string;
+  }>();
+  const [carModel, setCarModel] = useState<CarModel | undefined>(undefined);
+
+  useEffect(() => {
+    if (location.pathname !== `/edit/${carModelId}`) return;
+    CarModelAPI.getModelById(Number(carModelId))
+      .then((carModel: CarModel) => {
+        setCarModel(carModel);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [carModelId, location.pathname]);
 
   const handleEdit = (values: CarModelCreateDTO) => {
-    CarModelAPI.editModelById(values, Number(model!.id))
+    CarModelAPI.editModelById(values, Number(carModelId))
       .then(() => {
         navigate(-1);
       })
@@ -323,8 +338,8 @@ export default function AddOrEditModelDialog() {
   return (
     <StepperProvider labelOrientation="vertical">
       <StepperizedForm
-        model={model}
-        handleSubmit={!model ? handleCreate : handleEdit}
+        model={carModel}
+        handleSubmit={!carModelId ? handleCreate : handleEdit}
         handleCancel={() => navigate(-1)}
       />
     </StepperProvider>

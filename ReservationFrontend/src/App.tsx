@@ -14,7 +14,6 @@ import { useEffect, useState } from "react";
 import { Toaster } from "./components/ui/sonner.tsx";
 import { UserRole } from "./models/enums/UserRole.ts";
 import ReservationsPage from "./pages/ReservationsPage.tsx";
-import AddOrEditReservationDialog from "./components/Forms/Reservation/AddOrEditReservationDialog.tsx";
 import SetActualPickupDateDialog from "./components/Forms/Reservation/SetActualPickupDateDialog.tsx";
 import FinalizeReservationDialog from "./components/Forms/Reservation/FinalizeReservationDialog.tsx";
 import AddOrEditMaintenanceDialog from "./components/Forms/Maintenance/AddOrEditMaintenanceDialog.tsx";
@@ -26,6 +25,9 @@ import { toast } from "sonner";
 import { setCsrfToken } from "./API/csrfToken.ts";
 import ChangeVehicleOrDeleteReservationDialog from "./components/Forms/Reservation/ChangeVehicleOrDeleteReservationDialog.tsx";
 import { Spinner } from "./components/ui/spinner.tsx";
+import DeleteReservationDialog from "./components/Forms/Reservation/DeleteReservationDialog.tsx";
+import AddReservationDialog from "./components/Forms/Reservation/AddReservationDialog.tsx";
+import DeleteCarModelDialog from "./components/Forms/CarModel/DeleteCarModelDialog.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -107,7 +109,7 @@ function App() {
                     )
                   }></Route>
                 <Route
-                  path="edit"
+                  path="edit/:carModelId"
                   element={
                     user && user.role == UserRole.CUSTOMER ? (
                       <Navigate to="/models"></Navigate>
@@ -116,24 +118,52 @@ function App() {
                     )
                   }></Route>
                 <Route
-                  path="reserve"
-                  element={<AddOrEditReservationDialog />}></Route>
+                  path="reserve/:carModelId"
+                  element={
+                    <AddReservationDialog
+                      plannedPickUpDate={availabilityDates?.from}
+                      plannedDropOffDate={availabilityDates?.to}
+                    />
+                  }></Route>
+                <Route
+                  path="delete/:carModelId"
+                  element={
+                    user && user.role !== UserRole.CUSTOMER ? (
+                      <DeleteCarModelDialog />
+                    ) : (
+                      <Navigate to="/models"></Navigate>
+                    )
+                  }></Route>
               </Route>
               <Route
-                path={"/models/:id"}
-                element={<ModelDetailsPage date={availabilityDates} />}>
+                path={"/models/:carModelId"}
+                element={<ModelDetailsPage />}>
                 <Route
                   path="edit"
                   element={
                     user && user.role == UserRole.CUSTOMER ? (
-                      <Navigate to="/models/:id"></Navigate>
+                      <Navigate to="/models/:carModelId"></Navigate>
                     ) : (
                       <AddOrEditModelDialog />
                     )
                   }></Route>
                 <Route
+                  path="delete"
+                  element={
+                    user && user.role !== UserRole.CUSTOMER ? (
+                      <DeleteCarModelDialog />
+                    ) : (
+                      <Navigate to="/models/:carModelId"></Navigate>
+                    )
+                  }></Route>
+                <Route
                   path="reserve"
-                  element={<AddOrEditReservationDialog />}></Route>
+                  element={
+                    <AddReservationDialog
+                      plannedPickUpDate={availabilityDates?.from}
+                      plannedDropOffDate={availabilityDates?.to}
+                    />
+                  }></Route>
               </Route>
               <Route
                 path={"/vehicles"}
@@ -193,6 +223,9 @@ function App() {
                       <ChangeVehicleOrDeleteReservationDialog />
                     )
                   }></Route>
+                <Route
+                  path="delete/:reservationId"
+                  element={<DeleteReservationDialog />}></Route>
                 <Route
                   path="finalize/:reservationId"
                   element={

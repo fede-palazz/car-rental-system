@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import PaginationWrapper from "@/components/ui/paginationWrapper";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -34,7 +34,6 @@ function ReservationsPage() {
   const navigate = useNavigate();
   const user = useContext(UserContext);
   const location = useLocation();
-  const prevPathRef = useRef<string | undefined>(undefined);
 
   const searchParams = new URLSearchParams(location.search);
   const paymentOutcome: boolean | null =
@@ -49,6 +48,7 @@ function ReservationsPage() {
   >(undefined);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
     useState<boolean>(false);
+
   const [filtersSidebarOpen, setFiltersSidebarOpen] = useState<boolean>(false);
   const [filter, setFilter] = useState<ReservationFilter>({
     licensePlate: undefined,
@@ -116,41 +116,13 @@ function ReservationsPage() {
       });
   };
 
-  const handleDelete = () => {
-    ReservationsAPI.deleteReservationById(
-      Number(deletingOrEditingIdRef.current)
-    )
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        deletingOrEditingIdRef.current = undefined;
-        fetchReservations(filter);
-      })
-      .catch((err) => {
-        toast.error("Error");
-      });
-  };
-
   useEffect(() => {
-    const currentPath = location.pathname;
-    const prevPath = prevPathRef.current;
-
-    const isEnteringReservations =
-      prevPath == undefined ||
-      (!prevPath.includes("/reservations") &&
-        currentPath.includes("/reservations"));
-
-    //if (isEnteringReservations) {
-    // Just entered the /reservations section
     fetchReservations(filter, order, sort);
-    //}
 
     if (paymentOutcome != null) {
       if (paymentOutcome) toast.success("Payment succeeded");
       else toast.error("Payment failed");
     }
-
-    // Update the previous path reference for next navigation
-    prevPathRef.current = currentPath;
   }, [location, paymentOutcome, order, sort, user]);
 
   useEffect(() => {
@@ -672,8 +644,7 @@ function ReservationsPage() {
                     }
                     onClick={(e) => {
                       e.stopPropagation();
-                      deletingOrEditingIdRef.current = reservation.id;
-                      setDeleteConfirmationOpen(true);
+                      navigate(`delete/${reservation.id}`);
                     }}>
                     <span className="material-symbols-outlined md-18">
                       delete
@@ -860,19 +831,6 @@ function ReservationsPage() {
             </div>
           </div>
         </div>
-        <ConfirmationDialog
-          open={deleteConfirmationOpen}
-          handleSubmit={handleDelete}
-          title="Delete Confirmation"
-          submitButtonLabel="Delete"
-          submitButtonVariant="destructive"
-          content="Are you sure to delete this reservation?"
-          description="This action is irreversible"
-          descriptionClassName="text-warning"
-          handleCancel={() => {
-            deletingOrEditingIdRef.current = undefined;
-            setDeleteConfirmationOpen(false);
-          }}></ConfirmationDialog>
         <Outlet
           context={
             deletingOrEditingIdRef.current
