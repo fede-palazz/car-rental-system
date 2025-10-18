@@ -104,7 +104,7 @@ export function LandingPage({
                     <span className="material-symbols-outlined md-18">
                       call
                     </span>
-                    {user.phoneNumber}
+                    {user.phone}
                   </DropdownMenuLabel>
                   {user.role == UserRole.CUSTOMER && (
                     <DropdownMenuLabel className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal">
