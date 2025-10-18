@@ -5,5 +5,7 @@ export function setCsrfToken(token: string) {
 }
 
 export function getCsrfToken(): string {
+  console.log("ECCHECCAZZO");
+  console.log(csrfToken);
   return csrfToken as string;
 }

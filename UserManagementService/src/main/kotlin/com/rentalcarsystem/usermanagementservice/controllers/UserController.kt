@@ -104,11 +104,18 @@ class UserController(private val userService: UserService) {
         require(username.isNotBlank()) { "Invalid username $username: it must be a positive number" }
         val loggedUsername = jwt.claims["preferred_username"] as String
 
+
         @Suppress("UNCHECKED_CAST")
         val realmAccess = jwt.claims["realm_access"] as? Map<String, Any> ?: emptyMap()
         val roles = (realmAccess["roles"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
-        return ResponseEntity.ok(userService.getUserByUsername(username, loggedUsername, roles))
+        return ResponseEntity.ok(
+            userService.getUserByUsername(
+                username,
+                if (loggedUsername == "service-account-reservation-service") username else loggedUsername,
+                roles
+            )
+        )
     }
 
     @Operation(

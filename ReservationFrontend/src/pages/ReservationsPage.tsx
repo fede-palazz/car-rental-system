@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import PaginationWrapper from "@/components/ui/paginationWrapper";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -26,6 +26,7 @@ function ReservationsPage() {
   const user = useContext(UserContext);
   const location = useLocation();
   const prevPathRef = useRef<string | undefined>(undefined);
+
   const searchParams = new URLSearchParams(location.search);
   const paymentOutcome: boolean | null =
     searchParams.get("completed") === null
@@ -132,11 +133,11 @@ function ReservationsPage() {
     if (isEnteringReservations) {
       // Just entered the /reservations section
       fetchReservations(filter, order, sort);
+    }
 
-      if (paymentOutcome != null) {
-        if (paymentOutcome) toast.success("Payment succeeded");
-        else toast.error("Payment failed");
-      }
+    if (paymentOutcome != null) {
+      if (paymentOutcome) toast.success("Payment succeeded");
+      else toast.error("Payment failed");
     }
 
     // Update the previous path reference for next navigation

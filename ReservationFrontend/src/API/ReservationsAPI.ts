@@ -18,7 +18,7 @@ async function getAllReservations(
   isCustomer = true
 ): Promise<PagedResDTO<Reservation>> {
   const queryParams =
-    (filter
+    (filter != undefined
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
           .map(([key, value]) => {

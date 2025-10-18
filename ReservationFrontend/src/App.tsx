@@ -25,9 +25,12 @@ import UserAPI from "./API/UserAPI.ts";
 import { toast } from "sonner";
 import { setCsrfToken } from "./API/csrfToken.ts";
 import ChangeVehicleOrDeleteReservationDialog from "./components/Forms/Reservation/ChangeVehicleOrDeleteReservationDialog.tsx";
+import { Spinner } from "./components/ui/spinner.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
+  const [fetchingUser, setFetchingUser] = useState<boolean>(true);
+
   const [availabilityDates, setAvailabilityDates] = useState<
     DateRange | undefined
   >(undefined);
@@ -37,8 +40,10 @@ function App() {
     if (params.has("logout")) {
       toast.success("Logout successfull");
       setCsrfToken("");
+      setFetchingUser(false);
       return;
     }
+    setFetchingUser(true);
     UserAPI.getLoggedUserInfo()
       .then((res) => {
         setUser(res);
@@ -48,6 +53,9 @@ function App() {
         toast.error(err.message);
         setUser(undefined);
         setCsrfToken("");
+      })
+      .finally(() => {
+        setFetchingUser(false);
       });
   }, []);
 
@@ -55,137 +63,149 @@ function App() {
     <UserContext.Provider value={user}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <Toaster richColors closeButton />
-        <Routes>
-          <Route
-            path="/"
-            element={
-              user && user.role != UserRole.CUSTOMER ? (
-                <Navigate to="/models"></Navigate>
-              ) : (
-                <>
-                  <LandingPage
+        {fetchingUser ? (
+          <Spinner></Spinner>
+        ) : (
+          <Routes>
+            <Route
+              path="/"
+              element={
+                user && user.role != UserRole.CUSTOMER ? (
+                  <Navigate to="/models"></Navigate>
+                ) : (
+                  <>
+                    <LandingPage
+                      date={availabilityDates}
+                      setDate={setAvailabilityDates}
+                    />
+                  </>
+                )
+              }></Route>
+            <Route
+              path="/"
+              element={
+                <SidebarProvider>
+                  <AppSidebar variant="inset" setUser={setUser} />
+                  <Outlet></Outlet>
+                </SidebarProvider>
+              }>
+              <Route
+                path={"/models"}
+                element={
+                  <CarModelsPage
                     date={availabilityDates}
                     setDate={setAvailabilityDates}
                   />
-                </>
-              )
-            }></Route>
-          <Route
-            path="/"
-            element={
-              <SidebarProvider>
-                <AppSidebar variant="inset" setUser={setUser} />
-                <Outlet></Outlet>
-              </SidebarProvider>
-            }>
-            <Route
-              path={"/models"}
-              element={
-                <CarModelsPage
-                  date={availabilityDates}
-                  setDate={setAvailabilityDates}
-                />
-              }>
+                }>
+                <Route
+                  path="add"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditModelDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="edit"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditModelDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="reserve"
+                  element={<AddOrEditReservationDialog />}></Route>
+              </Route>
               <Route
-                path="add"
+                path={"/models/:id"}
+                element={<ModelDetailsPage date={availabilityDates} />}>
+                <Route
+                  path="edit"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models/:id"></Navigate>
+                    ) : (
+                      <AddOrEditModelDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="reserve"
+                  element={<AddOrEditReservationDialog />}></Route>
+              </Route>
+              <Route
+                path={"/vehicles"}
                 element={
                   user && user.role == UserRole.CUSTOMER ? (
                     <Navigate to="/models"></Navigate>
                   ) : (
-                    <AddOrEditModelDialog />
+                    <VehiclesPage />
                   )
-                }></Route>
+                }>
+                <Route path="add" element={<AddOrEditVehicleDialog />}></Route>
+                <Route path="edit" element={<AddOrEditVehicleDialog />}></Route>
+              </Route>
               <Route
-                path="edit"
+                path={"vehicles/:vehicleId"}
+                element={<VehicleDetailsPage />}>
+                <Route path="edit" element={<AddOrEditVehicleDialog />}></Route>
+                <Route
+                  path="add-maintenance"
+                  element={<AddOrEditMaintenanceDialog />}></Route>
+                <Route
+                  path="edit-maintenance/:maintenanceId"
+                  element={<AddOrEditMaintenanceDialog />}></Route>
+                <Route
+                  path="add-note"
+                  element={<AddOrEditNoteDialog />}></Route>
+                <Route
+                  path="edit-note/:noteId"
+                  element={<AddOrEditNoteDialog />}></Route>
+              </Route>
+              <Route
+                path={"/reservations"}
                 element={
-                  user && user.role == UserRole.CUSTOMER ? (
-                    <Navigate to="/models"></Navigate>
+                  fetchingUser && !user ? (
+                    <Spinner></Spinner>
+                  ) : user ? (
+                    <ReservationsPage />
                   ) : (
-                    <AddOrEditModelDialog />
+                    <Navigate to="/"></Navigate>
                   )
-                }></Route>
-              <Route
-                path="reserve"
-                element={<AddOrEditReservationDialog />}></Route>
+                }>
+                <Route
+                  path="pick-up-date"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/reservations"></Navigate>
+                    ) : (
+                      <SetActualPickupDateDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="change-vehicle/:reservationId"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/reservations"></Navigate>
+                    ) : (
+                      <ChangeVehicleOrDeleteReservationDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="finalize/:reservationId"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/reservations"></Navigate>
+                    ) : (
+                      <FinalizeReservationDialog />
+                    )
+                  }></Route>
+              </Route>
             </Route>
-            <Route
-              path={"/models/:id"}
-              element={<ModelDetailsPage date={availabilityDates} />}>
-              <Route
-                path="edit"
-                element={
-                  user && user.role == UserRole.CUSTOMER ? (
-                    <Navigate to="/models/:id"></Navigate>
-                  ) : (
-                    <AddOrEditModelDialog />
-                  )
-                }></Route>
-              <Route
-                path="reserve"
-                element={<AddOrEditReservationDialog />}></Route>
-            </Route>
-            <Route
-              path={"/vehicles"}
-              element={
-                user && user.role == UserRole.CUSTOMER ? (
-                  <Navigate to="/models"></Navigate>
-                ) : (
-                  <VehiclesPage />
-                )
-              }>
-              <Route path="add" element={<AddOrEditVehicleDialog />}></Route>
-              <Route path="edit" element={<AddOrEditVehicleDialog />}></Route>
-            </Route>
-            <Route
-              path={"vehicles/:vehicleId"}
-              element={<VehicleDetailsPage />}>
-              <Route path="edit" element={<AddOrEditVehicleDialog />}></Route>
-              <Route
-                path="add-maintenance"
-                element={<AddOrEditMaintenanceDialog />}></Route>
-              <Route
-                path="edit-maintenance/:maintenanceId"
-                element={<AddOrEditMaintenanceDialog />}></Route>
-              <Route path="add-note" element={<AddOrEditNoteDialog />}></Route>
-              <Route
-                path="edit-note/:noteId"
-                element={<AddOrEditNoteDialog />}></Route>
-            </Route>
-            <Route
-              path={"/reservations"}
-              element={
-                user ? <ReservationsPage /> : <Navigate to="/"></Navigate>
-              }>
-              <Route
-                path="pick-up-date"
-                element={
-                  user && user.role == UserRole.CUSTOMER ? (
-                    <Navigate to="/reservations"></Navigate>
-                  ) : (
-                    <SetActualPickupDateDialog />
-                  )
-                }></Route>
-              <Route
-                path="change-vehicle/:reservationId"
-                element={
-                  user && user.role == UserRole.CUSTOMER ? (
-                    <Navigate to="/reservations"></Navigate>
-                  ) : (
-                    <ChangeVehicleOrDeleteReservationDialog />
-                  )
-                }></Route>
-              <Route
-                path="finalize/:reservationId"
-                element={
-                  user && user.role == UserRole.CUSTOMER ? (
-                    <Navigate to="/reservations"></Navigate>
-                  ) : (
-                    <FinalizeReservationDialog />
-                  )
-                }></Route>
-            </Route>
-          </Route>
-        </Routes>
+          </Routes>
+        )}
       </ThemeProvider>
     </UserContext.Provider>
   );

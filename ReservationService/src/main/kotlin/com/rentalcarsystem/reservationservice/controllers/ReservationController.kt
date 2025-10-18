@@ -97,11 +97,12 @@ class ReservationController(
         }
 
         if (isCustomer && (filters.minBufferedDropOffDate != null || filters.maxBufferedDropOffDate != null ||
-                filters.wasChargedFee != null || filters.wasDeliveryLate != null ||
-                filters.wasInvolvedInAccident != null || filters.minDamageLevel != null ||
-                filters.maxDamageLevel != null || filters.minDirtinessLevel != null ||
-                filters.maxDirtinessLevel != null || filters.pickUpStaffUsername != null ||
-                filters.dropOffStaffUsername != null)) {
+                    filters.wasChargedFee != null || filters.wasDeliveryLate != null ||
+                    filters.wasInvolvedInAccident != null || filters.minDamageLevel != null ||
+                    filters.maxDamageLevel != null || filters.minDirtinessLevel != null ||
+                    filters.maxDirtinessLevel != null || filters.pickUpStaffUsername != null ||
+                    filters.dropOffStaffUsername != null)
+        ) {
             throw IllegalArgumentException("Invalid search filters")
         }
 
@@ -528,7 +529,8 @@ class ReservationController(
         val username = jwt.getClaimAsString("preferred_username")
         requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
 
-        val updatedReservation = reservationService.setReservationActualPickUpDate(username, reservationId, actualPickUpDate)
+        val updatedReservation =
+            reservationService.setReservationActualPickUpDate(username, reservationId, actualPickUpDate)
         logger.info(
             "Set actual pick-up date for reservation {}: {}",
             reservationId,
@@ -614,7 +616,11 @@ class ReservationController(
         requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
 
         val updatedReservation = reservationService.updateReservationVehicle(username, reservationId, vehicleId)
-        logger.info("Updated vehicle of reservation {}: {}", reservationId, mapper.writeValueAsString(updatedReservation))
+        logger.info(
+            "Updated vehicle of reservation {}: {}",
+            reservationId,
+            mapper.writeValueAsString(updatedReservation)
+        )
         return ResponseEntity.ok(updatedReservation)
     }
 

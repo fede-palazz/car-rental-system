@@ -63,7 +63,7 @@ async function getAvailableModels(
   singlePage: boolean = false
 ): Promise<PagedResDTO<CarModel>> {
   const queryParams =
-    (filter
+    (filter != undefined
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
           .map(([key, value]) => {
@@ -93,6 +93,7 @@ async function getAvailableModels(
       method: "GET",
       credentials: "include",
       headers: {
+        "X-CSRF-TOKEN": getCsrfToken(),
         "Content-Type": "application/json",
       },
     }

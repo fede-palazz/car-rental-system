@@ -212,15 +212,27 @@ function VehicleDetailsPage() {
                                         .toUpperCase() +
                                         maintenance.type.slice(1).toLowerCase()}
                                     </CardTitle>
-                                    <CardDescription className="items-center flex gap-1">
-                                      <span className="material-symbols-outlined md-18">
-                                        event
-                                      </span>
-                                      {"Started in " +
-                                        format(
-                                          maintenance.startDate,
-                                          "dd/MM/yyyy"
-                                        )}
+                                    <CardDescription className="flex flex-col gap-1">
+                                      <div className="flex items-end gap-1">
+                                        <span className="material-symbols-outlined md-18">
+                                          event
+                                        </span>
+                                        {"Start: " +
+                                          format(
+                                            maintenance.startDate,
+                                            "dd/MM/yyyy"
+                                          )}
+                                      </div>
+                                      <div className="flex items-end gap-1">
+                                        <span className="material-symbols-outlined md-18">
+                                          event
+                                        </span>
+                                        {"Planned end: " +
+                                          format(
+                                            maintenance.plannedEndDate,
+                                            "dd/MM/yyyy"
+                                          )}
+                                      </div>
                                     </CardDescription>
                                   </div>
                                   <Badge
