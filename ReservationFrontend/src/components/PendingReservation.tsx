@@ -69,9 +69,7 @@ function PendingReservation({
           <CardTitle className="flex items-center gap-2 text-lg">{`${reservation.brand} ${reservation.model} ${reservation.year}`}</CardTitle>
           <CardDescription className="items-center flex gap-1">
             <span className="material-symbols-outlined md-18">event</span>
-            {format(reservation.creationDate, "dd/MM/yyyy hh:mm", {
-              locale: undefined, // Use system/browser locale
-            })}
+            {format(reservation.creationDate, "dd/MM/yyyy HH:mm")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -165,7 +163,7 @@ function PendingReservation({
               </ul>
               <div className="grid grid-cols-2 items-center w-full gap-2 mt-8 mb-4">
                 <p className="text-3xl font-extrabold text-center">
-                  {reservation.totalAmount} €
+                  {reservation.totalAmount.toFixed(2)} €
                 </p>
                 <div className="flex gap-1 justify-center items-center">
                   <div>

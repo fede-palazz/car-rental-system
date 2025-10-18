@@ -20,6 +20,15 @@ import { ReservationStatus } from "@/models/enums/ReservationStatus";
 import ReservationFiltersSidebar from "@/components/Sidebars/ReservationFilterSidebar";
 import PendingReservation from "@/components/PendingReservation";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function ReservationsPage() {
   const navigate = useNavigate();
@@ -130,10 +139,10 @@ function ReservationsPage() {
       (!prevPath.includes("/reservations") &&
         currentPath.includes("/reservations"));
 
-    if (isEnteringReservations) {
-      // Just entered the /reservations section
-      fetchReservations(filter, order, sort);
-    }
+    //if (isEnteringReservations) {
+    // Just entered the /reservations section
+    fetchReservations(filter, order, sort);
+    //}
 
     if (paymentOutcome != null) {
       if (paymentOutcome) toast.success("Payment succeeded");
@@ -159,6 +168,34 @@ function ReservationsPage() {
 
   const baseColumns: ColumnDef<Reservation>[] = [
     {
+      accessorKey: "model",
+      header: () => (
+        <div
+          onClick={() => {
+            setSort("model");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          Model
+          {sort == "model" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const reservation = row.original;
+        return (
+          <div className="flex justify-center text-sm">
+            {`${reservation.brand} ${reservation.model} ${reservation.year} `}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "licensePlate",
       header: () => (
         <div
@@ -182,6 +219,34 @@ function ReservationsPage() {
         return (
           <div className="flex justify-center text-sm">
             {reservation.licensePlate}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "totalAmount",
+      header: () => (
+        <div
+          onClick={() => {
+            setSort("totalAmount");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          Amount
+          {sort == "totalAmount" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const reservation = row.original;
+        return (
+          <div className="flex justify-center text-sm">
+            {reservation.totalAmount.toFixed(2)} €
           </div>
         );
       },
@@ -572,6 +637,56 @@ function ReservationsPage() {
       ),
       cell: ({ row }) => {
         const reservation = row.original;
+
+        return (
+          <div className="flex justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0 ">
+                  <span className="sr-only">Open menu</span>
+                  <span className="material-symbols-outlined md-18">
+                    more_horiz
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="min-w-56 rounded-lg p-2"
+                side={"bottom"}
+                align="end"
+                sideOffset={4}>
+                <DropdownMenuLabel className="font-extrabold text-center">
+                  Actions
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {user?.role !== UserRole.CUSTOMER && (
+                  <DropdownMenuGroup></DropdownMenuGroup>
+                )}
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                    disabled={
+                      reservation.actualPickUpDate != undefined ||
+                      (reservation.plannedPickUpDate &&
+                        reservation.plannedPickUpDate < new Date())
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deletingOrEditingIdRef.current = reservation.id;
+                      setDeleteConfirmationOpen(true);
+                    }}>
+                    <span className="material-symbols-outlined md-18">
+                      delete
+                    </span>
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+        /*
+
         return (
           <div className="flex gap-1 justify-center">
             {/*<Button
@@ -591,7 +706,7 @@ function ReservationsPage() {
                 setDeleteConfirmationOpen(true);
               }}>
               <span className="material-symbols-outlined md-18">delete</span>
-            </Button>*/}
+            </Button>}
             {
               <Button
                 variant="secondary"
@@ -635,7 +750,7 @@ function ReservationsPage() {
                   /*disabled={
                     !!reservation.actualDropOffDate ||
                     !reservation.actualPickUpDate
-                  }*/
+                  }
                   onClick={(e) => {
                     e.stopPropagation();
                     deletingOrEditingIdRef.current = reservation.id;
@@ -649,6 +764,7 @@ function ReservationsPage() {
             )}
           </div>
         );
+        */
       },
     },
   ];
@@ -694,12 +810,14 @@ function ReservationsPage() {
                   fetchReservations(newFilter, order, sort, 0);
                   setFilter(newFilter);
                 }}
-                className="w-[400px]">
+                className="w-[600px]">
                 <TabsList>
                   <TabsTrigger value="undefined">All</TabsTrigger>
                   <TabsTrigger value="CONFIRMED">Confirmed</TabsTrigger>
                   <TabsTrigger value="DELIVERED">Delivered</TabsTrigger>
                   <TabsTrigger value="PICKED_UP">Picked Up</TabsTrigger>
+                  <TabsTrigger value="EXPIRED">Expired</TabsTrigger>
+                  <TabsTrigger value="CANCELLED">Cancelled</TabsTrigger>
                   {user && user.role !== UserRole.CUSTOMER && (
                     <TabsTrigger value="PENDING">Pending</TabsTrigger>
                   )}
