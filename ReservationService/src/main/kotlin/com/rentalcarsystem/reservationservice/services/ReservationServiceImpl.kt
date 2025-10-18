@@ -509,9 +509,17 @@ class ReservationServiceImpl(
             throw RuntimeException("Failed to update customer's score")
         }
         if (reservation.bufferedDropOffDate.isAfter(LocalDateTime.now())) {
-            reservation.vehicle?.let { scheduleVehicleAvailabilityUpdate(it, reservation.bufferedDropOffDate) }
-        } else if (reservation.vehicle?.status == CarStatus.RENTED) {
-            reservation.vehicle?.status = CarStatus.AVAILABLE
+            reservation.vehicle?.let {
+                reservation.vehicle?.pendingCleaning = true
+                scheduleVehicleAvailabilityUpdate(it, reservation.bufferedDropOffDate)
+            }
+        } else {
+            if (reservation.vehicle?.status == CarStatus.RENTED) {
+                reservation.vehicle?.status = CarStatus.AVAILABLE
+            }
+            if (reservation.vehicle?.pendingCleaning == true) {
+                reservation.vehicle?.pendingCleaning = false
+            }
         }
         return reservation.toStaffReservationResDTO()
     }
@@ -733,9 +741,13 @@ class ReservationServiceImpl(
         taskScheduler.schedule({
             if (vehicle.status == CarStatus.RENTED) {
                 vehicle.status = CarStatus.AVAILABLE
-                vehicleRepository.save(vehicle)
                 logger.info("Set Vehicle {} as available", vehicle.getId()!!)
             }
+            if (vehicle.pendingCleaning) {
+                vehicle.pendingCleaning = false
+                logger.info("Set Vehicle {} pending cleaning to false", vehicle.getId()!!)
+            }
+            vehicleRepository.save(vehicle)
         }, runAt)
     }
 }
