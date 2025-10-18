@@ -1,9 +1,8 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import PaginationWrapper from "@/components/ui/paginationWrapper";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,8 +45,6 @@ function ReservationsPage() {
   const [pendingReservation, setPendingReservation] = useState<
     Reservation | undefined
   >(undefined);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
 
   const [filtersSidebarOpen, setFiltersSidebarOpen] = useState<boolean>(false);
   const [filter, setFilter] = useState<ReservationFilter>({
@@ -77,7 +74,6 @@ function ReservationsPage() {
   const [pageSize, setPageSize] = useState<number>(9);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const deletingOrEditingIdRef = useRef<number | undefined>(undefined);
 
   const fetchReservations = (
     filter: ReservationFilter,
@@ -756,12 +752,7 @@ function ReservationsPage() {
           {pendingReservation && (
             <>
               <PendingReservation
-                reservation={pendingReservation}
-                handleCancel={(e) => {
-                  e.stopPropagation();
-                  deletingOrEditingIdRef.current = pendingReservation.id;
-                  setDeleteConfirmationOpen(true);
-                }}></PendingReservation>
+                reservation={pendingReservation}></PendingReservation>
               <Separator></Separator>
             </>
           )}
@@ -831,15 +822,7 @@ function ReservationsPage() {
             </div>
           </div>
         </div>
-        <Outlet
-          context={
-            deletingOrEditingIdRef.current
-              ? reservations?.find(
-                  (reservation) =>
-                    reservation.id === deletingOrEditingIdRef.current
-                )
-              : undefined
-          }></Outlet>
+        <Outlet></Outlet>
       </SidebarInset>
       {filtersSidebarOpen && (
         <ReservationFiltersSidebar

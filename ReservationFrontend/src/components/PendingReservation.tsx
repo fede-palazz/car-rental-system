@@ -14,14 +14,10 @@ import { Separator } from "./ui/separator";
 import { format } from "date-fns";
 import { Button } from "./ui/button";
 import ReservationsAPI from "@/API/ReservationsAPI";
+import { useNavigate } from "react-router-dom";
 
-function PendingReservation({
-  reservation,
-  handleCancel,
-}: {
-  reservation: Reservation;
-  handleCancel: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
+function PendingReservation({ reservation }: { reservation: Reservation }) {
+  const navigate = useNavigate();
   // Calculate the difference in minutes between now and the reservation creation date
   const minutesSinceCreation = Math.floor(
     (new Date().getTime() - reservation.creationDate.getTime()) / 60000
@@ -169,7 +165,10 @@ function PendingReservation({
                   <div>
                     <Button
                       variant="ghost"
-                      onClick={handleCancel}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`delete/${reservation.id}`);
+                      }}
                       className="text-sm text-destructive hover:text-destructive/60">
                       <span className="material-symbols-outlined md-18">
                         cancel
