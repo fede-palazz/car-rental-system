@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 'password'
-      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass,payment:paymentPass
+      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass,payment:paymentPass, analytics:analyticsPass
     ports:
       - '5432:5432'
     command: postgres -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
