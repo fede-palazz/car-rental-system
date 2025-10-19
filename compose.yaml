@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 'password'
-      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass,payment:paymentPass, analytics:analyticsPass
+      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass,payment:paymentPass,analytics:analyticsPass,tracking:trackingPass
     ports:
       - '5432:5432'
     command: postgres -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
@@ -19,7 +19,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: password
     ports:
-      - 5555:80
+      - "5555:80"
     volumes:
       - g15_pgadmin_data:/var/lib/pgadmin/
 
