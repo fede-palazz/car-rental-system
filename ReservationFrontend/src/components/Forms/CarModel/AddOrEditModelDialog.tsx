@@ -271,10 +271,16 @@ function StepperizedForm({
               <StepperControls className="w-full justify-between">
                 <Button
                   variant="secondary"
-                  onClick={methods.prev}
-                  disabled={methods.isFirst}>
+                  type="button"
+                  onClick={() => {
+                    if (methods.isFirst) {
+                      handleCancel();
+                    } else {
+                      methods.prev();
+                    }
+                  }}>
                   <span className="material-symbols-outlined items-center md-18">
-                    {isEdit ? "close" : "arrow_back"}
+                    {methods.isFirst ? "close" : "arrow_back"}
                   </span>
                   {methods.isFirst ? "Cancel" : "Back"}
                 </Button>
