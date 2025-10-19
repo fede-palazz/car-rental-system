@@ -79,6 +79,14 @@
       "containerId" : "e7454df2-6cbc-40fc-96af-a5a0cc9277dd",
       "attributes" : { }
     }, {
+      "id" : "b0a4bbb0-dc7f-468f-a5d6-6cef0699aeb4",
+      "name" : "service_account_tracking",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "e7454df2-6cbc-40fc-96af-a5a0cc9277dd",
+      "attributes" : { }
+    }, {
       "id" : "d15f14ef-3083-4f21-8cfe-88d07d98efc4",
       "name" : "service_account_user",
       "description" : "",
@@ -121,6 +129,14 @@
     }, {
       "id" : "ae390419-a46f-46d1-9305-bc4097e572fb",
       "name" : "CUSTOMER",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "e7454df2-6cbc-40fc-96af-a5a0cc9277dd",
+      "attributes" : { }
+    }, {
+      "id" : "aaf380b7-f383-4f88-b709-178432a7c8f4",
+      "name" : "service_account_analytics",
       "description" : "",
       "composite" : false,
       "clientRole" : false,
@@ -308,6 +324,7 @@
       "payment-service" : [ ],
       "security-admin-console" : [ ],
       "reservation-service" : [ ],
+      "analytics-service" : [ ],
       "admin-cli" : [ ],
       "account-console" : [ ],
       "user-service" : [ ],
@@ -394,7 +411,8 @@
         "clientRole" : true,
         "containerId" : "ea429741-7d81-4e24-b3aa-545c59d6d295",
         "attributes" : { }
-      } ]
+      } ],
+      "tracking-service" : [ ]
     }
   },
   "groups" : [ {
@@ -674,6 +692,20 @@
     "notBefore" : 0,
     "groups" : [ ]
   }, {
+    "id" : "c6b42f09-5bec-415c-b1f6-adaf9732f0f7",
+    "username" : "service-account-analytics-service",
+    "emailVerified" : false,
+    "createdTimestamp" : 1760910202506,
+    "enabled" : true,
+    "totp" : false,
+    "serviceAccountClientId" : "analytics-service",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-car-rental-realm", "service_account_analytics" ],
+    "notBefore" : 0,
+    "groups" : [ "/customers" ]
+  }, {
     "id" : "3317ab72-8806-40ff-8d55-66d543d5db44",
     "username" : "service-account-payment-service",
     "emailVerified" : false,
@@ -701,6 +733,20 @@
     "realmRoles" : [ "default-roles-car-rental-realm", "service_account_reservation" ],
     "notBefore" : 0,
     "groups" : [ ]
+  }, {
+    "id" : "526b144c-4148-41ab-ab5e-88bbab28a638",
+    "username" : "service-account-tracking-service",
+    "emailVerified" : false,
+    "createdTimestamp" : 1760909945004,
+    "enabled" : true,
+    "totp" : false,
+    "serviceAccountClientId" : "tracking-service",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-car-rental-realm", "service_account_tracking" ],
+    "notBefore" : 0,
+    "groups" : [ "/customers" ]
   }, {
     "id" : "ac28fe61-cce6-4976-b61a-74c1c49e074a",
     "username" : "service-account-user-service",
@@ -853,6 +899,45 @@
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : 0,
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "872a6a0b-fcfe-44b9-8f6d-276745769149",
+    "clientId" : "analytics-service",
+    "name" : "",
+    "description" : "",
+    "rootUrl" : "",
+    "adminUrl" : "",
+    "baseUrl" : "",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "wpAboGpaI84yb6LRHcfvZA3hLAYDKSDG",
+    "redirectUris" : [ "/*" ],
+    "webOrigins" : [ "/*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : false,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : true,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "client.secret.creation.time" : "1760910202",
+      "backchannel.logout.session.required" : "true",
+      "standard.token.exchange.enabled" : "false",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "b707e832-f66a-4d4c-9aa7-b7243ca136bb",
@@ -1082,6 +1167,45 @@
       }
     } ],
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "9463c7c1-c0aa-4b9a-afd3-9e79c50f0a8e",
+    "clientId" : "tracking-service",
+    "name" : "",
+    "description" : "",
+    "rootUrl" : "",
+    "adminUrl" : "",
+    "baseUrl" : "",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "JE6uUKtmxI6EIiMb0O3Vx65oKnkkd3vt",
+    "redirectUris" : [ "/*" ],
+    "webOrigins" : [ "/*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : false,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : true,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "client.secret.creation.time" : "1760909945",
+      "backchannel.logout.session.required" : "true",
+      "standard.token.exchange.enabled" : "false",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "479c6a67-b031-4692-aa08-85dee859ba71",
@@ -1786,7 +1910,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "oidc-usermodel-property-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper", "oidc-full-name-mapper" ]
       }
     }, {
       "id" : "5e0a9d61-6f6d-4b48-bfb2-1f652479afa7",
@@ -1795,7 +1919,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "oidc-address-mapper" ]
       }
     }, {
       "id" : "1d24d822-18a1-4620-b872-ef1f95e90760",

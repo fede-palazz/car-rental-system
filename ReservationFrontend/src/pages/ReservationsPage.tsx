@@ -606,6 +606,10 @@ function ReservationsPage() {
       cell: ({ row }) => {
         const reservation = row.original;
 
+        const cancelledOrExpired =
+          reservation.status == ReservationStatus.CANCELLED ||
+          reservation.status == ReservationStatus.EXPIRED;
+
         return (
           <div className="flex justify-center">
             <DropdownMenu>
@@ -627,7 +631,56 @@ function ReservationsPage() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {user?.role !== UserRole.CUSTOMER && (
-                  <DropdownMenuGroup></DropdownMenuGroup>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                      disabled={
+                        cancelledOrExpired ||
+                        reservation.actualPickUpDate != undefined ||
+                        (reservation.plannedPickUpDate &&
+                          reservation.plannedPickUpDate < new Date())
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`change-vehicle/${reservation.id}`);
+                      }}>
+                      <span className="material-symbols-outlined md-18">
+                        edit_road
+                      </span>
+                      Change Vehicle
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                      disabled={
+                        cancelledOrExpired ||
+                        reservation.actualPickUpDate != undefined
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`pick-up-date/${reservation.id}`);
+                      }}>
+                      <span className="material-symbols-outlined md-18">
+                        event_available
+                      </span>
+                      Start
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                      disabled={
+                        cancelledOrExpired ||
+                        !!reservation.actualDropOffDate ||
+                        !reservation.actualPickUpDate
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`finalize/${reservation.id}`);
+                      }}>
+                      <span className="material-symbols-outlined md-18">
+                        handshake
+                      </span>
+                      Finalize
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                 )}
                 <DropdownMenuGroup>
                   <DropdownMenuItem
@@ -652,86 +705,6 @@ function ReservationsPage() {
             </DropdownMenu>
           </div>
         );
-        /*
-
-        return (
-          <div className="flex gap-1 justify-center">
-            {/*<Button
-              variant="destructive"
-              title="Delete"
-              size="icon"
-              disabled={
-                //TODO re-enable only in certain cases
-                false
-                /*reservation.actualPickUpDate != undefined ||
-                                (reservation.plannedPickUpDate &&
-                                  reservation.plannedPickUpDate < new Date())
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                deletingOrEditingIdRef.current = reservation.id;
-                setDeleteConfirmationOpen(true);
-              }}>
-              <span className="material-symbols-outlined md-18">delete</span>
-            </Button>}
-            {
-              <Button
-                variant="secondary"
-                title="Edit Vehicle"
-                size="icon"
-                disabled={
-                  //TODO better logic
-                  false
-                  //reservation.plannedPickUpDate <= new Date()
-                }
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deletingOrEditingIdRef.current = reservation.id;
-                  navigate(`change-vehicle/${reservation.id}`);
-                }}>
-                <span className="material-symbols-outlined md-18">
-                  edit_road
-                </span>
-              </Button>
-            }
-            {user && user.role != UserRole.CUSTOMER && (
-              <>
-                <Button
-                  variant="secondary"
-                  title="Start"
-                  size="icon"
-                  //disabled={!!reservation.actualPickUpDate}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletingOrEditingIdRef.current = reservation.id;
-                    navigate("pick-up-date");
-                  }}>
-                  <span className="material-symbols-outlined md-18">
-                    event_available
-                  </span>
-                </Button>
-                <Button
-                  title="Finalize"
-                  size="icon"
-                  //TODO
-                  /*disabled={
-                    !!reservation.actualDropOffDate ||
-                    !reservation.actualPickUpDate
-                  }
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletingOrEditingIdRef.current = reservation.id;
-                    navigate(`finalize/${reservation.id}`);
-                  }}>
-                  <span className="material-symbols-outlined md-18">
-                    handshake
-                  </span>
-                </Button>
-              </>
-            )}
-          </div>
-        );
-        */
       },
     },
   ];

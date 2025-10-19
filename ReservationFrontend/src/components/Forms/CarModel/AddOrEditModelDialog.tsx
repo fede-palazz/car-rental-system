@@ -189,7 +189,14 @@ function StepperizedForm({
     if (!isEdit) return;
     CarModelAPI.getModelById(Number(carModelId))
       .then((carModel: CarModel) => {
-        form.reset(carModel);
+        form.reset({
+          ...Object.fromEntries(
+            Object.entries(carModel).map(([key, value]) => [
+              key,
+              value === null ? undefined : value,
+            ])
+          ),
+        });
         form.setValue(
           "featureIds",
           carModel.features
