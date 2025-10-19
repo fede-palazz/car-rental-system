@@ -645,7 +645,7 @@ function ReservationsPage() {
                     <span className="material-symbols-outlined md-18">
                       delete
                     </span>
-                    Delete
+                    Cancel
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>

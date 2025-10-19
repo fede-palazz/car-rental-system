@@ -147,41 +147,62 @@ const {
 );
 
 function StepperizedForm({
-  model,
+  carModelId,
   handleSubmit,
   handleCancel,
 }: {
-  model?: CarModel | undefined;
+  carModelId?: number | undefined;
   handleSubmit: (arg: CarModelCreateDTO) => void;
   handleCancel: () => void;
 }) {
   const methods = useStepper();
+
+  const isEdit = location.pathname.includes(`edit/${carModelId}`)
+    ? true
+    : false;
 
   const form = useForm<CarModelCreateDTO>({
     resolver: zodResolver(
       methods.current.schema as unknown as z.ZodSchema<CarModelCreateDTO>
     ),
     defaultValues: {
-      brand: model ? model.brand : "",
-      model: model ? model.model : "",
-      year: model ? model.year : "",
-      segment: model ? model.segment : undefined,
-      doorsNumber: model ? model.doorsNumber : undefined,
-      seatingCapacity: model ? model.seatingCapacity : undefined,
-      luggageCapacity: model ? model.luggageCapacity : undefined,
-      category: model ? model.category : undefined,
-      featureIds: model ? model.features.map((feature) => feature.id) : [],
-      engineType: model ? model.engineType : undefined,
-      transmissionType: model ? model.transmissionType : undefined,
-      drivetrain: model ? model.drivetrain : undefined,
-      motorDisplacement: model ? model.motorDisplacement : undefined,
-      rentalPrice: model ? model.rentalPrice : undefined,
+      brand: "",
+      model: "",
+      year: "",
+      segment: undefined,
+      doorsNumber: undefined,
+      seatingCapacity: undefined,
+      luggageCapacity: undefined,
+      category: undefined,
+      featureIds: [],
+      engineType: undefined,
+      transmissionType: undefined,
+      drivetrain: undefined,
+      motorDisplacement: undefined,
+      rentalPrice: undefined,
     },
   });
 
   function onSubmit() {
     handleSubmit(form.getValues());
   }
+
+  useEffect(() => {
+    if (!isEdit) return;
+    CarModelAPI.getModelById(Number(carModelId))
+      .then((carModel: CarModel) => {
+        form.reset(carModel);
+        form.setValue(
+          "featureIds",
+          carModel.features
+            ? carModel.features.map((feature) => feature.id)
+            : []
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [carModelId, location.pathname]);
 
   return (
     <Dialog
@@ -197,7 +218,7 @@ function StepperizedForm({
           msOverflowStyle: "none", // For IE and Edge
         }}>
         <DialogHeader>
-          <DialogTitle>{model ? "Edit Model" : "Create Model"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Model" : "Create Model"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -255,7 +276,7 @@ function StepperizedForm({
                   onClick={methods.prev}
                   disabled={methods.isFirst}>
                   <span className="material-symbols-outlined items-center md-18">
-                    {model ? "close" : "arrow_back"}
+                    {isEdit ? "close" : "arrow_back"}
                   </span>
                   {methods.isFirst ? "Cancel" : "Back"}
                 </Button>
@@ -278,10 +299,10 @@ function StepperizedForm({
                       return true;
                     });
                   }}>
-                  {methods.isLast ? (model ? "Edit" : "Create") : "Next"}
+                  {methods.isLast ? (isEdit ? "Edit" : "Create") : "Next"}
                   <span className="material-symbols-outlined  md-18">
                     {methods.isLast
-                      ? model
+                      ? isEdit
                         ? "edit"
                         : "add"
                       : "arrow_forward"}
@@ -298,22 +319,9 @@ function StepperizedForm({
 
 export default function AddOrEditModelDialog() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { carModelId } = useParams<{
     carModelId: string;
   }>();
-  const [carModel, setCarModel] = useState<CarModel | undefined>(undefined);
-
-  useEffect(() => {
-    if (location.pathname !== `/edit/${carModelId}`) return;
-    CarModelAPI.getModelById(Number(carModelId))
-      .then((carModel: CarModel) => {
-        setCarModel(carModel);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, [carModelId, location.pathname]);
 
   const handleEdit = (values: CarModelCreateDTO) => {
     CarModelAPI.editModelById(values, Number(carModelId))
@@ -338,7 +346,7 @@ export default function AddOrEditModelDialog() {
   return (
     <StepperProvider labelOrientation="vertical">
       <StepperizedForm
-        model={carModel}
+        carModelId={carModelId ? Number(carModelId) : undefined}
         handleSubmit={!carModelId ? handleCreate : handleEdit}
         handleCancel={() => navigate(-1)}
       />
