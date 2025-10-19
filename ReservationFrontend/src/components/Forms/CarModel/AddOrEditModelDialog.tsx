@@ -157,15 +157,27 @@ function StepperizedForm({
 }) {
   const methods = useStepper();
 
-  const isEdit = location.pathname.includes(`edit/${carModelId}`)
-    ? true
-    : false;
+  const isEdit = location.pathname.includes("edit");
 
   const form = useForm<CarModelCreateDTO>({
     resolver: zodResolver(
       methods.current.schema as unknown as z.ZodSchema<CarModelCreateDTO>
     ),
     defaultValues: {
+      brand: "",
+      model: "",
+      year: "",
+      segment: undefined,
+      doorsNumber: undefined,
+      seatingCapacity: undefined,
+      luggageCapacity: undefined,
+      category: undefined,
+      featureIds: [],
+      engineType: undefined,
+      transmissionType: undefined,
+      drivetrain: undefined,
+      motorDisplacement: undefined,
+      rentalPrice: undefined,
       brand: "",
       model: "",
       year: "",
