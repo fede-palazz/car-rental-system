@@ -12,7 +12,11 @@ function DeleteCarModelDialog() {
     CarModelAPI.deleteModelById(Number(carModelId))
       .then(() => {
         toast.success("Car model deleted successfully");
-        navigate(-1);
+        if (location.pathname.includes(`/${carModelId}/delete`)) {
+          navigate(-2);
+        } else {
+          navigate(-1);
+        }
       })
       .catch((err) => {
         toast.error(err);
