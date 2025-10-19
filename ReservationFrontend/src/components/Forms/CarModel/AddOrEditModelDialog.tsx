@@ -21,10 +21,10 @@ import { defineStepper } from "@/components/ui/stepper";
 import ModelInfoForm from "./ModelInfoForm";
 import EngineInfoForm from "./EngineInfoForm";
 import CarModelDetailsList from "@/components/CarModelDetailsList";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { CarCategory } from "@/models/enums/CarCategory";
 import { CarModelCreateDTO } from "@/models/dtos/request/CarModelCreateDTO";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const modelInfoSchema = z.object({
   brand: z.string().min(1, "Brand must not be blank").max(50),
@@ -164,20 +164,6 @@ function StepperizedForm({
       methods.current.schema as unknown as z.ZodSchema<CarModelCreateDTO>
     ),
     defaultValues: {
-      brand: "",
-      model: "",
-      year: "",
-      segment: undefined,
-      doorsNumber: undefined,
-      seatingCapacity: undefined,
-      luggageCapacity: undefined,
-      category: undefined,
-      featureIds: [],
-      engineType: undefined,
-      transmissionType: undefined,
-      drivetrain: undefined,
-      motorDisplacement: undefined,
-      rentalPrice: undefined,
       brand: "",
       model: "",
       year: "",
