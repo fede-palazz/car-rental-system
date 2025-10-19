@@ -30,7 +30,6 @@ import { toast } from "sonner";
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/enums/UserRole";
 import { Reservation } from "@/models/Reservation";
-import { ReservationStatus } from "@/models/enums/ReservationStatus";
 
 const reservationSchema = z
   .object({
@@ -122,25 +121,16 @@ export default function AddReservationDialog({
 
   //TODO, does it return always the pending one?
   function checkPendingReservation() {
-    ReservationsAPI.getAllReservations(
-      undefined,
-      "desc",
-      "plannedPickUpDate",
-      0,
-      9,
-      user && user.role == UserRole.CUSTOMER
-    )
-      .then((res: PagedResDTO<Reservation>) => {
-        if (user != undefined && user.role == UserRole.CUSTOMER) {
-          const pending = res.content.find(
-            (r) => r.status === ReservationStatus.PENDING
-          );
+    if (user != undefined && user.role == UserRole.CUSTOMER) {
+      ReservationsAPI.getPendingReservation()
+        .then((res: PagedResDTO<Reservation>) => {
+          const pending = res.content[0];
           setHasPendingReservation(pending !== undefined);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   }
 
   async function onSubmit() {

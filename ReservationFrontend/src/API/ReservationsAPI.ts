@@ -94,6 +94,52 @@ async function getAllReservations(
   }
 }
 
+async function getPendingReservation(): Promise<PagedResDTO<Reservation>> {
+  const queryParams = `status=PENDING&order=${encodeURIComponent(
+    "asc"
+  )}&sort=${encodeURIComponent("brand")}&page=${encodeURIComponent(
+    0
+  )}&size=${encodeURIComponent(1)}`;
+  const response = await fetch(baseURL + `reservations?${queryParams}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.ok) {
+    const res = await response.json();
+
+    res.content = res.content.map((reservation: CustomerReservationResDTO) => {
+      return {
+        ...reservation,
+        creationDate: new Date(reservation.creationDate),
+        plannedPickUpDate: new Date(reservation.plannedPickUpDate),
+        plannedDropOffDate: new Date(reservation.plannedDropOffDate),
+        actualDropOffDate: reservation.actualDropOffDate
+          ? new Date(reservation.actualDropOffDate)
+          : undefined,
+        actualPickUpDate: reservation.actualPickUpDate
+          ? new Date(reservation.actualPickUpDate)
+          : undefined,
+      } as Reservation;
+    });
+
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    }
+    throw new Error(
+      errDetail.error || "Something went wrong, please reload the page"
+    );
+  }
+}
+
 async function getReservationById(id: number): Promise<Reservation> {
   const response = await fetch(baseURL + `reservations/${id}`, {
     method: "GET",
@@ -463,6 +509,7 @@ async function getOverlappingReservationsByReservationId(
 
 const ReservationsAPI = {
   getAllReservations,
+  getPendingReservation,
   deleteReservationById,
   editReservationById,
   setActualPickUpDate,

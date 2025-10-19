@@ -92,10 +92,6 @@ function ReservationsPage() {
     )
       .then((res: PagedResDTO<Reservation>) => {
         if (user != undefined && user.role == UserRole.CUSTOMER) {
-          const pending = res.content.find(
-            (r) => r.status === ReservationStatus.PENDING
-          );
-          setPendingReservation(pending);
           setReservations(
             res.content.filter((r) => r.status !== ReservationStatus.PENDING)
           );
@@ -110,6 +106,17 @@ function ReservationsPage() {
         //console.log(err);
         console.log(err);
       });
+    //Fetch the pending reservation if it is a customer
+    if (user != undefined && user.role == UserRole.CUSTOMER) {
+      ReservationsAPI.getPendingReservation()
+        .then((res: PagedResDTO<Reservation>) => {
+          const pending = res.content[0];
+          setPendingReservation(pending);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   };
 
   useEffect(() => {
