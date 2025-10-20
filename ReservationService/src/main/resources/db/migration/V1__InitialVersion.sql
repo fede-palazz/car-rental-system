@@ -81,7 +81,7 @@ CREATE TABLE vehicles
 );
 
 ALTER TABLE car_models
-    ADD CONSTRAINT uc_05623e301bcbff0e70f6614db UNIQUE (brand, model);
+    ADD CONSTRAINT uc_05623e301bcbff0e70f6614db UNIQUE (brand, model, year);
 
 ALTER TABLE car_features
     ADD CONSTRAINT uc_car_features_description UNIQUE (description);

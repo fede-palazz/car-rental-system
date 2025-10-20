@@ -1,12 +1,11 @@
-package com.rentalcarsystem.reservationservice.models
+package com.rentalcarsystem.analyticsservice.models
 
-import com.rentalcarsystem.reservationservice.enums.*
+import com.rentalcarsystem.analyticsservice.enums.*
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
-
 
 @Entity
 @Table(
@@ -31,30 +30,10 @@ class CarModel(
     @field:NotNull
     var segment: CarSegment,
 
-    @Column(nullable = false)
-    @field:Positive
-    var doorsNumber: Int,
-
-    @Column(nullable = false)
-    @field:Positive
-    var seatingCapacity: Int,
-
-    @Column(nullable = false)
-    @field:Positive
-    var luggageCapacity: Double,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @field:NotNull
     var category: CarCategory,
-
-    @ManyToMany
-    @JoinTable(
-        name = "car_models_features",
-        joinColumns = [JoinColumn(name = "car_model_id")],
-        inverseJoinColumns = [JoinColumn(name = "feature_id")]
-    )
-    var features: MutableSet<CarFeature> = mutableSetOf(),
 
     // Technical specifications
     @Enumerated(EnumType.STRING)
@@ -69,15 +48,8 @@ class CarModel(
     @Column(nullable = false)
     var drivetrain: Drivetrain,
 
-    @Column(nullable = true)
-    @field:Positive
-    var motorDisplacement: Int?,      // Null for electric cars
-
     @Column(nullable = false)
     @field:Positive
     var rentalPrice: Double,        // Cost per day based on model and category
 
-    @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
-    val searchVector: String? = null,
 ) : BaseEntity<Long>()
-
