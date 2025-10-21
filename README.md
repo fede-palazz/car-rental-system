@@ -65,3 +65,21 @@ password: password
 username: manager
 password: password
 ```
+
+## Map Data Preparation
+
+Before you can run `osrm-backend`, you need to prepare the .osrm files from the .osm.pbf.
+Run these three commands once inside `osrm` folder (they create files in osrm/data):
+
+```bash
+# Extract map data
+docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-extract -p /opt/car.lua /data/turin.osm.pbf
+
+# Partition map
+docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-partition /data/turin.osrm
+
+# Customize map
+docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-customize /data/turin.osrm
+```
+
+[OSRM API](https://project-osrm.org/docs/v5.24.0/api)

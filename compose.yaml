@@ -197,6 +197,23 @@ services:
     volumes:
       - mailpit_data:/data
 
+  osrm-backend:
+    image: osrm/osrm-backend:v5.25.0
+    container_name: osrm-backend
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    volumes:
+      - ./osrm/data:/data
+    command: osrm-routed --algorithm mld /data/turin.osm.pbf
+
+  osrm-frontend:
+    image: osrm/osrm-frontend
+    container_name: osrm-frontend
+    ports:
+      - "9966:9966"
+    restart: unless-stopped
+
 volumes:
   g15_db:
   g15_pgadmin_data:
