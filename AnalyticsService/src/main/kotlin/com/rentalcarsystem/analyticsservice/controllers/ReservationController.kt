@@ -3,6 +3,7 @@ package com.rentalcarsystem.analyticsservice.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rentalcarsystem.analyticsservice.dtos.response.ReservationsCountResDTO
+import com.rentalcarsystem.analyticsservice.dtos.response.ReservationsTotalAmountResDTO
 import com.rentalcarsystem.analyticsservice.enums.Granularity
 import com.rentalcarsystem.analyticsservice.services.ReservationService
 import io.swagger.v3.oas.annotations.Operation
@@ -58,9 +59,43 @@ class ReservationController(
             "Parameter 'desiredEnd' must be after 'desiredStart'"
         }
         return ResponseEntity.ok(
-            reservationService.getReservationsCount(
-                desiredStart, desiredEnd, granularity
-            )
+            reservationService.getReservationsCount(desiredStart, desiredEnd, granularity)
+        )
+    }
+
+    @Operation(
+        summary = "Get reservations totalAmount",
+        description = "Returns the totalAmount of reservations created during the desired date range with the desired granularity," +
+                "aggregated by sum or average",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(
+                    mediaType = "application/json",
+                    array = ArraySchema(
+                        schema = Schema(implementation = ReservationsTotalAmountResDTO::class)
+                    )
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()])
+        ]
+    )
+    @PreAuthorize("hasRole('MANAGER')")
+    @GetMapping("/total-amount")
+    fun getReservationsTotalAmount(
+        @RequestParam("desiredStart", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredStart: LocalDateTime,
+        @RequestParam("desiredEnd", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredEnd: LocalDateTime,
+        @RequestParam("granularity", required = true) granularity: Granularity,
+        @RequestParam("average", defaultValue = "false") average: Boolean
+    ): ResponseEntity<List<ReservationsTotalAmountResDTO>> {
+        require(desiredEnd.isAfter(desiredStart)) {
+            "Parameter 'desiredEnd' must be after 'desiredStart'"
+        }
+        return ResponseEntity.ok(
+            reservationService.getReservationsTotalAmount(desiredStart, desiredEnd, granularity, average)
         )
     }
 }

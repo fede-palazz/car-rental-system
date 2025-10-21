@@ -396,11 +396,11 @@ class ReservationServiceImpl(
         @Valid actualPickUpDate: ActualPickUpDateReqDTO
     ): StaffReservationResDTO {
         val reservation = getReservationById(reservationId)
-        // Check if reservation is still active (car not returned yet)
-        if (reservation.status == ReservationStatus.DELIVERED) {
+        // Check if reservation is still active (car paid and not returned yet)
+        if (reservation.status != ReservationStatus.CONFIRMED) {
             throw FailureException(
                 ResponseEnum.RESERVATION_WRONG_STATUS,
-                "The reservation $reservationId has already been finalized"
+                "The reservation $reservationId was cancelled or not paid yet or has already been finalized"
             )
         }
         if (actualPickUpDate.actualPickUpDate.isBefore(reservation.plannedPickUpDate)) {
