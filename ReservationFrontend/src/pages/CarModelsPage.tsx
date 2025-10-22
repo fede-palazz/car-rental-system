@@ -282,8 +282,11 @@ function CarModelsPage({
                   const value = event.target.value;
                   setFilter({ ...filter, search: value });
                 }}
-                //onKeyDown={() => fetchModels(filter)}
-              ></Input>
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    fetchModels(filter);
+                  }
+                }}></Input>
               <Button
                 size="icon"
                 variant="default"
