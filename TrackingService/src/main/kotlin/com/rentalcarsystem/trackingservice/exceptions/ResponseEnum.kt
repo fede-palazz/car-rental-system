@@ -26,6 +26,6 @@ enum class ResponseEnum(
         // Replace underscores with spaces
         val result = name.replace('_', ' ').lowercase(Locale.getDefault())
         // Capitalize the first character and leave the rest lowercase
-        return result.substring(0, 1).uppercase(Locale.getDefault()) + result.substring(1)
+        return result.take(1).uppercase(Locale.getDefault()) + result.substring(1)
     }
 }
