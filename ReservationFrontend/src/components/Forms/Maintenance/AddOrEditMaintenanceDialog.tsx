@@ -76,7 +76,7 @@ export default function AddOrEditMaintenanceDialog() {
     if (!maintenanceId) return;
     MaintenancesAPI.getMaintenanceById(Number(vehicleId), Number(maintenanceId))
       .then((maintenance: Maintenance) => {
-        form.reset(maintenance);
+        form.reset(maintenance, { keepDefaultValues: true });
       })
       .catch();
   }, [form, maintenanceId, vehicleId]);

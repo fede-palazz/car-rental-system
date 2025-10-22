@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 function ReservationsPage() {
   const navigate = useNavigate();
@@ -531,41 +532,6 @@ function ReservationsPage() {
       },
     },
     {
-      accessorKey: "wasVehicleDamaged",
-      header: () => (
-        <div
-          onClick={() => {
-            setSort("wasVehicleDamaged");
-            setOrder((prev: string) => {
-              return prev == "asc" ? "desc" : "asc";
-            });
-          }}
-          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
-          <div className="flex flex-col text-center text-base leading-tight">
-            <span>Damaged</span>
-            <span>Vehicle</span>
-          </div>
-          {sort == "wasVehicleDamaged" && (
-            <span className="material-symbols-outlined md-18">
-              {order == "asc" ? "arrow_upward" : "arrow_downward"}
-            </span>
-          )}
-        </div>
-      ),
-      cell: ({ row }) => {
-        const reservation = row.original;
-        return (
-          <div className="flex justify-center">
-            {reservation.wasVehicleDamaged == null
-              ? "-"
-              : reservation.wasVehicleDamaged
-              ? "Yes"
-              : "No"}
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: "wasInvolvedInAccident",
       header: () => (
         <div
@@ -593,6 +559,76 @@ function ReservationsPage() {
               : reservation.wasInvolvedInAccident
               ? "Yes"
               : "No"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "damageLevel",
+      header: () => (
+        <div
+          onClick={() => {
+            setSort("damageLevel");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          <div className="flex flex-col text-center text-base leading-tight">
+            <span>Damage</span>
+            <span>Level</span>
+          </div>
+          {sort == "damageLevel" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const reservation = row.original;
+        return (
+          <div className="flex justify-center">
+            {reservation.damageLevel == null ? (
+              "-"
+            ) : (
+              <Badge variant={"default"}>{reservation.damageLevel}</Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "dirtinessLevel",
+      header: () => (
+        <div
+          onClick={() => {
+            setSort("dirtinessLevel");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          <div className="flex flex-col text-center text-base leading-tight">
+            <span>Dirtiness</span>
+            <span>Level</span>
+          </div>
+          {sort == "dirtinessLevel" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const reservation = row.original;
+        return (
+          <div className="flex justify-center">
+            {reservation.dirtinessLevel == null ? (
+              "-"
+            ) : (
+              <Badge variant={"default"}>{reservation.dirtinessLevel}</Badge>
+            )}
           </div>
         );
       },
@@ -674,9 +710,10 @@ function ReservationsPage() {
                     <DropdownMenuItem
                       className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
                       disabled={
-                        cancelledOrExpired ||
-                        !!reservation.actualDropOffDate ||
-                        !reservation.actualPickUpDate
+                        (cancelledOrExpired ||
+                          !!reservation.actualDropOffDate ||
+                          !reservation.actualPickUpDate) &&
+                        false
                       }
                       onClick={(e) => {
                         e.stopPropagation();

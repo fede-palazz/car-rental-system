@@ -48,7 +48,7 @@ export default function AddOrEditNoteDialog() {
     if (!noteId) return;
     NotesAPI.getNoteById(Number(vehicleId), Number(noteId))
       .then((note: Note) => {
-        form.reset(note);
+        form.reset(note, { keepDefaultValues: true });
       })
       .catch();
   }, [form, noteId, vehicleId]);

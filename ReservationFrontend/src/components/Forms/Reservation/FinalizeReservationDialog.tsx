@@ -29,6 +29,7 @@ import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { addDays } from "date-fns";
 import { Spinner } from "@/components/ui/spinner";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
+import { Input } from "@/components/ui/input";
 
 export default function FinalizeReservationDialog() {
   const navigate = useNavigate();
@@ -60,8 +61,15 @@ export default function FinalizeReservationDialog() {
         }),
       wasDeliveryLate: z.boolean().optional(),
       wasChargedFee: z.boolean().optional(),
-      wasVehicleDamaged: z.boolean().optional(),
       wasInvolvedInAccident: z.boolean().optional(),
+      damageLevel: z
+        .number()
+        .min(0, { message: "Damage level must be at least 0" })
+        .max(5, { message: "Damage level must be at most 5" }),
+      dirtinessLevel: z
+        .number()
+        .min(0, { message: "Dirtiness level must be at least 0" })
+        .max(5, { message: "Dirtiness level must be at most 5" }),
     })
     .refine(
       (data) => {
@@ -95,8 +103,9 @@ export default function FinalizeReservationDialog() {
       actualDropOffDate: new Date(),
       wasDeliveryLate: false,
       wasChargedFee: false,
-      wasVehicleDamaged: false,
       wasInvolvedInAccident: false,
+      damageLevel: 0,
+      dirtinessLevel: 0,
     },
   });
 
@@ -283,10 +292,10 @@ export default function FinalizeReservationDialog() {
               <FormField
                 disabled={overlappingReservations.length != 0}
                 control={form.control}
-                name="wasVehicleDamaged"
+                name="wasInvolvedInAccident"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col items-center">
-                    <FormLabel>Damaged Vehicle</FormLabel>
+                  <FormItem className="flex flex-col col-span-full items-center">
+                    <FormLabel>Accident</FormLabel>
                     <FormControl>
                       <Switch
                         checked={field.value}
@@ -300,14 +309,41 @@ export default function FinalizeReservationDialog() {
               <FormField
                 disabled={overlappingReservations.length != 0}
                 control={form.control}
-                name="wasInvolvedInAccident"
+                name="damageLevel"
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
-                    <FormLabel>Accident</FormLabel>
+                    <FormLabel>Damage Level</FormLabel>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                      <Input
+                        startIcon={
+                          <span className="material-symbols-outlined items-center md-18">
+                            bomb
+                          </span>
+                        }
+                        placeholder={"Damage Level"}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                disabled={overlappingReservations.length != 0}
+                control={form.control}
+                name="dirtinessLevel"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <FormLabel>Dirtiness Level</FormLabel>
+                    <FormControl>
+                      <Input
+                        startIcon={
+                          <span className="material-symbols-outlined items-center md-18">
+                            cleaning
+                          </span>
+                        }
+                        placeholder={"Dirtiness Level"}
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { z, ZodType } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Resolver, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -297,6 +297,29 @@ export default function AddOrEditVehicleDialog() {
                 )}
               />
             )}
+            {!vehicle && (
+              <FormField
+                control={form.control}
+                name="vin"
+                render={({ field }) => (
+                  <FormItem className="col-span-full">
+                    <FormLabel>Vin*</FormLabel>
+                    <FormControl>
+                      <Input
+                        startIcon={
+                          <span className="material-symbols-outlined items-center md-18">
+                            car_tag
+                          </span>
+                        }
+                        placeholder={"Vin"}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="licensePlate"
@@ -318,29 +341,6 @@ export default function AddOrEditVehicleDialog() {
                 </FormItem>
               )}
             />
-            {!vehicle && (
-              <FormField
-                control={form.control}
-                name="vin"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Vin*</FormLabel>
-                    <FormControl>
-                      <Input
-                        startIcon={
-                          <span className="material-symbols-outlined items-center md-18">
-                            car_tag
-                          </span>
-                        }
-                        placeholder={"Vin"}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
             <FormField
               control={form.control}
               name="kmTravelled"
@@ -349,7 +349,10 @@ export default function AddOrEditVehicleDialog() {
                   <FormLabel>Km travelled{!vehicle ? "" : "*"}</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
+                      min={0}
+                      inputMode="decimal"
+                      pattern="[0-9]*\.?[0-9]*"
+                      className="[&::-webkit-inner-spin-button]:appearance-none"
                       startIcon={
                         <span className="material-symbols-outlined items-center md-18">
                           distance
@@ -357,104 +360,18 @@ export default function AddOrEditVehicleDialog() {
                       }
                       placeholder={"Km travelled"}
                       {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status{!vehicle ? "" : "*"}</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          size="lg"
-                          variant="ghost"
-                          role="combobox"
-                          className={cn(
-                            " text-foreground border border-input font-normal justify-between flex px-1.5",
-                            !field.value && " text-muted-foreground"
-                          )}>
-                          <span className="flex items-center gap-2">
-                            <span className="material-symbols-outlined items-center md-18 text-muted-foreground">
-                              adjust
-                            </span>
-                            {field.value
-                              ? carStatuses
-                                  .find(
-                                    (status) => status.value === field.value
-                                  )
-                                  ?.label?.charAt(0)
-                                  .toUpperCase() +
-                                (carStatuses
-                                  .find(
-                                    (status) => status.value === field.value
-                                  )
-                                  ?.label?.slice(1)
-                                  .toLowerCase() || "")
-                              : "Select status"}
-                          </span>
-                          <span className="material-symbols-outlined items-center md-18">
-                            expand_all
-                          </span>
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent modal className="p-0 bg-input">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search status"
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No status found.</CommandEmpty>
-                          <CommandGroup>
-                            {carStatuses.map((status) => (
-                              <CommandItem
-                                value={status.label}
-                                key={status.value}
-                                onSelect={() => {
-                                  field.onChange(status.value);
-                                }}>
-                                {status.label.charAt(0).toUpperCase() +
-                                  status.label.slice(1).toLowerCase()}
-                                <span
-                                  className={cn(
-                                    "ml-auto",
-                                    status.value === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                    "material-symbols-outlined md-18"
-                                  )}>
-                                  check
-                                </span>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="pendingRepair"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <FormLabel>Pending Repair{!vehicle ? "" : "*"}</FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onKeyDown={(e) => {
+                        // Allow only digits and dot
+                        if (
+                          !/[0-9.]/.test(e.key) &&
+                          e.key !== "Backspace" &&
+                          e.key !== "Tab" &&
+                          e.key !== "ArrowLeft" &&
+                          e.key !== "ArrowRight"
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -465,7 +382,7 @@ export default function AddOrEditVehicleDialog() {
               control={form.control}
               name="pendingCleaning"
               render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
+                <FormItem className="flex flex-col col-span-full items-center">
                   <FormLabel>Pending Cleaning{!vehicle ? "" : "*"}</FormLabel>
                   <FormControl>
                     <Switch

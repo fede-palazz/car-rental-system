@@ -109,11 +109,17 @@ const engineInfoSchema = z.object({
     },
   }),
   motorDisplacement: z.optional(
-    z.coerce
-      .number({
-        invalid_type_error: "Motor Displacement must be a number",
-      })
-      .min(1, "Motor Displacement must be greater than zero")
+    z.preprocess(
+      (val) => (val === "" ? undefined : val),
+      z.union([
+        z.coerce
+          .number({
+            invalid_type_error: "Motor Displacement must be a number",
+          })
+          .min(1, "Motor Displacement must be greater than zero"),
+        z.undefined(),
+      ])
+    )
   ),
   featureIds: z.array(z.number()),
 });
@@ -189,20 +195,21 @@ function StepperizedForm({
     if (!isEdit) return;
     CarModelAPI.getModelById(Number(carModelId))
       .then((carModel: CarModel) => {
-        form.reset({
+        const sanitizedValues = {
           ...Object.fromEntries(
             Object.entries(carModel).map(([key, value]) => [
               key,
               value === null ? undefined : value,
             ])
           ),
+          featureIds: carModel.features
+            ? carModel.features.map((f) => f.id)
+            : [],
+        };
+        form.reset(sanitizedValues, {
+          keepDefaultValues: true,
+          keepDirtyValues: true,
         });
-        form.setValue(
-          "featureIds",
-          carModel.features
-            ? carModel.features.map((feature) => feature.id)
-            : []
-        );
       })
       .catch((err) => {
         console.log(err);

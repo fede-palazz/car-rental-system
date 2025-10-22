@@ -12,7 +12,11 @@ function CarModelDetailsList({
   form?: boolean;
 }) {
   useEffect(() => {
-    if (!form || !model?.features[0].description) return;
+    if (
+      !form ||
+      (model?.features.length != 0 && !model?.features[0].description)
+    )
+      return;
     model.features.forEach((feature: CarFeature, index) =>
       CarModelAPI.getCarFeatureById(feature.id)
         .then((feat) => {

@@ -29,7 +29,6 @@ import { useEffect, useState } from "react";
 import { CarFeature } from "@/models/CarFeature";
 import CarModelAPI from "@/API/CarModelsAPI";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { toast } from "sonner";
 
 function EngineInfoForm({ control }: { control: Control }) {
   const engineTypes = Object.entries(EngineType).map(([key, value]) => ({
@@ -289,10 +288,14 @@ function EngineInfoForm({ control }: { control: Control }) {
         control={control}
         name="motorDisplacement"
         render={({ field }) => (
-          <FormItem>
+          <FormItem key={`motorDisplacement-${"edit"}`}>
             <FormLabel>Motor Displacement</FormLabel>
-            <FormControl>
+            <FormControl key={`motorDisplacement-${"edit"}`}>
               <Input
+                key={`motorDisplacement-${"edit"}`}
+                inputMode="decimal"
+                pattern="[0-9]*\.?[0-9]*"
+                className="[&::-webkit-inner-spin-button]:appearance-none"
                 startIcon={
                   <span className="material-symbols-outlined items-center md-18">
                     speed
@@ -300,6 +303,18 @@ function EngineInfoForm({ control }: { control: Control }) {
                 }
                 placeholder={"Motor Displacement"}
                 {...field}
+                onKeyDown={(e) => {
+                  // Allow only digits and dot
+                  if (
+                    !/[0-9.]/.test(e.key) &&
+                    e.key !== "Backspace" &&
+                    e.key !== "Tab" &&
+                    e.key !== "ArrowLeft" &&
+                    e.key !== "ArrowRight"
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -336,91 +351,6 @@ function EngineInfoForm({ control }: { control: Control }) {
           </FormItem>
         )}
       />
-
-      {/*
-      <FormField
-        control={control}
-        name="featureIds"
-        render={({ field }) => (
-          <FormItem className="col-span-full">
-            <FormLabel>Features</FormLabel>
-            <Popover modal={true}>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      "justify-between overflow-hidden",
-                      !field?.value?.length && "text-muted-foreground"
-                    )}>
-                    {field?.value?.length > 0
-                      ? field.value
-                          .map(
-                            (id) =>
-                              carFeatures.find((feature) => feature.id === id)
-                                ?.description
-                          )
-                          .join(", ")
-                      : "Select features"}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent modal sideOffset={0} className=" p-0">
-                <Command className="w-full">
-                  <CommandInput placeholder="Search features" className="h-9" />
-                  <CommandList
-                    className="overflow-y-auto"
-                    style={{
-                      scrollbarWidth: "none", // For Firefox
-                      msOverflowStyle: "none", // For IE and Edge
-                    }}>
-                    <CommandEmpty>No features found.</CommandEmpty>
-                    <CommandGroup>
-                      {carFeatures.map((feature) => (
-                        <CommandItem
-                          value={feature.description}
-                          key={feature.id}
-                          onSelect={(e) => {
-                            if (field.value.includes(feature.id)) {
-                              field.onChange(
-                                field.value.filter(
-                                  (value) => value !== feature.id
-                                )
-                              );
-                            } else {
-                              if (field?.value?.includes(feature.id)) {
-                                field.onChange(
-                                  field.value?.filter(
-                                    (value) => value !== feature.id
-                                  )
-                                );
-                              } else {
-                                field.onChange([...field.value, feature.id]);
-                              }
-                            }
-                          }}>
-                          {feature.description}
-                          <Check
-                            className={cn(
-                              "ml-auto",
-                              field?.value?.includes(feature.id)
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <FormMessage />
-          </FormItem>
-        )}
-      /> */}
     </>
   );
 }

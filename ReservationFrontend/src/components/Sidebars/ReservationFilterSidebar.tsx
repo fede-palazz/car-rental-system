@@ -488,7 +488,7 @@ function ReservationFiltersSidebar({
                       />
                       <Label htmlFor="wasChargedFee">Charged Fee</Label>
                     </div>
-                    <div className="flex items-center space-x-2 w-full">
+                    {/*<div className="flex items-center space-x-2 w-full">
                       <Checkbox
                         id="wasVehicleDamaged"
                         checked={filter.wasVehicleDamaged || false}
@@ -500,7 +500,7 @@ function ReservationFiltersSidebar({
                         }}
                       />
                       <Label htmlFor="wasVehicleDamaged">Damage</Label>
-                    </div>
+                    </div>*/}
                     <div className="flex items-center space-x-2 w-full">
                       <Checkbox
                         id="wasInvolvedInAccident"
