@@ -19,8 +19,6 @@ data class VehicleReqDTO(
     @field:Size(min = 17, max = 17, message = "VIN must be 17 characters long")
     val vin: String,
 
-    val status: CarStatus?,
-
     @field:PositiveOrZero(message = "Km travelled must be a positive number or zero")
     val kmTravelled: Double?,
 
@@ -34,7 +32,7 @@ data class VehicleReqDTO(
 fun VehicleReqDTO.toEntity(carModel: CarModel) = Vehicle(
     licensePlate = this.licensePlate,
     vin = this.vin,
-    status = this.status ?: CarStatus.AVAILABLE,
+    status = CarStatus.AVAILABLE,
     kmTravelled = this.kmTravelled ?: 0.0,
     pendingCleaning = this.pendingCleaning ?: false,
     carModel = carModel

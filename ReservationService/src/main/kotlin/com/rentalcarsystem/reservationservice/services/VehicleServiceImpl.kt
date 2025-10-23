@@ -183,7 +183,6 @@ class VehicleServiceImpl(
         // Update properties
         vehicleToUpdate.licensePlate = vehicle.licensePlate ?: vehicleToUpdate.licensePlate
         vehicleToUpdate.kmTravelled = vehicle.kmTravelled
-        vehicleToUpdate.status = vehicle.status
         vehicleToUpdate.pendingCleaning = vehicle.pendingCleaning ?: false
         return vehicleToUpdate.toResDTO()
     }
