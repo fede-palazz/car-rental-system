@@ -22,5 +22,4 @@ data class VehicleFilter(
     @field:PositiveOrZero(message = "Parameter 'maxKmTravelled' must be positive")
     val maxKmTravelled: Double? = null,
     val pendingCleaning: Boolean? = null,
-    val pendingRepair: Boolean? = null,
 )

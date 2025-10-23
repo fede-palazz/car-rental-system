@@ -27,9 +27,6 @@ data class VehicleReqDTO(
     @field:JsonDeserialize(using = CustomBooleanDeserializer::class)
     val pendingCleaning: Boolean?,
 
-    @field:JsonDeserialize(using = CustomBooleanDeserializer::class)
-    val pendingRepair: Boolean?,
-
     @field:Positive(message = "Parameter 'carModelId' must be a positive number")
     val carModelId: Long
 )
@@ -40,6 +37,5 @@ fun VehicleReqDTO.toEntity(carModel: CarModel) = Vehicle(
     status = this.status ?: CarStatus.AVAILABLE,
     kmTravelled = this.kmTravelled ?: 0.0,
     pendingCleaning = this.pendingCleaning ?: false,
-    pendingRepair = this.pendingRepair ?: false,
     carModel = carModel
 )

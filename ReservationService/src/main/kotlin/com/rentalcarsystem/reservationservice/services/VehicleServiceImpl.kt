@@ -103,12 +103,6 @@ class VehicleServiceImpl(
                 cb.equal(root.get<Boolean>("pendingCleaning"), cleaning)
             }
         }
-        // Pending repair
-        filters.pendingRepair?.let { repair ->
-            spec = spec.and { root, _, cb ->
-                cb.equal(root.get<Boolean>("pendingRepair"), repair)
-            }
-        }
         // Sorting
         val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
         val sort: Sort = if (sortBy in listOf("brand", "model", "year")) {
@@ -191,7 +185,6 @@ class VehicleServiceImpl(
         vehicleToUpdate.kmTravelled = vehicle.kmTravelled
         vehicleToUpdate.status = vehicle.status
         vehicleToUpdate.pendingCleaning = vehicle.pendingCleaning ?: false
-        vehicleToUpdate.pendingRepair = vehicle.pendingRepair ?: false
         return vehicleToUpdate.toResDTO()
     }
 

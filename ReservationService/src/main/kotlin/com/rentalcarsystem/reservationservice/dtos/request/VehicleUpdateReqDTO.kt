@@ -13,7 +13,5 @@ data class VehicleUpdateReqDTO(
     @field:PositiveOrZero(message = "Km travelled must be a positive number or zero")
     val kmTravelled: Double,
     @field:JsonDeserialize(using = CustomBooleanDeserializer::class)
-    val pendingCleaning: Boolean?,
-    @field:JsonDeserialize(using = CustomBooleanDeserializer::class)
-    val pendingRepair: Boolean?
+    val pendingCleaning: Boolean?
 )

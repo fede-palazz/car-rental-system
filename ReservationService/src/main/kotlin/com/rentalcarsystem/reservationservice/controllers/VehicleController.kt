@@ -66,8 +66,7 @@ class VehicleController(private val vehicleService: VehicleService) {
             "year",
             "status",
             "kmTravelled",
-            "pendingCleaning",
-            "pendingRepair"
+            "pendingCleaning"
         )
         if (sortBy !in allowedSortFields) {
             throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedSortFields")
@@ -147,8 +146,7 @@ class VehicleController(private val vehicleService: VehicleService) {
             "vin",
             "status",
             "kmTravelled",
-            "pendingCleaning",
-            "pendingRepair"
+            "pendingCleaning"
         )
         if (sortBy !in allowedSortFields) {
             throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedSortFields")
