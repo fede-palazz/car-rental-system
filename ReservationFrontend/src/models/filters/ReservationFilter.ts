@@ -19,6 +19,5 @@ export interface ReservationFilter {
   status?: ReservationStatus;
   wasDeliveryLate?: boolean;
   wasChargedFee?: boolean;
-  wasVehicleDamaged?: boolean;
   wasInvolvedInAccident?: boolean;
 }

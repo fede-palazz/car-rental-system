@@ -157,7 +157,7 @@ export default function AddOrEditMaintenanceForm({
         render={({ field }) => (
           <FormItem className="col-span-full">
             <FormLabel>Type</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger
                 asChild
                 disabled={overlappingReservations.length != 0}>
@@ -198,7 +198,7 @@ export default function AddOrEditMaintenanceForm({
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput placeholder="Search segment" className="h-9" />
                   <CommandList>

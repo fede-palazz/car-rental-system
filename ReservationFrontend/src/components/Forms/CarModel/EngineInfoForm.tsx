@@ -65,7 +65,7 @@ function EngineInfoForm({ control }: { control: Control }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Engine Type*</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -97,7 +97,7 @@ function EngineInfoForm({ control }: { control: Control }) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput
                     placeholder="Search engine type"
@@ -142,7 +142,7 @@ function EngineInfoForm({ control }: { control: Control }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Transmission Type*</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -174,7 +174,7 @@ function EngineInfoForm({ control }: { control: Control }) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput
                     placeholder="Search transmission type"
@@ -219,7 +219,7 @@ function EngineInfoForm({ control }: { control: Control }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Drivetrain*</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -246,7 +246,7 @@ function EngineInfoForm({ control }: { control: Control }) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput
                     placeholder="Search drivetrain"

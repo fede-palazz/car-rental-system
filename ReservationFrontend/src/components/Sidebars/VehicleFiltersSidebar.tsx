@@ -17,19 +17,6 @@ import {
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { cn } from "@/lib/utils";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../ui/command";
-
-import { CarStatus } from "@/models/Vehicle";
-import { Switch } from "../ui/switch";
 import { Checkbox } from "../ui/checkbox";
 
 function VehicleFiltersSidebar({
@@ -45,11 +32,6 @@ function VehicleFiltersSidebar({
   filter: VehicleFilter;
   fetchVehicles: (filter: VehicleFilter, order?: string, sort?: string) => void;
 }) {
-  const carStatuses = Object.entries(CarStatus).map(([key, value]) => ({
-    label: key,
-    value,
-  }));
-
   return (
     <Sidebar
       collapsible="none"
@@ -258,19 +240,6 @@ function VehicleFiltersSidebar({
                     />
                     <Label htmlFor="pendingCleaning">Pending Cleaning</Label>
                   </div>
-                  <div className="flex items-center space-x-2 w-full">
-                    <Checkbox
-                      id="pendingRepair"
-                      checked={filter.pendingRepair || false}
-                      onCheckedChange={(checked) => {
-                        setFilter({
-                          ...filter,
-                          pendingRepair: checked === true,
-                        });
-                      }}
-                    />
-                    <Label htmlFor="pendingRepair">Pending Repair</Label>
-                  </div>
                 </div>
               </SidebarGroupContent>
             </CollapsibleContent>
@@ -292,7 +261,6 @@ function VehicleFiltersSidebar({
               minKmTravelled: undefined,
               maxKmTravelled: undefined,
               pendingCleaning: undefined,
-              pendingRepair: undefined,
             };
             setFilter(newFilter);
             fetchVehicles(newFilter);

@@ -13,7 +13,8 @@ async function getAllModels(
   order: string = "asc",
   sort: string = "brand",
   page: number = 0,
-  size: number = 9
+  size: number = 9,
+  singlePage: boolean = false
 ): Promise<PagedResDTO<CarModel>> {
   const queryParams =
     (filter
@@ -27,7 +28,9 @@ async function getAllModels(
       : "") +
     `&order=${encodeURIComponent(order)}&sort=${encodeURIComponent(
       sort
-    )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`;
+    )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(
+      size
+    )}&singlePage=${encodeURIComponent(singlePage)}`;
 
   const response = await fetch(baseURL + `models?${queryParams}`, {
     method: "GET",

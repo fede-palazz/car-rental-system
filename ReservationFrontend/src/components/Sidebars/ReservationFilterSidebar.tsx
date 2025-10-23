@@ -488,19 +488,6 @@ function ReservationFiltersSidebar({
                       />
                       <Label htmlFor="wasChargedFee">Charged Fee</Label>
                     </div>
-                    {/*<div className="flex items-center space-x-2 w-full">
-                      <Checkbox
-                        id="wasVehicleDamaged"
-                        checked={filter.wasVehicleDamaged || false}
-                        onCheckedChange={(checked) => {
-                          setFilter({
-                            ...filter,
-                            wasVehicleDamaged: checked === true,
-                          });
-                        }}
-                      />
-                      <Label htmlFor="wasVehicleDamaged">Damage</Label>
-                    </div>*/}
                     <div className="flex items-center space-x-2 w-full">
                       <Checkbox
                         id="wasInvolvedInAccident"

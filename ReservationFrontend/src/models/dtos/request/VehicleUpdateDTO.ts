@@ -5,5 +5,4 @@ export interface VehicleUpdateDTO {
   status: CarStatus;
   kmTravelled: number;
   pendingCleaning: boolean;
-  pendingRepair: boolean;
 }

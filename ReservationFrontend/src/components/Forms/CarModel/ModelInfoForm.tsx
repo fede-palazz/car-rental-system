@@ -251,7 +251,7 @@ function ModelInfoForm({ control }: { control: Control }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Category</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -283,7 +283,7 @@ function ModelInfoForm({ control }: { control: Control }) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput placeholder="Search segment" className="h-9" />
                   <CommandList>
@@ -325,7 +325,7 @@ function ModelInfoForm({ control }: { control: Control }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Segment</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -357,7 +357,7 @@ function ModelInfoForm({ control }: { control: Control }) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput placeholder="Search segment" className="h-9" />
                   <CommandList>

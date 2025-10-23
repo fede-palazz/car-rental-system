@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CarModel } from "@/models/CarModel.ts";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { CarStatus, Vehicle } from "@/models/Vehicle";
 import { useEffect, useState } from "react";
 import { VehicleCreateDTO } from "@/models/dtos/request/VehicleCreateDTO";
@@ -48,25 +48,12 @@ import { toast } from "sonner";
 const vehicleCreateSchema = z.object({
   licensePlate: z.string().min(7, "License plate must be 7 chars").max(7),
   vin: z.string().min(17, "Vin must be 17 chars").max(17),
-  status: z
-    .nativeEnum(CarStatus)
-    .optional()
-    .superRefine((val, ctx) => {
-      if (val === undefined) return; // valid, since it's optional
-      if (!Object.values(CarStatus).includes(val)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Invalid status selected",
-        });
-      }
-    }),
   kmTravelled: z.coerce
     .number({
       invalid_type_error: "Km travelled must be a number",
     })
     .optional(),
   pendingCleaning: z.boolean().optional(),
-  pendingRepair: z.boolean().optional(),
   carModelId: z.coerce
     .number({
       required_error: "Car model is required",
@@ -85,13 +72,8 @@ const vehicleUpdateSchema = z.object({
     .nativeEnum(CarStatus)
     .optional()
     .superRefine((val, ctx) => {
-      if (!val) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Status is required",
-        });
-      }
-      if (val && !Object.values(CarStatus).includes(val)) {
+      if (val === undefined) return; // valid, since it's optional
+      if (!Object.values(CarStatus).includes(val)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Invalid status selected",
@@ -102,15 +84,17 @@ const vehicleUpdateSchema = z.object({
     invalid_type_error: "Km travelled must be a number",
   }),
   pendingCleaning: z.boolean(),
-  pendingRepair: z.boolean(),
 });
 
 export default function AddOrEditVehicleDialog() {
   const navigate = useNavigate();
-  const vehicle: Vehicle | undefined = useOutletContext();
+  const location = useLocation();
+  const { vehicleId } = useParams<{
+    vehicleId: string;
+  }>();
+  const isEdit = location.pathname.includes("edit");
 
   const [models, setModels] = useState<CarModel[]>([]);
-
   const carStatuses = Object.entries(CarStatus).map(([key, value]) => ({
     label: key,
     value,
@@ -118,35 +102,45 @@ export default function AddOrEditVehicleDialog() {
 
   const form = useForm<VehicleCreateDTO | VehicleUpdateDTO>({
     resolver: zodResolver(
-      (vehicle
+      (isEdit
         ? vehicleUpdateSchema
         : vehicleCreateSchema) as unknown as ZodType<
         VehicleCreateDTO | VehicleUpdateDTO
       >
     ),
     defaultValues: {
-      licensePlate: vehicle && vehicle.licensePlate ? vehicle.licensePlate : "",
-      vin: vehicle && vehicle.vin ? vehicle.vin : "",
-      status: vehicle && vehicle.status ? vehicle.status : CarStatus.AVAILABLE,
-      kmTravelled:
-        vehicle && vehicle.kmTravelled ? vehicle.kmTravelled : undefined,
-      pendingCleaning:
-        vehicle && vehicle.pendingCleaning ? vehicle.pendingCleaning : false,
-      pendingRepair:
-        vehicle && vehicle.pendingRepair ? vehicle.pendingRepair : false,
-      carModelId:
-        vehicle && vehicle.carModelId ? vehicle.carModelId : undefined,
+      licensePlate: "",
+      vin: "",
+      status: CarStatus.AVAILABLE,
+      kmTravelled: undefined,
+      pendingCleaning: false,
+      carModelId: undefined,
     },
   });
 
+  useEffect(() => {
+    //if (location.pathname !== `/reservations/${vehicleId}`) return;
+    if (!isEdit) return;
+    VehiclesAPI.getVehicleById(Number(vehicleId))
+      .then((vehicle: Vehicle) => {
+        //setVehicle(vehicle);
+        form.reset(
+          {
+            licensePlate: vehicle.licensePlate,
+            status: vehicle.status,
+            kmTravelled: vehicle.kmTravelled,
+            pendingCleaning: vehicle.pendingCleaning,
+          },
+          { keepDefaultValues: true, keepDirtyValues: true }
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [vehicleId, location.pathname]);
+
   const fetchModels = () => {
-    CarModelAPI.getAllModels(
-      undefined,
-      undefined,
-      undefined,
-      0,
-      2147483647 - 1 //Max Kotlin int
-    )
+    CarModelAPI.getAllModels(undefined, undefined, undefined, 0, 1, true)
       .then((models: PagedResDTO<CarModel>) => {
         setModels(models.content);
       })
@@ -160,7 +154,7 @@ export default function AddOrEditVehicleDialog() {
     if (!valid) {
       return;
     }
-    if (vehicle) {
+    if (isEdit) {
       handleEdit(form.getValues() as VehicleUpdateDTO);
     } else {
       handleCreate(form.getValues() as VehicleCreateDTO);
@@ -168,11 +162,13 @@ export default function AddOrEditVehicleDialog() {
   }
 
   const handleEdit = (values: VehicleUpdateDTO) => {
-    VehiclesAPI.editVehicleById(values, Number(vehicle!.id))
+    VehiclesAPI.editVehicleById(values, Number(vehicleId))
       .then(() => {
+        toast.success("Vehicle modified successfully");
         navigate(-1);
       })
       .catch((err) => {
+        toast.error(err);
         console.log(err);
       });
   };
@@ -180,9 +176,12 @@ export default function AddOrEditVehicleDialog() {
   const handleCreate = (values: VehicleCreateDTO) => {
     VehiclesAPI.createVehicle(values)
       .then(() => {
+        toast.success("Vehicle created successfully");
+
         navigate(-1);
       })
       .catch((err) => {
+        toast.error(err);
         console.log(err);
       });
   };
@@ -206,12 +205,12 @@ export default function AddOrEditVehicleDialog() {
         }}>
         <DialogHeader>
           <DialogTitle>
-            {vehicle ? "Edit Vehicle" : "Create Vehicle"}
+            {isEdit ? "Edit Vehicle" : "Create Vehicle"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            {!vehicle && (
+            {!isEdit && (
               <FormField
                 control={form.control}
                 name="carModelId"
@@ -297,7 +296,7 @@ export default function AddOrEditVehicleDialog() {
                 )}
               />
             )}
-            {!vehicle && (
+            {!isEdit && (
               <FormField
                 control={form.control}
                 name="vin"
@@ -324,8 +323,8 @@ export default function AddOrEditVehicleDialog() {
               control={form.control}
               name="licensePlate"
               render={({ field }) => (
-                <FormItem className={vehicle && "col-span-full"}>
-                  <FormLabel>License Plate{vehicle ? "" : "*"}</FormLabel>
+                <FormItem className={isEdit ? "col-span-full" : undefined}>
+                  <FormLabel>License Plate{isEdit ? "" : "*"}</FormLabel>
                   <FormControl>
                     <Input
                       startIcon={
@@ -341,12 +340,103 @@ export default function AddOrEditVehicleDialog() {
                 </FormItem>
               )}
             />
+            {isEdit && (
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status{!isEdit ? "" : "*"}</FormLabel>
+                    <Popover modal>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            size="lg"
+                            variant="ghost"
+                            role="combobox"
+                            className={cn(
+                              " text-foreground border border-input font-normal justify-between flex px-1.5",
+                              !field.value && " text-muted-foreground"
+                            )}>
+                            <span className="flex items-center gap-2">
+                              <span className="material-symbols-outlined items-center md-18 text-muted-foreground">
+                                adjust
+                              </span>
+                              {field.value
+                                ? carStatuses
+                                    .find(
+                                      (status) => status.value === field.value
+                                    )
+                                    ?.label.toLowerCase()
+                                    .split("_")
+                                    .map(
+                                      (word) =>
+                                        word.charAt(0).toUpperCase() +
+                                        word.slice(1)
+                                    )
+                                    .join(" ")
+                                : "Select status"}
+                            </span>
+                            <span className="material-symbols-outlined items-center md-18">
+                              expand_all
+                            </span>
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0 bg-input">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search status"
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>No status found.</CommandEmpty>
+                            <CommandGroup>
+                              {carStatuses.map((status) => (
+                                <CommandItem
+                                  value={status.label}
+                                  key={status.value}
+                                  onSelect={() => {
+                                    field.onChange(status.value);
+                                  }}>
+                                  {status.label
+                                    .toLowerCase()
+                                    .split("_")
+                                    .map(
+                                      (word) =>
+                                        word.charAt(0).toUpperCase() +
+                                        word.slice(1)
+                                    )
+                                    .join(" ")}
+                                  <span
+                                    className={cn(
+                                      "ml-auto",
+                                      status.value === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0",
+                                      "material-symbols-outlined md-18"
+                                    )}>
+                                    check
+                                  </span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="kmTravelled"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Km travelled{!vehicle ? "" : "*"}</FormLabel>
+                  <FormLabel>Km travelled{!isEdit ? "" : "*"}</FormLabel>
                   <FormControl>
                     <Input
                       min={0}
@@ -383,7 +473,7 @@ export default function AddOrEditVehicleDialog() {
               name="pendingCleaning"
               render={({ field }) => (
                 <FormItem className="flex flex-col col-span-full items-center">
-                  <FormLabel>Pending Cleaning{!vehicle ? "" : "*"}</FormLabel>
+                  <FormLabel>Pending Cleaning{!isEdit ? "" : "*"}</FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
@@ -399,6 +489,7 @@ export default function AddOrEditVehicleDialog() {
               <div className="flex items-center justify-between w-full">
                 <Button
                   variant="secondary"
+                  type="button"
                   onClick={(e) => {
                     e.preventDefault();
                     navigate(-1);
@@ -415,9 +506,9 @@ export default function AddOrEditVehicleDialog() {
                     event.stopPropagation();
                     onSubmit();
                   }}>
-                  {vehicle ? "Edit" : "Create"}
+                  {isEdit ? "Edit" : "Create"}
                   <span className="material-symbols-outlined  md-18">
-                    {vehicle ? "edit" : "add"}
+                    {isEdit ? "edit" : "add"}
                   </span>
                 </Button>
               </div>

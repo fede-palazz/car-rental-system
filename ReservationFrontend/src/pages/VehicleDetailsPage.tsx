@@ -3,7 +3,6 @@ import DefaultCar from "@/assets/defaultCarModel.png";
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import VehicleAPI from "@/API/VehiclesAPI";
 import { Vehicle } from "@/models/Vehicle";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -38,55 +37,9 @@ function VehicleDetailsPage() {
   const { vehicleId } = useParams<{
     vehicleId: string;
   }>();
-  const [deletingMaintenanceId, setDeletingMaintenanceId] = useState<
-    number | undefined
-  >(undefined);
-  const [deletingNoteId, setDeletingNoteId] = useState<number | undefined>(
-    undefined
-  );
   const [vehicle, setVehicle] = useState<Vehicle | undefined>(undefined);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
-
-  const handleDelete = () => {
-    VehicleAPI.deleteVehicleById(Number(vehicleId))
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        navigate("/vehicles");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleMaintenanceDelete = () => {
-    MaintenancesAPI.deleteMaintenanceById(
-      Number(vehicleId),
-      Number(deletingMaintenanceId)
-    )
-      .then(() => {
-        setDeletingMaintenanceId(undefined);
-        setDeleteConfirmationOpen(false);
-        navigate("/vehicles");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleNoteDelete = () => {
-    NotesAPI.deleteNoteById(Number(vehicleId), Number(deletingNoteId))
-      .then(() => {
-        setDeletingNoteId(undefined);
-        setDeleteConfirmationOpen(false);
-        navigate("/vehicles");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
 
   const fetchMaintenancesAndNotes = (vehicleId: number) => {
     MaintenancesAPI.getMaintenancesByVehicleId(vehicleId).then(
@@ -158,7 +111,7 @@ function VehicleDetailsPage() {
                   variant="destructive"
                   size="lg"
                   className="w-1/2 justify-self-center"
-                  onClick={() => setDeleteConfirmationOpen(true)}>
+                  onClick={() => navigate("delete")}>
                   <span className="material-symbols-outlined md-18">
                     delete
                   </span>
@@ -291,10 +244,9 @@ function VehicleDetailsPage() {
                                       size="icon"
                                       className=" justify-self-center"
                                       onClick={() => {
-                                        setDeletingMaintenanceId(
-                                          maintenance.id
+                                        navigate(
+                                          `delete-maintenance/${maintenance.id}`
                                         );
-                                        setDeleteConfirmationOpen(true);
                                       }}>
                                       <span className="material-symbols-outlined md-18">
                                         delete
@@ -384,8 +336,7 @@ function VehicleDetailsPage() {
                                       size="icon"
                                       className=" justify-self-center"
                                       onClick={() => {
-                                        setDeletingNoteId(note.id);
-                                        setDeleteConfirmationOpen(true);
+                                        navigate(`delete-note/${note.id}`);
                                       }}>
                                       <span className="material-symbols-outlined md-18">
                                         delete
@@ -420,37 +371,7 @@ function VehicleDetailsPage() {
               </div>
             </div>
           </div>
-          <ConfirmationDialog
-            open={deleteConfirmationOpen}
-            handleSubmit={
-              deletingMaintenanceId
-                ? handleMaintenanceDelete
-                : deletingNoteId
-                ? handleNoteDelete
-                : handleDelete
-            }
-            title="Delete Confirmation"
-            submitButtonLabel="Delete"
-            submitButtonVariant="destructive"
-            content={`Are you sure to delete this ${
-              deletingMaintenanceId
-                ? "maintenance"
-                : deletingNoteId
-                ? "note"
-                : "vehicle"
-            }?`}
-            description="This action is irreversible"
-            descriptionClassName="text-warning"
-            handleCancel={() => {
-              setDeleteConfirmationOpen(false);
-              if (deletingMaintenanceId) {
-                setDeletingMaintenanceId(undefined);
-              }
-              if (deletingNoteId) {
-                setDeletingNoteId(undefined);
-              }
-            }}></ConfirmationDialog>
-          <Outlet context={vehicle}></Outlet>
+          <Outlet></Outlet>
         </div>
       )}
     </SidebarInset>

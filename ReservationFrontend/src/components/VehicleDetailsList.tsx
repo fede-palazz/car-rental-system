@@ -128,21 +128,6 @@ function VehicleDetailsList({
                 {vehicle.pendingCleaning ? "Yes" : "No"}
               </div>
             </li>
-            <li className="w-full grid grid-cols-3 gap-x-4 ">
-              <div className="flex justify-end items-center  col-span-1">
-                <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
-                  car_repair
-                </span>
-              </div>
-              <div className="text-start col-span-2 space-y-1 ">
-                <p>
-                  <strong className="text-accent-foreground text-lg">
-                    Pending Repair
-                  </strong>
-                </p>
-                {vehicle.pendingRepair ? "Yes" : "No"}
-              </div>
-            </li>
           </>
         )}
       </ul>

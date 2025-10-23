@@ -227,7 +227,7 @@ function ModelFiltersSidebar({
                     className="text-sm text-sidebar-foreground/70">
                     Category
                   </Label>
-                  <Popover>
+                  <Popover modal>
                     <PopoverTrigger asChild>
                       <Button
                         variant="ghost"
@@ -263,7 +263,7 @@ function ModelFiltersSidebar({
                         </span>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent modal className="p-0 bg-input">
+                    <PopoverContent className="p-0 bg-input">
                       <Command>
                         <CommandInput
                           placeholder="Search category"
@@ -306,7 +306,7 @@ function ModelFiltersSidebar({
                     className="text-sm text-sidebar-foreground/70">
                     Segment
                   </Label>
-                  <Popover>
+                  <Popover modal>
                     <PopoverTrigger asChild>
                       <Button
                         variant="ghost"
@@ -340,7 +340,7 @@ function ModelFiltersSidebar({
                         </span>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent modal className="p-0 bg-input">
+                    <PopoverContent className="p-0 bg-input">
                       <Command>
                         <CommandInput
                           placeholder="Search segment"
@@ -403,7 +403,7 @@ function ModelFiltersSidebar({
                     className="text-sm text-sidebar-foreground/70">
                     Transmission Type
                   </Label>
-                  <Popover>
+                  <Popover modal>
                     <PopoverTrigger asChild>
                       <Button
                         variant="ghost"
@@ -439,7 +439,7 @@ function ModelFiltersSidebar({
                         </span>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent modal className="p-0 bg-input">
+                    <PopoverContent className="p-0 bg-input">
                       <Command>
                         <CommandInput
                           placeholder="Search transmission type"
@@ -484,7 +484,7 @@ function ModelFiltersSidebar({
                     className="text-sm text-sidebar-foreground/70">
                     Drivetrain
                   </Label>
-                  <Popover>
+                  <Popover modal>
                     <PopoverTrigger asChild>
                       <Button
                         id="drivetrain"
@@ -520,7 +520,7 @@ function ModelFiltersSidebar({
                         </span>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent modal className="p-0 bg-input">
+                    <PopoverContent className="p-0 bg-input">
                       <Command>
                         <CommandInput
                           placeholder="Search drivetrain"

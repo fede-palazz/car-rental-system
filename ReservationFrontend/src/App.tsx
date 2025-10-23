@@ -28,6 +28,7 @@ import { Spinner } from "./components/ui/spinner.tsx";
 import DeleteReservationDialog from "./components/Forms/Reservation/DeleteReservationDialog.tsx";
 import AddReservationDialog from "./components/Forms/Reservation/AddReservationDialog.tsx";
 import DeleteCarModelDialog from "./components/Forms/CarModel/DeleteCarModelDialog.tsx";
+import DeleteVehicleDialog from "./components/Forms/Vehicle/DeleteVehicleDialog.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -168,31 +169,115 @@ function App() {
               <Route
                 path={"/vehicles"}
                 element={
-                  user && user.role == UserRole.CUSTOMER ? (
+                  !user || (user && user.role == UserRole.CUSTOMER) ? (
                     <Navigate to="/models"></Navigate>
                   ) : (
                     <VehiclesPage />
                   )
                 }>
-                <Route path="add" element={<AddOrEditVehicleDialog />}></Route>
-                <Route path="edit" element={<AddOrEditVehicleDialog />}></Route>
+                <Route
+                  path="add"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditVehicleDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="edit/:vehicleId"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditVehicleDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="delete/:vehicleId"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <DeleteVehicleDialog />
+                    )
+                  }></Route>
               </Route>
               <Route
                 path={"vehicles/:vehicleId"}
                 element={<VehicleDetailsPage />}>
-                <Route path="edit" element={<AddOrEditVehicleDialog />}></Route>
+                <Route
+                  path="edit"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditVehicleDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="delete"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <DeleteVehicleDialog />
+                    )
+                  }></Route>
                 <Route
                   path="add-maintenance"
-                  element={<AddOrEditMaintenanceDialog />}></Route>
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditMaintenanceDialog />
+                    )
+                  }></Route>
                 <Route
                   path="edit-maintenance/:maintenanceId"
-                  element={<AddOrEditMaintenanceDialog />}></Route>
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditMaintenanceDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="delete-maintenance/:maintenanceId"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditMaintenanceDialog />
+                    )
+                  }></Route>
                 <Route
                   path="add-note"
-                  element={<AddOrEditNoteDialog />}></Route>
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditNoteDialog />
+                    )
+                  }></Route>
                 <Route
                   path="edit-note/:noteId"
-                  element={<AddOrEditNoteDialog />}></Route>
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditNoteDialog />
+                    )
+                  }></Route>
+                <Route
+                  path="delete-note/:noteId"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <AddOrEditNoteDialog />
+                    )
+                  }></Route>
               </Route>
               <Route
                 path={"/reservations"}
