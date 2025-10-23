@@ -43,6 +43,7 @@ class ReservationController(
                 )]
             ),
             ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "401", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()])
         ]
     )
@@ -78,6 +79,7 @@ class ReservationController(
                 )]
             ),
             ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "401", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()])
         ]
     )
