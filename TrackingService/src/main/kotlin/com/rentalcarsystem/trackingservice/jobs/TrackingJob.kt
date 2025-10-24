@@ -9,6 +9,7 @@ import com.rentalcarsystem.trackingservice.repositories.TrackingSessionRepositor
 import com.rentalcarsystem.trackingservice.services.TrackingServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestClient
 import java.time.Instant
@@ -18,17 +19,16 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
+@Service
 class TrackingJob(
     private val trackingSessionRepository: TrackingSessionRepository,
-    private val trackingPointRepository: TrackingPointRepository,
-    private val osrmServiceRestClient: RestClient
+    private val objectMapper: ObjectMapper
 ) {
     private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
-    private val objectMapper = ObjectMapper().registerKotlinModule()
 
     // Example configuration: every 2 seconds
     @Transactional
-    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:2000}")
+    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:5000}")
     fun generateTrackingPoints() {
         val ongoingSessions = trackingSessionRepository.findOngoingSessions()
         logger.info("Ongoing sessions: {}", objectMapper.writeValueAsString(ongoingSessions))

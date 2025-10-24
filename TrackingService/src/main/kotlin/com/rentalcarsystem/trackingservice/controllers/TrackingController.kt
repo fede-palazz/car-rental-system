@@ -48,7 +48,7 @@ class TrackingController(private val trackingService: TrackingService) {
     fun getOngoingTrackingSessions(
         @RequestParam("page", defaultValue = "0") page: Int,
         @RequestParam("size", defaultValue = "10") size: Int,
-        @RequestParam("sort", defaultValue = "date") sortBy: String,
+        @RequestParam("sort", defaultValue = "startDate") sortBy: String,
         @RequestParam("order", defaultValue = "desc") sortOrder: String,
     ): ResponseEntity<PagedResDTO<SessionResDTO>> {
         // Validate filters
@@ -216,10 +216,10 @@ class TrackingController(private val trackingService: TrackingService) {
     //@PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
     @PutMapping("sessions/id/{id}")
     fun endTrackingSession(
-        @PathVariable sessionId: Long,
+        @PathVariable id: Long,
     ): ResponseEntity<SessionResDTO> {
-        if (sessionId <= 0) {
-            throw IllegalArgumentException("Invalid vehicle id $sessionId: it must be a positive number")
+        if (id <= 0) {
+            throw IllegalArgumentException("Invalid vehicle id $id: it must be a positive number")
         }
         //val authentication = SecurityContextHolder.getContext().authentication
 
@@ -228,8 +228,8 @@ class TrackingController(private val trackingService: TrackingService) {
 //        val username = jwt.getClaimAsString("preferred_username")
 //        requireNotNull(username) { FailureException(com.rentalcarsystem.reservationservice.exceptions.ResponseEnum.FORBIDDEN) }
 
-        val updatedSession = trackingService.endTrackingSession(sessionId)
-        logger.info("Ended tracking of session with ID: {}", sessionId)
+        val updatedSession = trackingService.endTrackingSession(id)
+        logger.info("Ended tracking of session with ID: {}", id)
 
         return ResponseEntity.ok(updatedSession)
     }
