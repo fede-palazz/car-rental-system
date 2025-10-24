@@ -2,7 +2,9 @@ package com.rentalcarsystem.analyticsservice.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.rentalcarsystem.analyticsservice.dtos.response.VehicleKmTravelledResDTO
 import com.rentalcarsystem.analyticsservice.dtos.response.VehicleStatusCountResDTO
+import com.rentalcarsystem.analyticsservice.enums.Granularity
 import com.rentalcarsystem.analyticsservice.services.VehicleService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -54,6 +56,45 @@ class VehicleController(
         }
         return ResponseEntity.ok(
             vehicleService.getVehicleStatusCount(desiredDate)
+        )
+    }
+
+    @Operation(
+        summary = "Get vehicle's kmTravelled",
+        description = "Returns the kmTravelled of a given vehicle driven during the desired date range with the desired granularity," +
+                "aggregated by sum or average",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(
+                    mediaType = "application/json",
+                    array = ArraySchema(
+                        schema = Schema(implementation = VehicleKmTravelledResDTO::class)
+                    )
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "401", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()])
+        ]
+    )
+    @PreAuthorize("hasRole('MANAGER')")
+    @GetMapping("/km-travelled/vin/{vin}")
+    fun getVehicleKmTravelled(
+        @PathVariable("vin", required = true) vin: String,
+        @RequestParam("desiredStart", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredStart: LocalDate,
+        @RequestParam("desiredEnd", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredEnd: LocalDate,
+        @RequestParam("granularity", required = true) granularity: Granularity,
+        @RequestParam("average", defaultValue = "false") average: Boolean
+    ): ResponseEntity<List<VehicleKmTravelledResDTO>> {
+        require(desiredEnd.isAfter(desiredStart)) {
+            "Parameter 'desiredEnd' must be after 'desiredStart'"
+        }
+        return ResponseEntity.ok(
+            vehicleService.getVehicleKmTravelled(vin, desiredStart, desiredEnd, granularity, average)
         )
     }
 }

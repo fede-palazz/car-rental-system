@@ -13,9 +13,10 @@ enum class ResponseEnum(
     FORBIDDEN(403, "Missing permissions", HttpStatus.FORBIDDEN),
     NOT_FOUND(404, "Resource not found", HttpStatus.NOT_FOUND),
     UNPROCESSABLE_ENTITY(422, "Input validation failed", HttpStatus.UNPROCESSABLE_ENTITY),
-    UNEXPECTED_ERROR(500, "Unknown error", HttpStatus.INTERNAL_SERVER_ERROR);
+    UNEXPECTED_ERROR(500, "Unknown error", HttpStatus.INTERNAL_SERVER_ERROR),
 
-    // TODO: Add here custom error codes
+    // Vehicle errors
+    VEHICLE_NOT_FOUND(4200, "Vehicle not found", HttpStatus.NOT_FOUND);
 
     // Getters
     fun getCode() = code
