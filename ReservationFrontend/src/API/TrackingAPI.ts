@@ -3,7 +3,7 @@ const baseURL = "http://localhost:8083/api/v1/tracking-service/";
 async function getMaintenanceById(
   vehicleId: number,
   maintenanceId: number
-): Promise<Maintenance> {
+): Promise<Any> {
   const response = await fetch(
     baseURL + `vehicles/${vehicleId}/maintenances/${maintenanceId}`,
     {

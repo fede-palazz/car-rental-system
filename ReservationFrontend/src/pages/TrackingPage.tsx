@@ -16,7 +16,7 @@ function TrackingPage() {
           <ThemeToggler></ThemeToggler>
         </div>
         <div className="grow flex flex-col">
-          <div className="flex-grow ">
+          <div id="map" className="flex-grow ">
             <Map></Map>
           </div>
         </div>
