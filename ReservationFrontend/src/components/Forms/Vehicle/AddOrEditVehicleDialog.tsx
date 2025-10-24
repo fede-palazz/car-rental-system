@@ -111,7 +111,6 @@ export default function AddOrEditVehicleDialog() {
     defaultValues: {
       licensePlate: "",
       vin: "",
-      status: CarStatus.AVAILABLE,
       kmTravelled: undefined,
       pendingCleaning: false,
       carModelId: undefined,
@@ -127,7 +126,6 @@ export default function AddOrEditVehicleDialog() {
         form.reset(
           {
             licensePlate: vehicle.licensePlate,
-            status: vehicle.status,
             kmTravelled: vehicle.kmTravelled,
             pendingCleaning: vehicle.pendingCleaning,
           },
@@ -340,97 +338,6 @@ export default function AddOrEditVehicleDialog() {
                 </FormItem>
               )}
             />
-            {isEdit && (
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status{!isEdit ? "" : "*"}</FormLabel>
-                    <Popover modal>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            size="lg"
-                            variant="ghost"
-                            role="combobox"
-                            className={cn(
-                              " text-foreground border border-input font-normal justify-between flex px-1.5",
-                              !field.value && " text-muted-foreground"
-                            )}>
-                            <span className="flex items-center gap-2">
-                              <span className="material-symbols-outlined items-center md-18 text-muted-foreground">
-                                adjust
-                              </span>
-                              {field.value
-                                ? carStatuses
-                                    .find(
-                                      (status) => status.value === field.value
-                                    )
-                                    ?.label.toLowerCase()
-                                    .split("_")
-                                    .map(
-                                      (word) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1)
-                                    )
-                                    .join(" ")
-                                : "Select status"}
-                            </span>
-                            <span className="material-symbols-outlined items-center md-18">
-                              expand_all
-                            </span>
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0 bg-input">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search status"
-                            className="h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No status found.</CommandEmpty>
-                            <CommandGroup>
-                              {carStatuses.map((status) => (
-                                <CommandItem
-                                  value={status.label}
-                                  key={status.value}
-                                  onSelect={() => {
-                                    field.onChange(status.value);
-                                  }}>
-                                  {status.label
-                                    .toLowerCase()
-                                    .split("_")
-                                    .map(
-                                      (word) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1)
-                                    )
-                                    .join(" ")}
-                                  <span
-                                    className={cn(
-                                      "ml-auto",
-                                      status.value === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                      "material-symbols-outlined md-18"
-                                    )}>
-                                    check
-                                  </span>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
             <FormField
               control={form.control}
               name="kmTravelled"
