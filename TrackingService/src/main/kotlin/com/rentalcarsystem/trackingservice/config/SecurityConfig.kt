@@ -43,6 +43,7 @@ class SecurityConfig {
     fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         return httpSecurity
             .authorizeHttpRequests { auth ->
+                auth.requestMatchers("/openapi/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 auth.anyRequest().authenticated()
             }
             .oauth2ResourceServer {

@@ -13,15 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 
 const val TRACKING_BASE_URL = "/api/v1/tracking"
@@ -144,7 +136,7 @@ class TrackingController(private val trackingService: TrackingService) {
             ApiResponse(responseCode = "400", content = [Content()]),
         ]
     )
-    @GetMapping("sessions/reservation/{reservationId}")
+    @GetMapping("sessions/vehicle/{vehicleId}")
     fun getOngoingTrackingSessionByVehicle(@PathVariable vehicleId: Long): ResponseEntity<SessionResDTO> {
         require(vehicleId > 0) {
             throw IllegalArgumentException("Parameter 'vehicleId' is invalid")
@@ -189,9 +181,11 @@ class TrackingController(private val trackingService: TrackingService) {
 //        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
 
         val createdSession = trackingService.createTrackingSession(sessionReq)
-        logger.info("Created tracking session for vehicle {}: {}",
+        logger.info(
+            "Created tracking session for vehicle {}: {}",
             createdSession.vehicleId,
-            mapper.writeValueAsString(createdSession))
+            mapper.writeValueAsString(createdSession)
+        )
         val location = uriBuilder
             .path("${TRACKING_BASE_URL}/${createdSession.id}")
             .buildAndExpand(createdSession.id)

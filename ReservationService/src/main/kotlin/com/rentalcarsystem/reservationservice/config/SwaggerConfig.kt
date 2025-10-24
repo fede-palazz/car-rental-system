@@ -1,0 +1,22 @@
+package com.rentalcarsystem.reservationservice.config
+
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.info.Info
+import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Component
+import org.springframework.web.filter.ForwardedHeaderFilter
+
+@Component
+class SwaggerConfig() {
+
+    @Bean
+    fun openApiConfiguration(): OpenAPI {
+        return OpenAPI().info(
+            Info().title("ReservationService")
+        )
+    }
+
+    fun forwardHeaderFilter(): ForwardedHeaderFilter {
+        return ForwardedHeaderFilter()
+    }
+}

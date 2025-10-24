@@ -35,7 +35,7 @@ class TrackingJob(
 
         ongoingSessions.forEach { session ->
             val newPoint = generateNewPointForSession(session)
-            logger.info("Point for session {}: {}", session.getId() ,objectMapper.writeValueAsString(newPoint))
+            logger.info("Point for session {}: {}", session.getId(), objectMapper.writeValueAsString(newPoint))
             //session.addTrackingPoint(newPoint)
             //trackingPointRepository.save(newPoint)
         }
@@ -60,7 +60,6 @@ class TrackingJob(
             lng = lng,
             timestamp = Instant.now(),
             bearing = Random.nextDouble(0.0, 360.0),
-            angle = Random.nextDouble(0.0, 180.0),
             distanceIncremental = Random.nextDouble(0.0, 20.0),
             trackingSession = session
         )
