@@ -13,9 +13,11 @@ enum class ResponseEnum(
     FORBIDDEN(403, "Missing permissions", HttpStatus.FORBIDDEN),
     NOT_FOUND(404, "Resource not found", HttpStatus.NOT_FOUND),
     UNPROCESSABLE_ENTITY(422, "Input validation failed", HttpStatus.UNPROCESSABLE_ENTITY),
-    UNEXPECTED_ERROR(500, "Unknown error", HttpStatus.INTERNAL_SERVER_ERROR);
+    UNEXPECTED_ERROR(500, "Unknown error", HttpStatus.INTERNAL_SERVER_ERROR),
 
-    // TODO: Add here custom error codes
+    // Custom error codes
+    SESSION_NOT_FOUND(1404, "Tracking session not found", HttpStatus.NOT_FOUND),
+    SESSION_ALREADY_EXIST(1409, "Tracking session already exists", HttpStatus.CONFLICT);
 
     // Getters
     fun getCode() = code

@@ -1,106 +1,107 @@
 package com.rentalcarsystem.trackingservice.services
 
-import com.rentalcarsystem.trackingservice.models.TrackingPoint
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.rentalcarsystem.trackingservice.dtos.request.SessionReqDTO
+import com.rentalcarsystem.trackingservice.dtos.request.toEntity
+import com.rentalcarsystem.trackingservice.dtos.response.PagedResDTO
+import com.rentalcarsystem.trackingservice.dtos.response.SessionResDTO
+import com.rentalcarsystem.trackingservice.dtos.response.toResDTO
+import com.rentalcarsystem.trackingservice.exceptions.FailureException
+import com.rentalcarsystem.trackingservice.exceptions.ResponseEnum
 import com.rentalcarsystem.trackingservice.models.TrackingSession
-import com.rentalcarsystem.trackingservice.repositories.TrackingPointRepository
 import com.rentalcarsystem.trackingservice.repositories.TrackingSessionRepository
-import org.springframework.scheduling.annotation.Scheduled
+import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.client.RestClient
-import java.time.Instant
-import kotlin.random.Random
-import kotlin.math.*
+import java.time.LocalDateTime
 
 
 @Service
 @Validated
 class TrackingServiceImpl(
     private val trackingSessionRepository: TrackingSessionRepository,
-    private val trackingPointRepository: TrackingPointRepository,
-    private val osrmServiceRestClient: RestClient
 ) : TrackingService {
 
-    // Example configuration: every 2 seconds
-    @Transactional
-    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:2000}")
-    fun generateTrackingPoints() {
-        val ongoingSessions = trackingSessionRepository.findOngoingSessions()
+    private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
+    private val objectMapper = ObjectMapper().registerKotlinModule()
 
-        ongoingSessions.forEach { session ->
-            val newPoint = generateNewPointForSession(session)
-            session.addTrackingPoint(newPoint)
-            //trackingPointRepository.save(newPoint)
-        }
-    }
 
-    private fun generateNewPointForSession(session: TrackingSession): TrackingPoint {
-        val lastPoint = session.trackingPoints.maxByOrNull { it.timestamp }
+    override fun getOngoingSessions(
+        page: Int,
+        size: Int,
+        sortBy: String,
+        sortOrder: String
+    ): PagedResDTO<SessionResDTO> {
+        // Sorting
+        val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
+        val pageable: Pageable = PageRequest.of(page, size, sortOrd, sortBy)
+        val pageResult = trackingSessionRepository.findAll(pageable)
 
-        // Call external OSRM or simulate a point
-        val (lat, lng) = if (lastPoint != null) {
-            // Example call — you can replace this with an OSRM API request
-            val newLat = lastPoint.lat + Random.nextDouble(-0.0005, 0.0005)
-            val newLng = lastPoint.lng + Random.nextDouble(-0.0005, 0.0005)
-            newLat to newLng
-        } else {
-            // First point (you could get this from OSRM or a known location)
-            45.4642 to 9.19 // e.g. Milan center
-        }
-
-        return TrackingPoint(
-            lat = lat,
-            lng = lng,
-            timestamp = Instant.now(),
-            bearing = Random.nextDouble(0.0, 360.0),
-            angle = Random.nextDouble(0.0, 180.0),
-            distanceIncremental = Random.nextDouble(0.0, 20.0),
-            trackingSession = session
+        return PagedResDTO(
+            currentPage = pageResult.number,
+            totalPages = pageResult.totalPages,
+            totalElements = pageResult.totalElements,
+            elementsInPage = pageResult.numberOfElements,
+            content = pageResult.content.map { it.toResDTO() }
         )
     }
 
-    /**
-     * Generate a new coordinate from a starting point given a distance and optional bearing.
-     *
-     * @param lat Starting latitude in degrees
-     * @param lng Starting longitude in degrees
-     * @param distanceMeters Distance to move in meters
-     * @param bearingDegrees Bearing in degrees (0 = north, clockwise), default = random
-     * @return Pair of (lat, lng) in degrees
-     */
-    private fun getNextCoordinate(
-        lat: Double,
-        lng: Double,
-        distanceMeters: Double = 150.0,
-        bearingDegrees: Double = Random.nextDouble(0.0, 360.0)
-    ): Pair<Double, Double> {
-        // Earth radius in meters
-        val earthRadius = 6_371_000.0
 
-        // Convert degrees to radians
-        val latRad = Math.toRadians(lat)
-        val lngRad = Math.toRadians(lng)
-        val bearingRad = Math.toRadians(bearingDegrees)
+    override fun getTrackingSession(sessionId: Long): SessionResDTO {
+        return getSessionById(sessionId).toResDTO()
+    }
 
-        // Angular distance
-        val delta = distanceMeters / earthRadius
+    override fun getOngoingTrackingSessionByUsername(customerUsername: String): SessionResDTO? {
+        return trackingSessionRepository
+            .findOngoingSessionByUsername(customerUsername)
+            ?.toResDTO()
+    }
 
-        // New latitude
-        val newLatRad = asin(
-            sin(latRad) * cos(delta) + cos(latRad) * sin(delta) * cos(bearingRad)
-        )
+    override fun getOngoingTrackingSessionByReservation(reservationId: Long): SessionResDTO? {
+        return trackingSessionRepository
+            .findOngoingSessionByReservation(reservationId)
+            ?.toResDTO()
+    }
 
-        // New longitude
-        val newLngRad = lngRad + atan2(
-            sin(bearingRad) * sin(delta) * cos(latRad),
-            cos(delta) - sin(latRad) * sin(newLatRad)
-        )
+    override fun getOngoingTrackingSessionByVehicle(vehicleId: Long): SessionResDTO? {
+        return trackingSessionRepository
+            .findOngoingSessionByVehicle(vehicleId)
+            ?.toResDTO()
+    }
 
-        // Convert back to degrees
-        val newLat = Math.toDegrees(newLatRad)
-        val newLng = Math.toDegrees(newLngRad)
+    override fun createTrackingSession(sessionReq: SessionReqDTO): SessionResDTO {
+        // Check whether there are conflicting ongoing sessions
+        if (trackingSessionRepository.hasConflictingSession(
+                sessionReq.customerUsername,
+                sessionReq.reservationId,
+                sessionReq.vehicleId)
+            )
+            throw FailureException(ResponseEnum.SESSION_ALREADY_EXIST,
+                "A tracking session with the same customer, vehicle or reservation already exists")
 
-        return newLat to newLng
+        val sessionToSave = sessionReq.toEntity()
+        return trackingSessionRepository.save(sessionToSave).toResDTO()
+    }
+
+    override fun endTrackingSession(sessionId: Long): SessionResDTO {
+        val session = getSessionById(sessionId)
+
+        session.endDate = LocalDateTime.now()
+        trackingSessionRepository.saveAndFlush(session)
+
+        return session.toResDTO()
+    }
+
+    private fun getSessionById(id: Long): TrackingSession {
+        return trackingSessionRepository.findById(id)
+            .orElseThrow {
+                FailureException(ResponseEnum.SESSION_NOT_FOUND,
+                    "Tracking session with ID $id not found")
+            }
     }
 }

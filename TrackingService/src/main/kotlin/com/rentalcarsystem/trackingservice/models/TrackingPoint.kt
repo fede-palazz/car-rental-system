@@ -17,9 +17,7 @@ class TrackingPoint(
     var timestamp: Instant,
 
     var bearing: Double? = null,
-
-    var angle: Double? = null,
-
+    
     var distanceIncremental: Double? = null,
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

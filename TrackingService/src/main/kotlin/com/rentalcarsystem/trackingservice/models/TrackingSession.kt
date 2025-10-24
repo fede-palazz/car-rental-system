@@ -8,21 +8,21 @@ import java.time.LocalDateTime
 class TrackingSession(
 
     @Column(nullable = false)
-    val vehicleId: Long,
+    var vehicleId: Long,
 
     @Column(nullable = false)
-    val reservationId: Long,
+    var reservationId: Long,
 
     @Column(nullable = false)
-    val customerUsername: String,
+    var customerUsername: String,
 
     @Column(nullable = false)
-    val startDate: LocalDateTime,
+    var startDate: LocalDateTime,
 
-    val endDate: LocalDateTime? = null,
+    var endDate: LocalDateTime? = null,
 
     @OneToMany(mappedBy = "trackingSession", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val trackingPoints: MutableList<TrackingPoint> = mutableListOf()
+    var trackingPoints: MutableList<TrackingPoint> = mutableListOf()
 
 ) : BaseEntity<Long>() {
 
