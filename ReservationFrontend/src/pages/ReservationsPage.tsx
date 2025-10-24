@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { damageAndDirtinessLevelLabels } from "@/utils/damageAndDirtinessLevelLabels";
 
 function ReservationsPage() {
   const navigate = useNavigate();
@@ -67,7 +68,6 @@ function ReservationsPage() {
     status: undefined,
     wasDeliveryLate: undefined,
     wasChargedFee: undefined,
-    wasVehicleDamaged: undefined,
     wasInvolvedInAccident: undefined,
   });
   const [order, setOrder] = useState<string>("desc");
@@ -592,7 +592,9 @@ function ReservationsPage() {
             {reservation.damageLevel == null ? (
               "-"
             ) : (
-              <Badge variant={"default"}>{reservation.damageLevel}</Badge>
+              <Badge variant={"default"}>
+                {damageAndDirtinessLevelLabels[reservation.damageLevel]}
+              </Badge>
             )}
           </div>
         );
@@ -627,7 +629,9 @@ function ReservationsPage() {
             {reservation.dirtinessLevel == null ? (
               "-"
             ) : (
-              <Badge variant={"default"}>{reservation.dirtinessLevel}</Badge>
+              <Badge variant={"default"}>
+                {damageAndDirtinessLevelLabels[reservation.dirtinessLevel]}
+              </Badge>
             )}
           </div>
         );

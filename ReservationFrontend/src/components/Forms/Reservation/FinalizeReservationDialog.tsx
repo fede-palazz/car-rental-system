@@ -29,7 +29,14 @@ import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { addDays } from "date-fns";
 import { Spinner } from "@/components/ui/spinner";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { damageAndDirtinessLevelLabels } from "@/utils/damageAndDirtinessLevelLabels";
 
 export default function FinalizeReservationDialog() {
   const navigate = useNavigate();
@@ -168,7 +175,7 @@ export default function FinalizeReservationDialog() {
           </div>
         ) : (
           <Form {...form}>
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <form className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
               <FormField
                 control={form.control}
                 name="bufferedDropOffDate"
@@ -294,7 +301,7 @@ export default function FinalizeReservationDialog() {
                 control={form.control}
                 name="wasInvolvedInAccident"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col col-span-full items-center">
+                  <FormItem className="flex flex-col items-center">
                     <FormLabel>Accident</FormLabel>
                     <FormControl>
                       <Switch
@@ -306,50 +313,78 @@ export default function FinalizeReservationDialog() {
                   </FormItem>
                 )}
               />
-              <FormField
-                disabled={overlappingReservations.length != 0}
-                control={form.control}
-                name="damageLevel"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col items-center">
-                    <FormLabel>Damage Level</FormLabel>
-                    <FormControl>
-                      <Input
-                        startIcon={
-                          <span className="material-symbols-outlined items-center md-18">
-                            bomb
-                          </span>
-                        }
-                        placeholder={"Damage Level"}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                disabled={overlappingReservations.length != 0}
-                control={form.control}
-                name="dirtinessLevel"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col items-center">
-                    <FormLabel>Dirtiness Level</FormLabel>
-                    <FormControl>
-                      <Input
-                        startIcon={
-                          <span className="material-symbols-outlined items-center md-18">
-                            cleaning
-                          </span>
-                        }
-                        placeholder={"Dirtiness Level"}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="col-span-full flex justify-around items-center gap-6 py-4">
+                <FormField
+                  disabled={overlappingReservations.length != 0}
+                  control={form.control}
+                  name="damageLevel"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="flex flex-col items-center">
+                      <FormLabel>Damage Level</FormLabel>
+                      <FormControl>
+                        <Select
+                          name={field.name}
+                          value={field.value.toString()}
+                          onValueChange={field.onChange}>
+                          <SelectTrigger
+                            id="form-rhf-select-language"
+                            aria-invalid={fieldState.invalid}
+                            className="min-w-[120px]">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent position="item-aligned">
+                            {damageAndDirtinessLevelLabels.map(
+                              (value, index) => (
+                                <SelectItem
+                                  key={index}
+                                  value={index.toString()}>
+                                  {value}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  disabled={overlappingReservations.length != 0}
+                  control={form.control}
+                  name="dirtinessLevel"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="flex flex-col items-center">
+                      <FormLabel>Dirtiness Level</FormLabel>
+                      <FormControl>
+                        <Select
+                          name={field.name}
+                          value={field.value.toString()}
+                          onValueChange={field.onChange}>
+                          <SelectTrigger
+                            id="form-rhf-select-language"
+                            aria-invalid={fieldState.invalid}
+                            className="min-w-[120px]">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent position="item-aligned">
+                            {damageAndDirtinessLevelLabels.map(
+                              (value, index) => (
+                                <SelectItem
+                                  key={index}
+                                  value={index.toString()}>
+                                  {value}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <DialogFooter className="col-span-full ">
                 <div className="flex items-center justify-between w-full">
                   <Button
