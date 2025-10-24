@@ -29,6 +29,7 @@ import DeleteReservationDialog from "./components/Forms/Reservation/DeleteReserv
 import AddReservationDialog from "./components/Forms/Reservation/AddReservationDialog.tsx";
 import DeleteCarModelDialog from "./components/Forms/CarModel/DeleteCarModelDialog.tsx";
 import DeleteVehicleDialog from "./components/Forms/Vehicle/DeleteVehicleDialog.tsx";
+import TrackingPage from "./pages/TrackingPage.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -321,6 +322,17 @@ function App() {
                     )
                   }></Route>
               </Route>
+              <Route
+                path="/tracking"
+                element={
+                  fetchingUser && !user ? (
+                    <Spinner></Spinner>
+                  ) : user ? (
+                    <TrackingPage />
+                  ) : (
+                    <Navigate to="/"></Navigate>
+                  )
+                }></Route>
             </Route>
           </Routes>
         )}

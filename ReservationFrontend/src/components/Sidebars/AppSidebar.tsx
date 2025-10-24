@@ -64,6 +64,19 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
             },
           ]
         : []),
+      ...(user && user.role != UserRole.CUSTOMER
+        ? [
+            {
+              title: "Tracking",
+              url: "/tracking",
+              icon: (
+                <span className="material-symbols-outlined items-center md-18">
+                  globe_location_pin
+                </span>
+              ),
+            },
+          ]
+        : []),
     ],
   };
 
