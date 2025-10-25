@@ -10,6 +10,7 @@ import com.rentalcarsystem.trackingservice.dtos.response.toResDTO
 import com.rentalcarsystem.trackingservice.exceptions.FailureException
 import com.rentalcarsystem.trackingservice.exceptions.ResponseEnum
 import com.rentalcarsystem.trackingservice.models.TrackingSession
+import com.rentalcarsystem.trackingservice.repositories.TrackingPointRepository
 import com.rentalcarsystem.trackingservice.repositories.TrackingSessionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -25,30 +26,40 @@ import java.time.LocalDateTime
 @Validated
 class TrackingServiceImpl(
     private val trackingSessionRepository: TrackingSessionRepository,
-) : TrackingService {
+    private val trackingPointRepository: TrackingPointRepository,
+    private val objectMapper: ObjectMapper,
+    ) : TrackingService {
 
     private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
-    private val objectMapper = ObjectMapper().registerKotlinModule()
-
 
     override fun getOngoingSessions(
         page: Int,
         size: Int,
         sortBy: String,
         sortOrder: String
-    ): PagedResDTO<SessionResDTO> {
+    ): List<SessionResDTO> {
         // Sorting
-        val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
-        val pageable: Pageable = PageRequest.of(page, size, sortOrd, sortBy)
-        val pageResult = trackingSessionRepository.findAll(pageable)
+        //val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
+        //val pageable: Pageable = PageRequest.of(page, size, sortOrd, sortBy)
+        val sessions = trackingSessionRepository.findAll()
 
-        return PagedResDTO(
-            currentPage = pageResult.number,
-            totalPages = pageResult.totalPages,
-            totalElements = pageResult.totalElements,
-            elementsInPage = pageResult.numberOfElements,
-            content = pageResult.content.map { it.toResDTO() }
-        )
+        val sessionsDTO = sessions.map { session ->
+            val lastPoint = trackingPointRepository
+                .findTopByTrackingSessionIdOrderByTimestampDesc(session.getId()!!)
+            session.toResDTO(lastPoint?.toResDTO())
+        }
+
+        logger.info("sessionsDTO: {}", objectMapper.writeValueAsString(sessionsDTO))
+
+        return sessionsDTO
+
+//        return PagedResDTO(
+//            currentPage = pageResult.number,
+//            totalPages = pageResult.totalPages,
+//            totalElements = pageResult.totalElements,
+//            elementsInPage = pageResult.numberOfElements,
+//            content = pageResult.content.map { it.toResDTO() }
+//        )
     }
 
 

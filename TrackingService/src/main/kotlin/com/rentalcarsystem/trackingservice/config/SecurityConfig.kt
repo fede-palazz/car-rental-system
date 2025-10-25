@@ -44,14 +44,15 @@ class SecurityConfig {
         return httpSecurity
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/openapi/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                auth.anyRequest().authenticated()
+                //auth.anyRequest().authenticated()
+                auth.anyRequest().permitAll()
             }
             .oauth2ResourceServer {
                 it.jwt { jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()) }
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .csrf {
-                //it.disable()
+                it.disable()
             }
             .cors { it.disable() }
             .build()

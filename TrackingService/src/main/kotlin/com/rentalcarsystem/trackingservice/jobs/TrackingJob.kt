@@ -25,18 +25,20 @@ class TrackingJob(
     private val objectMapper: ObjectMapper
 ) {
     private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
+    val turinCenterLat = 45.0703
+    val turinCenterLng = 7.6869
 
     // Example configuration: every 2 seconds
     @Transactional
     @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:5000}")
     fun generateTrackingPoints() {
         val ongoingSessions = trackingSessionRepository.findOngoingSessions()
-        logger.info("Ongoing sessions: {}", objectMapper.writeValueAsString(ongoingSessions))
+        //logger.info("Ongoing sessions: {}", objectMapper.writeValueAsString(ongoingSessions))
 
         ongoingSessions.forEach { session ->
             val newPoint = generateNewPointForSession(session)
             logger.info("Point for session {}: {}", session.getId(), objectMapper.writeValueAsString(newPoint))
-            //session.addTrackingPoint(newPoint)
+            session.addTrackingPoint(newPoint)
             //trackingPointRepository.save(newPoint)
         }
     }
@@ -52,7 +54,7 @@ class TrackingJob(
             newLat to newLng
         } else {
             // First point (you could get this from OSRM or a known location)
-            45.4642 to 9.19 // e.g. Milan center
+            turinCenterLat to turinCenterLng
         }
 
         return TrackingPoint(

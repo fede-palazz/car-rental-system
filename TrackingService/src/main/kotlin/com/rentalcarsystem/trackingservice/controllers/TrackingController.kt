@@ -35,7 +35,7 @@ class TrackingController(private val trackingService: TrackingService) {
                 content = [Content(
                     mediaType = "application/json",
                     array = ArraySchema(
-                        schema = Schema(implementation = PagedResDTO::class)
+                        schema = Schema(implementation = SessionResDTO::class)
                     )
                 )]
             ),
@@ -50,7 +50,7 @@ class TrackingController(private val trackingService: TrackingService) {
         @RequestParam("size", defaultValue = "10") size: Int,
         @RequestParam("sort", defaultValue = "startDate") sortBy: String,
         @RequestParam("order", defaultValue = "desc") sortOrder: String,
-    ): ResponseEntity<PagedResDTO<SessionResDTO>> {
+    ): ResponseEntity<List<SessionResDTO>> {
         // Validate filters
         if (page < 0) {
             throw IllegalArgumentException("Parameter 'page' must be greater than or equal to zero")

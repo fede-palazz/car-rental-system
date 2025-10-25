@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface TrackingPointRepository: JpaRepository<TrackingPoint, Long> {
+    fun findTopByTrackingSessionIdOrderByTimestampDesc(trackingSessionId: Long): TrackingPoint?
 
 }

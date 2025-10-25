@@ -1,5 +1,6 @@
 package com.rentalcarsystem.trackingservice.models
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -21,6 +22,7 @@ class TrackingSession(
 
     var endDate: LocalDateTime? = null,
 
+    @JsonIgnore
     @OneToMany(mappedBy = "trackingSession", cascade = [CascadeType.ALL], orphanRemoval = true)
     var trackingPoints: MutableList<TrackingPoint> = mutableListOf()
 

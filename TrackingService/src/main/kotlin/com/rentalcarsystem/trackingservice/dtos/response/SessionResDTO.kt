@@ -1,5 +1,6 @@
 package com.rentalcarsystem.trackingservice.dtos.response
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.rentalcarsystem.trackingservice.models.TrackingPoint
 import com.rentalcarsystem.trackingservice.models.TrackingSession
 import java.time.LocalDateTime
@@ -9,17 +10,17 @@ data class SessionResDTO(
     val vehicleId: Long,
     val reservationId: Long,
     val customerUsername: String,
-    val startDate: LocalDateTime,
-    val endDate: LocalDateTime?,
-    val trackingPoints: MutableList<TrackingPoint>
+    val startDate: String,
+    val endDate: String?,
+    val lastTrackingPoint: PointResDTO?
 )
 
-fun TrackingSession.toResDTO() = SessionResDTO(
+fun TrackingSession.toResDTO(lastTrackingPoint: PointResDTO? = null) = SessionResDTO(
     this.getId()!!,
     vehicleId,
     reservationId,
     customerUsername,
-    startDate,
-    endDate,
-    trackingPoints
+    startDate.toString(),
+    endDate.toString(),
+    lastTrackingPoint
 )

@@ -1,5 +1,6 @@
 package com.rentalcarsystem.trackingservice.models
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import jakarta.persistence.*
 import java.time.Instant
 
