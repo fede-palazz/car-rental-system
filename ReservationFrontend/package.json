@@ -45,6 +45,7 @@
     "react-hook-form": "^7.56.4",
     "react-leaflet": "^5.0.0-rc.2",
     "react-leaflet-cluster": "^3.1.1",
+    "react-leaflet-tracking-marker": "^1.0.16",
     "react-router-dom": "^7.6.0",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.3.0",

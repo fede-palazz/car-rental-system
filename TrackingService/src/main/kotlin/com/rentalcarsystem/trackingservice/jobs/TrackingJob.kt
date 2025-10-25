@@ -49,8 +49,8 @@ class TrackingJob(
         // Call external OSRM or simulate a point
         val (lat, lng) = if (lastPoint != null) {
             // Example call — you can replace this with an OSRM API request
-            val newLat = lastPoint.lat + Random.nextDouble(-0.0005, 0.0005)
-            val newLng = lastPoint.lng + Random.nextDouble(-0.0005, 0.0005)
+            val newLat = lastPoint.lat + Random.nextDouble(-0.009, 0.009)
+            val newLng = lastPoint.lng + Random.nextDouble(-0.009, 0.009)
             newLat to newLng
         } else {
             // First point (you could get this from OSRM or a known location)

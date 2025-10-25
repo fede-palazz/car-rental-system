@@ -1,19 +1,15 @@
+import { TrackingSession } from "@/models/tracking/TrackingSession";
+
 const baseURL = "http://localhost:8083/api/v1/tracking-service/";
 
-async function getMaintenanceById(
-  vehicleId: number,
-  maintenanceId: number
-): Promise<Any> {
-  const response = await fetch(
-    baseURL + `vehicles/${vehicleId}/maintenances/${maintenanceId}`,
-    {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+async function getTrackingSessions(): Promise<TrackingSession[]> {
+  const response = await fetch(baseURL + `tracking/sessions`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
   if (response.ok) {
     const res = await response.json();
     return res;
@@ -30,3 +26,9 @@ async function getMaintenanceById(
     );
   }
 }
+
+const TrackingAPI = {
+  getTrackingSessions,
+};
+
+export default TrackingAPI;
