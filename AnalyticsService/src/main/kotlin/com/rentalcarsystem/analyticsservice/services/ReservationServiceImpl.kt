@@ -1,5 +1,6 @@
 package com.rentalcarsystem.analyticsservice.services
 
+import com.rentalcarsystem.analyticsservice.dtos.response.ReservationLevelCountResDTO
 import com.rentalcarsystem.analyticsservice.dtos.response.ReservationsCountResDTO
 import com.rentalcarsystem.analyticsservice.dtos.response.ReservationsTotalAmountResDTO
 import com.rentalcarsystem.analyticsservice.enums.Granularity
@@ -77,6 +78,25 @@ class ReservationServiceImpl(
         }
 
         return elements
+    }
+
+    override fun getReservationLevelCount(
+        desiredStart: LocalDateTime,
+        desiredEnd: LocalDateTime,
+        dirtiness: Boolean
+    ): ReservationLevelCountResDTO {
+        val result = reservationRepository.getReservationLevelCountByActualDropOffDate(desiredStart, desiredEnd, dirtiness).firstOrNull()
+        if (result == null) {
+            return ReservationLevelCountResDTO(0, 0, 0, 0, 0, 0) // no rows for that range -> all zeros
+        }
+        return ReservationLevelCountResDTO(
+            levelZeroCount = (result[0] as Number).toInt(),
+            levelOneCount = (result[1] as Number).toInt(),
+            levelTwoCount = (result[2] as Number).toInt(),
+            levelThreeCount = (result[3] as Number).toInt(),
+            levelFourCount = (result[4] as Number).toInt(),
+            levelFiveCount = (result[5] as Number).toInt()
+        )
     }
 
     /*************************************************************************************************************/

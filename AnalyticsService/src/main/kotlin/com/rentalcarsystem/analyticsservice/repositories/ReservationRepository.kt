@@ -43,4 +43,24 @@ interface ReservationRepository : JpaRepository<Reservation, Long>, JpaSpecifica
         @Param("granularity") granularity: String,
         @Param("average") average: Boolean
     ): List<Array<Any>>
+
+    @Query(
+        value = """
+        SELECT 
+            COUNT(*) FILTER (WHERE CASE WHEN :dirtiness THEN r.dirtiness_level = 0 ELSE r.damage_level = 0 END) AS levelZeroCount,
+            COUNT(*) FILTER (WHERE CASE WHEN :dirtiness THEN r.dirtiness_level = 1 ELSE r.damage_level = 1 END) AS levelOneCount,
+            COUNT(*) FILTER (WHERE CASE WHEN :dirtiness THEN r.dirtiness_level = 2 ELSE r.damage_level = 2 END) AS levelTwoCount,
+            COUNT(*) FILTER (WHERE CASE WHEN :dirtiness THEN r.dirtiness_level = 3 ELSE r.damage_level = 3 END) AS levelThreeCount,
+            COUNT(*) FILTER (WHERE CASE WHEN :dirtiness THEN r.dirtiness_level = 4 ELSE r.damage_level = 4 END) AS levelFourCount,
+            COUNT(*) FILTER (WHERE CASE WHEN :dirtiness THEN r.dirtiness_level = 5 ELSE r.damage_level = 5 END) AS levelFiveCount
+        FROM reservations r
+        WHERE r.actual_drop_off_date BETWEEN :minDate AND :maxDate;
+        """,
+        nativeQuery = true
+    )
+    fun getReservationLevelCountByActualDropOffDate(
+        @Param("minDate") minDate: LocalDateTime,
+        @Param("maxDate") maxDate: LocalDateTime,
+        @Param("dirtiness") dirtiness: Boolean
+    ): List<Array<Any>>
 }

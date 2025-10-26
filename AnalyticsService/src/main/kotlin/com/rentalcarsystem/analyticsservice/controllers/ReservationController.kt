@@ -2,6 +2,7 @@ package com.rentalcarsystem.analyticsservice.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.rentalcarsystem.analyticsservice.dtos.response.ReservationLevelCountResDTO
 import com.rentalcarsystem.analyticsservice.dtos.response.ReservationsCountResDTO
 import com.rentalcarsystem.analyticsservice.dtos.response.ReservationsTotalAmountResDTO
 import com.rentalcarsystem.analyticsservice.enums.Granularity
@@ -67,7 +68,7 @@ class ReservationController(
     @Operation(
         summary = "Get reservations totalAmount",
         description = "Returns the totalAmount of reservations created during the desired date range with the desired granularity," +
-                "aggregated by sum or average",
+                " aggregated by sum or average",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -98,6 +99,41 @@ class ReservationController(
         }
         return ResponseEntity.ok(
             reservationService.getReservationsTotalAmount(desiredStart, desiredEnd, granularity, average)
+        )
+    }
+
+    @Operation(
+        summary = "Get reservations damageLevel or dirtinessLevel amounts",
+        description = "Returns the amount of reservations in each damageLevel or dirtinessLevel finalized during the desired date range",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(
+                    mediaType = "application/json",
+                    array = ArraySchema(
+                        schema = Schema(implementation = ReservationLevelCountResDTO::class)
+                    )
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "401", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()])
+        ]
+    )
+    @PreAuthorize("hasRole('MANAGER')")
+    @GetMapping("/level")
+    fun getReservationLevelCount(
+        @RequestParam("desiredStart", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredStart: LocalDateTime,
+        @RequestParam("desiredEnd", required = true)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredEnd: LocalDateTime,
+        @RequestParam("dirtiness", defaultValue = "false") dirtiness: Boolean
+    ): ResponseEntity<ReservationLevelCountResDTO> {
+        require(desiredEnd.isAfter(desiredStart)) {
+            "Parameter 'desiredEnd' must be after 'desiredStart'"
+        }
+        return ResponseEntity.ok(
+            reservationService.getReservationLevelCount(desiredStart, desiredEnd, dirtiness)
         )
     }
 }
