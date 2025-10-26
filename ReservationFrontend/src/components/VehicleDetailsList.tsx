@@ -2,14 +2,18 @@ import { Vehicle } from "@/models/Vehicle";
 
 function VehicleDetailsList({
   vehicle,
+  isInCard = false,
   isOutsideForm = true,
 }: {
   vehicle: Vehicle | undefined;
+  isInCard: boolean;
   isOutsideForm?: boolean;
 }) {
+  const cols = isInCard ? "2" : "3";
   return (
     vehicle && (
-      <ul className="mt-4 px-6 grid grid-cols-2 lg:grid-cols-3 gap-y-4 w-full justify-items-center text-md">
+      <ul
+        className={`mt-4 px-6 grid grid-cols-2 lg:grid-cols-${cols} gap-y-4 w-full justify-items-center text-md`}>
         <li className="w-full grid grid-cols-3 gap-x-4 ">
           <div className="flex justify-end items-center col-span-1">
             <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">

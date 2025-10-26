@@ -154,6 +154,10 @@ body::-webkit-scrollbar {
   font-size: inherit;
 }
 
+.custom-marker {
+  pointer-events: auto !important;
+}
+
 .material-symbols-outlined.md-18 {
   font-size: 18px;
 }

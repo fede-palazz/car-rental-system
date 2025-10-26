@@ -30,6 +30,7 @@ import AddReservationDialog from "./components/Forms/Reservation/AddReservationD
 import DeleteCarModelDialog from "./components/Forms/CarModel/DeleteCarModelDialog.tsx";
 import DeleteVehicleDialog from "./components/Forms/Vehicle/DeleteVehicleDialog.tsx";
 import TrackingPage from "./pages/TrackingPage.tsx";
+import MapVehicleCard from "./components/Map/MapVehicleCard.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -332,7 +333,9 @@ function App() {
                   ) : (
                     <Navigate to="/"></Navigate>
                   )
-                }></Route>
+                }>
+                <Route path=":vehicleId" element={<MapVehicleCard />}></Route>
+              </Route>
             </Route>
           </Routes>
         )}

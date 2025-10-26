@@ -1,6 +1,7 @@
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import Map from "../components/Map/Map";
+import { Outlet } from "react-router-dom";
 
 function TrackingPage() {
   return (
@@ -24,6 +25,7 @@ function TrackingPage() {
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4.5 h-4.5 bg-red-600 rounded-full" />
               </div>
             </div>
+            <Outlet></Outlet>
           </div>
         </div>
       </SidebarInset>

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestClient
 import java.time.Instant
+import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -30,7 +31,7 @@ class TrackingJob(
 
     // Example configuration: every 2 seconds
     @Transactional
-    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:5000}")
+    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:400}")
     fun generateTrackingPoints() {
         val ongoingSessions = trackingSessionRepository.findOngoingSessions()
         //logger.info("Ongoing sessions: {}", objectMapper.writeValueAsString(ongoingSessions))
@@ -48,9 +49,12 @@ class TrackingJob(
 
         // Call external OSRM or simulate a point
         val (lat, lng) = if (lastPoint != null) {
+            val meters = 3.0
+            val latOffset = meters / 111_320.0
+            val lngOffset = meters / (111_320.0 * cos(lastPoint.lat * PI / 180))
             // Example call — you can replace this with an OSRM API request
-            val newLat = lastPoint.lat + Random.nextDouble(-0.009, 0.009)
-            val newLng = lastPoint.lng + Random.nextDouble(-0.009, 0.009)
+            val newLat = lastPoint.lat + Random.nextDouble(-latOffset, latOffset)
+            val newLng = lastPoint.lng + Random.nextDouble(-lngOffset, lngOffset)
             newLat to newLng
         } else {
             // First point (you could get this from OSRM or a known location)
