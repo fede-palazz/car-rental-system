@@ -38,10 +38,7 @@ class TrackingServiceImpl(
         sortBy: String,
         sortOrder: String
     ): List<SessionResDTO> {
-        // Sorting
-        //val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
-        //val pageable: Pageable = PageRequest.of(page, size, sortOrd, sortBy)
-        val sessions = trackingSessionRepository.findAll()
+        val sessions = trackingSessionRepository.findOngoingSessions()
 
         val sessionsDTO = sessions.map { session ->
             val lastPoint = trackingPointRepository
@@ -49,7 +46,7 @@ class TrackingServiceImpl(
             session.toResDTO(lastPoint?.toResDTO())
         }
 
-        logger.info("sessionsDTO: {}", objectMapper.writeValueAsString(sessionsDTO))
+        //logger.info("sessionsDTO: {}", objectMapper.writeValueAsString(sessionsDTO))
 
         return sessionsDTO
 

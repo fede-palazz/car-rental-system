@@ -23,51 +23,44 @@ import kotlin.random.Random
 @Service
 class TrackingJob(
     private val trackingSessionRepository: TrackingSessionRepository,
-    private val objectMapper: ObjectMapper
+    private val trackingPointRepository: TrackingPointRepository,
+    private val osrmServiceRestClient: RestClient
 ) {
     private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
     val turinCenterLat = 45.0703
     val turinCenterLng = 7.6869
 
-    // Example configuration: every 2 seconds
     @Transactional
-    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:400}")
+    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:2000}")
     fun generateTrackingPoints() {
-        val ongoingSessions = trackingSessionRepository.findOngoingSessions()
-        //logger.info("Ongoing sessions: {}", objectMapper.writeValueAsString(ongoingSessions))
-
-        ongoingSessions.forEach { session ->
-            val newPoint = generateNewPointForSession(session)
-            logger.info("Point for session {}: {}", session.getId(), objectMapper.writeValueAsString(newPoint))
+        trackingSessionRepository.findOngoingSessions().forEach { session ->
+            val lastPoint = trackingPointRepository.findTopByTrackingSessionIdOrderByTimestampDesc(session.getId()!!)
+            val newPoint = generateNewPointForSession(lastPoint)
             session.addTrackingPoint(newPoint)
-            //trackingPointRepository.save(newPoint)
+            trackingSessionRepository.saveAndFlush(session)
         }
     }
 
-    private fun generateNewPointForSession(session: TrackingSession): TrackingPoint {
-        val lastPoint = session.trackingPoints.maxByOrNull { it.timestamp }
+    private fun generateNewPointForSession(lastPoint: TrackingPoint?): TrackingPoint {
+        val bearingDegrees = 0.0 //Random.nextDouble(90.0, 95.0)
+        val distanceMeters = Random.nextDouble(30.0, 100.0)
 
-        // Call external OSRM or simulate a point
+        // Calculate next pair of coordinates
         val (lat, lng) = if (lastPoint != null) {
-            val meters = 3.0
-            val latOffset = meters / 111_320.0
-            val lngOffset = meters / (111_320.0 * cos(lastPoint.lat * PI / 180))
-            // Example call — you can replace this with an OSRM API request
-            val newLat = lastPoint.lat + Random.nextDouble(-latOffset, latOffset)
-            val newLng = lastPoint.lng + Random.nextDouble(-lngOffset, lngOffset)
-            newLat to newLng
+            getNextCoordinate(lastPoint.lat, lastPoint.lng, distanceMeters, bearingDegrees)
         } else {
-            // First point (you could get this from OSRM or a known location)
-            turinCenterLat to turinCenterLng
+            turinCenterLat to turinCenterLng    // Default point
         }
 
+        // Place generated coordinates on the actual street
+        val (alignedLat, alignedLng) = alignToNearestRoad(lat, lng, bearingDegrees)
+
         return TrackingPoint(
-            lat = lat,
-            lng = lng,
+            lat = alignedLat,
+            lng = alignedLng,
             timestamp = Instant.now(),
-            bearing = Random.nextDouble(0.0, 360.0),
-            distanceIncremental = Random.nextDouble(0.0, 20.0),
-            trackingSession = session
+            bearing = bearingDegrees,
+            distanceIncremental = distanceMeters,
         )
     }
 
@@ -83,8 +76,8 @@ class TrackingJob(
     private fun getNextCoordinate(
         lat: Double,
         lng: Double,
-        distanceMeters: Double = 150.0,
-        bearingDegrees: Double = Random.nextDouble(0.0, 360.0)
+        distanceMeters: Double = 100.0,
+        bearingDegrees: Double = 0.0,
     ): Pair<Double, Double> {
         // Earth radius in meters
         val earthRadius = 6_371_000.0
@@ -114,4 +107,37 @@ class TrackingJob(
 
         return newLat to newLng
     }
+
+    private fun alignToNearestRoad(lat: Double, lng: Double, bearing: Double? = null): Pair<Double, Double> {
+        val endpoint = StringBuilder("/nearest/v1/driving/$lng,$lat")
+
+        bearing?.let {
+            endpoint.append("?bearings=${it.toInt()},0") // 10° tolerance range
+        }
+
+        val response = osrmServiceRestClient
+            .get()
+            .uri(endpoint.toString())
+            .retrieve()
+            .body(OsrmNearestResponse::class.java)
+
+        return if (response?.code == "Ok" && response.waypoints.isNotEmpty()) {
+            val loc = response.waypoints.first().location
+            Pair(loc[1], loc[0]) // [lat, lng]
+        } else {
+            Pair(lat, lng) // fallback to original
+        }
+    }
+
 }
+
+data class OsrmNearestResponse(
+    val code: String,
+    val waypoints: List<Waypoint>
+)
+
+data class Waypoint(
+    val location: List<Double>, // [lng, lat]
+    val name: String?,
+    val distance: Double
+)
