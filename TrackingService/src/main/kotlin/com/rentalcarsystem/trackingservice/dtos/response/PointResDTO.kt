@@ -1,11 +1,7 @@
 package com.rentalcarsystem.trackingservice.dtos.response
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.rentalcarsystem.trackingservice.models.TrackingPoint
-import com.rentalcarsystem.trackingservice.models.TrackingSession
-import jakarta.persistence.Column
-import java.time.Instant
-import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 data class PointResDTO(
     val id: Long,
@@ -20,7 +16,7 @@ fun TrackingPoint.toResDTO() = PointResDTO(
     this.getId()!!,
     lat,
     lng,
-    timestamp.toString(),
+    timestamp.truncatedTo(ChronoUnit.SECONDS).toString(),
     bearing,
     distanceIncremental
 )
