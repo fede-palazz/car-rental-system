@@ -65,11 +65,9 @@ function CarMarker({
   };
 
   useEffect(() => {
-    console.log("Animation");
     if (selectedVehicleId !== vehicleId) {
       return;
     }
-    console.log("ENTRATO");
     const currentZoom = map.getZoom();
     const offsetLatLng = map.latLngToContainerPoint([latitude, longitude]);
     offsetLatLng.x -= 300;
@@ -78,7 +76,6 @@ function CarMarker({
     /*if (vehicleIdRef.current == selectedVehicleId) {
       map.panTo(adjustedLatLng);
     } else {*/
-    console.log("Animazione iniziale");
     map.flyTo(adjustedLatLng, currentZoom, {
       duration: 0.7,
       easeLinearity: 0.3,
@@ -106,7 +103,7 @@ function CarMarker({
       icon={icon}
       position={[latitude, longitude]}
       previousPosition={prevPos}
-      duration={200}
+      duration={500}
       //keepAtCenter={selectedVehicleId == vehicleId}
       rotationAngle={bearing}
       eventHandlers={{ click: handleClick }}></LeafletTrackingMarker>

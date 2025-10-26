@@ -31,6 +31,7 @@ import DeleteCarModelDialog from "./components/Forms/CarModel/DeleteCarModelDial
 import DeleteVehicleDialog from "./components/Forms/Vehicle/DeleteVehicleDialog.tsx";
 import TrackingPage from "./pages/TrackingPage.tsx";
 import MapVehicleCard from "./components/Map/MapVehicleCard.tsx";
+import AnalyticsPage from "./pages/AnalyticsPage.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -336,6 +337,17 @@ function App() {
                 }>
                 <Route path=":vehicleId" element={<MapVehicleCard />}></Route>
               </Route>
+              <Route
+                path="/analytics"
+                element={
+                  fetchingUser && !user ? (
+                    <Spinner></Spinner>
+                  ) : user ? (
+                    <AnalyticsPage />
+                  ) : (
+                    <Navigate to="/"></Navigate>
+                  )
+                }></Route>
             </Route>
           </Routes>
         )}

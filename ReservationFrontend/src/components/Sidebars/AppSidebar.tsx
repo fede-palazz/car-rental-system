@@ -77,6 +77,19 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
             },
           ]
         : []),
+      ...(user && user.role != UserRole.CUSTOMER
+        ? [
+            {
+              title: "Analytics",
+              url: "/analytics",
+              icon: (
+                <span className="material-symbols-outlined items-center md-18">
+                  analytics
+                </span>
+              ),
+            },
+          ]
+        : []),
     ],
   };
 

@@ -17,7 +17,7 @@ function MarkersList() {
 
   useEffect(() => {
     fetchSessions();
-    const interval = setInterval(fetchSessions, 500);
+    const interval = setInterval(fetchSessions, 2000);
     return () => clearInterval(interval);
   }, []);
 

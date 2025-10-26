@@ -43,12 +43,13 @@ class SecurityConfig {
     fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         return httpSecurity
             .authorizeHttpRequests { auth ->
+                auth.requestMatchers("/openapi/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 auth.anyRequest().authenticated()
             }
             .oauth2ResourceServer {
-                it.jwt { jwt-> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())}
+                it.jwt { jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()) }
             }
-            .sessionManagement { it.sessionCreationPolicy( SessionCreationPolicy.STATELESS) }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .csrf {
                 //it.disable()
             }
