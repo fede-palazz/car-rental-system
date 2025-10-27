@@ -15,6 +15,11 @@ enum class ResponseEnum(
     UNPROCESSABLE_ENTITY(422, "Input validation failed", HttpStatus.UNPROCESSABLE_ENTITY),
     UNEXPECTED_ERROR(500, "Unknown error", HttpStatus.INTERNAL_SERVER_ERROR),
 
+    // Car Model errors
+    CAR_MODEL_NOT_FOUND(4100, "Car model not found", HttpStatus.NOT_FOUND),
+    WRONG_CAR_MODEL_COMPOSITE_ID(4101, "Wrong car model composite id", HttpStatus.BAD_REQUEST),
+    CAR_MODEL_NOT_PROVIDED(4102, "Car model not provided", HttpStatus.BAD_REQUEST),
+
     // Vehicle errors
     VEHICLE_NOT_FOUND(4200, "Vehicle not found", HttpStatus.NOT_FOUND);
 

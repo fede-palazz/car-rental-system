@@ -1,0 +1,89 @@
+package com.rentalcarsystem.analyticsservice.kafka
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.rentalcarsystem.analyticsservice.enums.EventType
+import com.rentalcarsystem.analyticsservice.exceptions.FailureException
+import com.rentalcarsystem.analyticsservice.exceptions.ResponseEnum
+import com.rentalcarsystem.analyticsservice.models.CarModel
+import com.rentalcarsystem.analyticsservice.repositories.CarModelRepository
+import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
+import org.slf4j.LoggerFactory
+
+@Component
+class ReservationServiceListener(
+    private val carModelRepository: CarModelRepository
+) {
+    private val logger = LoggerFactory.getLogger(ReservationServiceListener::class.java)
+    private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }
+
+    @KafkaListener(topics = ["paypal.public.car-model-events"], groupId = "\${spring.kafka.consumer.group-id:paymentService}")
+    @Transactional
+    fun processCarModelEvents(event: CarModelEventDTO) {
+        try {
+/*          println("STARTED RECEIVING MESSAGE")
+            println("MESSAGE: Type: ${event.type} CarModel: ${event.carModel} CompositeId: ${event.compositeId}")
+            println("FINISHED RECEIVING MESSAGE")*/
+            when (event.type) {
+                EventType.CREATED -> {
+                    if (event.carModel == null) {
+                        throw FailureException(ResponseEnum.CAR_MODEL_NOT_PROVIDED, "Car model not provided!")
+                    }
+                    val newCarModel = event.carModel.toEntity()
+                    carModelRepository.save(newCarModel)
+                    logger.info("Created car model from event: {}", mapper.writeValueAsString(newCarModel))
+                }
+                EventType.UPDATED -> {
+                    if (event.carModel == null) {
+                        throw FailureException(ResponseEnum.CAR_MODEL_NOT_PROVIDED, "Car model not provided!")
+                    }
+                    val modelToUpdate = getCarModelByCompositeId(event.compositeId)
+                    // Update the fields
+                    modelToUpdate.brand = event.carModel.brand
+                    modelToUpdate.model = event.carModel.model
+                    modelToUpdate.year = event.carModel.year
+                    modelToUpdate.segment = event.carModel.segment
+                    modelToUpdate.category = event.carModel.category
+                    modelToUpdate.engineType = event.carModel.engineType
+                    modelToUpdate.transmissionType = event.carModel.transmissionType
+                    modelToUpdate.drivetrain = event.carModel.drivetrain
+                    modelToUpdate.rentalPrice = event.carModel.rentalPrice
+                    logger.info("Updated car model from event: {}", mapper.writeValueAsString(modelToUpdate))
+                }
+                EventType.DELETED -> {
+                    val modelToDelete = getCarModelByCompositeId(event.compositeId)
+                    carModelRepository.delete(modelToDelete)
+                    logger.info("Deleted car model from event: {}", mapper.writeValueAsString(modelToDelete))
+                }
+            }
+        } catch (e: Exception) {
+            // Log the error
+            logger.error("Error processing car model event: ${e.message}")
+        }
+    }
+
+    /*************************************************************************************************************/
+
+    fun getCarModelByCompositeId(compositeId: String?): CarModel {
+        val compositeId = compositeId?.split(",")
+        if (compositeId == null || compositeId.size != 3) {
+            throw FailureException(
+                ResponseEnum.WRONG_CAR_MODEL_COMPOSITE_ID,
+                "Invalid composite id for car model update event: $compositeId"
+            )
+        }
+        // Check if car model exists
+        val model = carModelRepository.findByBrandAndModelAndYear(
+            compositeId[0], compositeId[1], compositeId[2]
+        )
+        if (model == null) {
+            throw FailureException(
+                ResponseEnum.CAR_MODEL_NOT_FOUND,
+                "Car model ${compositeId[0]} ${compositeId[1]} ${compositeId[2]} not found!"
+            )
+        }
+        return model
+    }
+}

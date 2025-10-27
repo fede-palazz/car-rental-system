@@ -17,6 +17,7 @@ import com.rentalcarsystem.reservationservice.repositories.CarModelRepository
 import com.rentalcarsystem.reservationservice.repositories.ReservationRepository
 import jakarta.persistence.criteria.Predicate
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -25,6 +26,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.LinkedMultiValueMap
@@ -43,6 +45,7 @@ class CarModelServiceImpl(
     private val vehicleService: VehicleService,
     private val userManagementRestClient: RestClient,
     private val keycloakTokenRestClient: RestClient,
+    private val kafkaTemplate: KafkaTemplate<String, CarModelEventDTO>,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long,
     @Value("\${spring.security.oauth2.client.registration.keycloak.client-id}")
@@ -50,6 +53,8 @@ class CarModelServiceImpl(
     @Value("\${spring.security.oauth2.client.registration.keycloak.client-secret}")
     private val clientSecret: String
 ) : CarModelService {
+    private val logger = LoggerFactory.getLogger(CarModelServiceImpl::class.java)
+
     fun getAccessToken(): String {
         val body = LinkedMultiValueMap<String, String>().apply {
             add("grant_type", "client_credentials")
@@ -219,7 +224,15 @@ class CarModelServiceImpl(
             }
             // Create model to persist and reference the list of features
             val newModel = model.toEntity(features.toMutableSet())
-            return carModelRepository.save(newModel).toResDTO()
+            val savedCarModel = carModelRepository.save(newModel).toResDTO()
+
+            try {
+                kafkaTemplate.send("paypal.public.car-model-events", CarModelEventDTO(EventType.CREATED, savedCarModel))
+            } catch (ex: Exception) {
+                logger.error("Failed to send car model creation event", ex)
+            }
+
+            return savedCarModel
         } catch (e: Exception) {
             throw FailureException(ResponseEnum.CAR_MODEL_DUPLICATED)
         }
@@ -228,6 +241,7 @@ class CarModelServiceImpl(
     override fun updateCarModel(id: Long, @Valid model: CarModelReqDTO): CarModelResDTO {
         // Check if car model exists
         val modelToUpdate = getActualCarModelById(id)
+        val oldModelCompositeId = "${modelToUpdate.brand},${modelToUpdate.model},${modelToUpdate.year}"
         // Retrieve car features info
         val features: List<CarFeature> = carFeatureRepository.findAllById(model.featureIds)
         // Check that all the ids correspond to a valid feature
@@ -249,16 +263,37 @@ class CarModelServiceImpl(
         modelToUpdate.drivetrain = model.drivetrain
         modelToUpdate.motorDisplacement = model.motorDisplacement
         modelToUpdate.rentalPrice = model.rentalPrice
-        return modelToUpdate.toResDTO()
+        val savedCarModel = modelToUpdate.toResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.car-model-events",
+                CarModelEventDTO(EventType.UPDATED, savedCarModel, oldModelCompositeId)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send car model update event", ex)
+        }
+
+        return savedCarModel
     }
 
     override fun deleteCarModelById(id: Long) {
         // Check if car model exists
         val modelToDelete = getActualCarModelById(id)
+        val oldModelCompositeId = "${modelToDelete.brand},${modelToDelete.model},${modelToDelete.year}"
         // Delete all the corresponding vehicles
         vehicleService.deleteAllByCarModelId(id)
         // Delete the car model
         carModelRepository.delete(modelToDelete)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.car-model-events",
+                CarModelEventDTO(EventType.DELETED, null, oldModelCompositeId)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send car model delete event", ex)
+        }
     }
 
     override fun getActualCarModelById(id: Long): CarModel {

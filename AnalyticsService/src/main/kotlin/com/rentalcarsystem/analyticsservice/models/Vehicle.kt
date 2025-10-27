@@ -22,10 +22,6 @@ class Vehicle(
     @Column(nullable = false, length = 17, name = "vin")
     var vin: String,    // Vehicle Identification Number
 
-    // Many Vehicles can refer to the same CarModel
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    var carModel: CarModel,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: CarStatus,
