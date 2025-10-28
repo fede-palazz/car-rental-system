@@ -24,6 +24,5 @@ fun MaintenanceReqDTO.toEntity(username: String) = Maintenance(
     upcomingServiceNeeds = this.upcomingServiceNeeds,
     startDate = this.startDate,
     plannedEndDate = this.plannedEndDate,
-    actualEndDate = null,
-    startFleetManagerUsername = username,
+    startFleetManagerUsername = username
 )

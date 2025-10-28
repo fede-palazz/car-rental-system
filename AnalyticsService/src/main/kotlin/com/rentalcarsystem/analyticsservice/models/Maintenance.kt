@@ -22,9 +22,6 @@ class Maintenance(
     @Column(nullable = false)
     var startFleetManagerUsername: String,
 
-    var endFleetManagerUsername: String? = null,
+    var endFleetManagerUsername: String? = null
 
-    // A Maintenance Record belongs to one Vehicle only
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    var vehicle: Vehicle? = null
 ) : BaseEntity<Long>()

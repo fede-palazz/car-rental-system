@@ -227,7 +227,10 @@ class CarModelServiceImpl(
             val savedCarModel = carModelRepository.save(newModel).toResDTO()
 
             try {
-                kafkaTemplate.send("paypal.public.car-model-events", CarModelEventDTO(EventType.CREATED, savedCarModel))
+                kafkaTemplate.send(
+                    "paypal.public.car-model-events",
+                    CarModelEventDTO(EventType.CREATED, savedCarModel)
+                )
             } catch (ex: Exception) {
                 logger.error("Failed to send car model creation event", ex)
             }

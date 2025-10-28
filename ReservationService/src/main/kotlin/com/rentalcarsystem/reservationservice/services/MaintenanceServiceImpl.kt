@@ -3,10 +3,12 @@ package com.rentalcarsystem.reservationservice.services
 import com.rentalcarsystem.reservationservice.dtos.request.FinalizeMaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.toEntity
+import com.rentalcarsystem.reservationservice.kafka.MaintenanceEventDTO
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
 import com.rentalcarsystem.reservationservice.enums.CarStatus
+import com.rentalcarsystem.reservationservice.enums.EventType
 import com.rentalcarsystem.reservationservice.enums.MaintenanceType
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
@@ -15,10 +17,12 @@ import com.rentalcarsystem.reservationservice.models.Maintenance
 import com.rentalcarsystem.reservationservice.models.Vehicle
 import com.rentalcarsystem.reservationservice.repositories.MaintenanceRepository
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
@@ -29,8 +33,10 @@ import org.springframework.validation.annotation.Validated
 class MaintenanceServiceImpl(
     private val maintenanceRepository: MaintenanceRepository,
     private val vehicleService: VehicleService,
-    private val reservationService: ReservationService
+    private val reservationService: ReservationService,
+    private val kafkaTemplate: KafkaTemplate<String, MaintenanceEventDTO>,
 ) : MaintenanceService {
+    private val logger = LoggerFactory.getLogger(MaintenanceServiceImpl::class.java)
 
     override fun getMaintenances(
         vehicleId: Long,
@@ -141,7 +147,18 @@ class MaintenanceServiceImpl(
         }
         val maintenance = maintenanceReq.toEntity(username)
         vehicle.addMaintenance(maintenance)
-        return maintenanceRepository.save(maintenance).toResDTO()
+        val savedMaintenance = maintenanceRepository.save(maintenance).toResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.CREATED, savedMaintenance, username, null)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance creation event", ex)
+        }
+
+        return savedMaintenance
     }
 
     override fun finalizeMaintenance(
@@ -163,7 +180,18 @@ class MaintenanceServiceImpl(
         maintenance.actualEndDate = finalizeMaintenanceReq.actualEndDate
         maintenance.endFleetManagerUsername = username
         maintenance.vehicle?.status = CarStatus.AVAILABLE
-        return maintenance.toResDTO()
+        val savedMaintenance = maintenance.toResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.FINALIZED, savedMaintenance, null, username)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance finalize event", ex)
+        }
+
+        return savedMaintenance
     }
 
     override fun updateMaintenance(
@@ -183,7 +211,18 @@ class MaintenanceServiceImpl(
         maintenance.upcomingServiceNeeds = maintenanceReq.upcomingServiceNeeds
         maintenance.startDate = maintenanceReq.startDate
         maintenance.plannedEndDate = maintenanceReq.plannedEndDate
-        return maintenance.toResDTO()
+        val savedMaintenance = maintenance.toResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.UPDATED, savedMaintenance, null, null)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance update event", ex)
+        }
+
+        return savedMaintenance
     }
 
     override fun deleteMaintenance(vehicleId: Long, maintenanceId: Long) {
@@ -191,6 +230,15 @@ class MaintenanceServiceImpl(
         val maintenance = getActualMaintenanceById(maintenanceId)
         checkMaintenanceVehicleMatch(vehicleId, maintenance)
         vehicle.removeMaintenance(maintenance)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.DELETED, maintenance.toResDTO(), null, null)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance delete event", ex)
+        }
     }
 
     override fun getActualMaintenanceById(maintenanceId: Long): Maintenance {

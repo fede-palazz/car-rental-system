@@ -6,7 +6,9 @@ import com.rentalcarsystem.analyticsservice.enums.EventType
 import com.rentalcarsystem.analyticsservice.exceptions.FailureException
 import com.rentalcarsystem.analyticsservice.exceptions.ResponseEnum
 import com.rentalcarsystem.analyticsservice.models.CarModel
+import com.rentalcarsystem.analyticsservice.models.Maintenance
 import com.rentalcarsystem.analyticsservice.repositories.CarModelRepository
+import com.rentalcarsystem.analyticsservice.repositories.MaintenanceRepository
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -14,12 +16,17 @@ import org.slf4j.LoggerFactory
 
 @Component
 class ReservationServiceListener(
-    private val carModelRepository: CarModelRepository
+    private val carModelRepository: CarModelRepository,
+    private val maintenanceRepository: MaintenanceRepository
 ) {
     private val logger = LoggerFactory.getLogger(ReservationServiceListener::class.java)
     private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }
 
-    @KafkaListener(topics = ["paypal.public.car-model-events"], groupId = "\${spring.kafka.consumer.group-id:paymentService}")
+    @KafkaListener(
+        topics = ["paypal.public.car-model-events"],
+        containerFactory = "carModelKafkaListenerContainerFactory",
+        groupId = "\${spring.kafka.consumer.group-id:paymentService}"
+    )
     @Transactional
     fun processCarModelEvents(event: CarModelEventDTO) {
         try {
@@ -57,6 +64,59 @@ class ReservationServiceListener(
                     carModelRepository.delete(modelToDelete)
                     logger.info("Deleted car model from event: {}", mapper.writeValueAsString(modelToDelete))
                 }
+                else -> {
+                    throw FailureException(ResponseEnum.INVALID_EVENT_TYPE, "Invalid event type: ${event.type}")
+                }
+            }
+        } catch (e: Exception) {
+            // Log the error
+            logger.error("Error processing car model event: ${e.message}")
+        }
+    }
+
+    @KafkaListener(
+        topics = ["paypal.public.maintenance-events"],
+        containerFactory = "maintenanceKafkaListenerContainerFactory",
+        groupId = "\${spring.kafka.consumer.group-id:paymentService}",
+    )
+    @Transactional
+    fun processMaintenanceEvents(event: MaintenanceEventDTO) {
+        try {
+/*            println("STARTED RECEIVING MESSAGE")
+            println("MESSAGE: Type: ${event.type} Maintenance: ${event.maintenance}")
+            println("FINISHED RECEIVING MESSAGE")*/
+            when (event.type) {
+                EventType.CREATED -> {
+                    if (event.startFleetManagerUsername == null) {
+                        throw FailureException(ResponseEnum.MAINTENANCE_NOT_PROVIDED, "startFleetManagerUsername not provided!")
+                    }
+                    val newMaintenance = event.maintenance.toEntity(event.startFleetManagerUsername)
+                    maintenanceRepository.save(newMaintenance)
+                    logger.info("Created maintenance from event: {}", mapper.writeValueAsString(newMaintenance))
+                }
+                EventType.FINALIZED -> {
+                    if (event.endFleetManagerUsername == null) {
+                        throw FailureException(ResponseEnum.MAINTENANCE_NOT_PROVIDED, "endFleetManagerUsername not provided!")
+                    }
+                    val maintenanceToUpdate = getMaintenanceById(event.maintenance.id)
+                    // Update the fields
+                    maintenanceToUpdate.actualEndDate = event.maintenance.actualEndDate
+                    maintenanceToUpdate.endFleetManagerUsername = event.endFleetManagerUsername
+                    logger.info("Updated maintenance from event: {}", mapper.writeValueAsString(maintenanceToUpdate))
+                }
+                EventType.UPDATED -> {
+                    val maintenanceToUpdate = getMaintenanceById(event.maintenance.id)
+                    // Update the fields
+                    maintenanceToUpdate.type = event.maintenance.type
+                    maintenanceToUpdate.startDate = event.maintenance.startDate
+                    maintenanceToUpdate.plannedEndDate = event.maintenance.plannedEndDate
+                    logger.info("Updated maintenance from event: {}", mapper.writeValueAsString(maintenanceToUpdate))
+                }
+                EventType.DELETED -> {
+                    val modelToDelete = getMaintenanceById(event.maintenance.id)
+                    maintenanceRepository.delete(modelToDelete)
+                    logger.info("Deleted maintenance from event: {}", mapper.writeValueAsString(modelToDelete))
+                }
             }
         } catch (e: Exception) {
             // Log the error
@@ -85,5 +145,11 @@ class ReservationServiceListener(
             )
         }
         return model
+    }
+
+    fun getMaintenanceById(maintenanceId: Long): Maintenance {
+        return maintenanceRepository.findById(maintenanceId).orElseThrow {
+            FailureException(ResponseEnum.MAINTENANCE_NOT_FOUND, "Maintenance record with id $maintenanceId not found")
+        }
     }
 }

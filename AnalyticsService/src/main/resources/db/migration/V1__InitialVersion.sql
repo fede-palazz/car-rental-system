@@ -32,7 +32,6 @@ CREATE TABLE maintenances
     actual_end_date              TIMESTAMP WITHOUT TIME ZONE,
     start_fleet_manager_username VARCHAR(255)                NOT NULL,
     end_fleet_manager_username   VARCHAR(255),
-    vehicle_id                   BIGINT                      NOT NULL,
     CONSTRAINT pk_maintenances PRIMARY KEY (id)
 );
 
@@ -82,9 +81,6 @@ ALTER TABLE vehicles
 
 ALTER TABLE vehicles
     ADD CONSTRAINT uc_dbc928eecab48d47c0c5bbdcb UNIQUE (entry_date, vin);
-
-ALTER TABLE maintenances
-    ADD CONSTRAINT FK_MAINTENANCES_ON_VEHICLE FOREIGN KEY (vehicle_id) REFERENCES vehicles (id);
 
 ALTER TABLE reservations
     ADD CONSTRAINT FK_RESERVATIONS_ON_VEHICLE FOREIGN KEY (vehicle_id) REFERENCES vehicles (id);
@@ -191,21 +187,21 @@ SELECT setval('vehicles_seq', (SELECT MAX(id) FROM vehicles));
 
 -- Maintenance records
 INSERT INTO maintenances (id, version, type, start_date, planned_end_date,
-                          actual_end_date, start_fleet_manager_username, end_fleet_manager_username, vehicle_id)
+                          actual_end_date, start_fleet_manager_username, end_fleet_manager_username)
 VALUES (1, 1, 'BRAKES', '2025-04-20 10:15:30'::timestamp, '2025-04-22 10:15:30'::timestamp, '2025-04-22 12:15:30'::timestamp,
-        'fleetmanager', 'fleetmanager', 3),
+        'fleetmanager', 'fleetmanager'),
        (2, 1, 'BATTERY', '2024-03-02 14:30:45'::timestamp, '2024-03-05 16:30:45'::timestamp, '2024-03-05 18:30:45'::timestamp,
-        'fleetmanager', 'fleetmanager', 7),
+        'fleetmanager', 'fleetmanager'),
        (3, 1, 'OIL_CHANGE', '2025-04-22 14:30:45'::timestamp, '2025-04-23 16:30:45'::timestamp, '2025-04-23 18:30:45'::timestamp,
-        'fleetmanager', 'fleetmanager', 6),
+        'fleetmanager', 'fleetmanager'),
        (4, 1, 'ENGINE', '2024-03-04 11:10:00'::timestamp, '2024-03-08 16:30:45'::timestamp, '2024-03-09 18:30:45'::timestamp,
-        'fleetmanager', 'fleetmanager', 4),
+        'fleetmanager', 'fleetmanager'),
        (5, 1, 'CHASSIS', '2024-03-05 16:45:22'::timestamp, '2024-03-06 18:45:22'::timestamp, '2024-03-06 20:45:22'::timestamp,
-        'fleetmanager', 'fleetmanager', 8),
+        'fleetmanager', 'fleetmanager'),
        (6, 1, 'OTHER', '2024-03-06 08:05:55'::timestamp, '2024-03-06 10:05:55'::timestamp, '2024-03-06 12:05:55'::timestamp,
-        'fleetmanager', 'fleetmanager', 6),
+        'fleetmanager', 'fleetmanager'),
        (7, 1, 'TIRES', '2024-03-07 12:30:40'::timestamp,
-        '2024-03-08 14:30:40'::timestamp, '2024-03-08 16:30:40'::timestamp, 'fleetmanager', 'fleetmanager', 11);
+        '2024-03-08 14:30:40'::timestamp, '2024-03-08 16:30:40'::timestamp, 'fleetmanager', 'fleetmanager');
 SELECT setval('maintenances_seq', (SELECT MAX(id) FROM maintenances));
 
 -- Reservation 1: Successful reservation with no issues

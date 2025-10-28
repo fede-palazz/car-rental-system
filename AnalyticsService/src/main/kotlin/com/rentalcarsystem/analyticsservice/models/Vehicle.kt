@@ -32,10 +32,6 @@ class Vehicle(
     @Column(nullable = false)
     var pendingCleaning: Boolean,
 
-    // One Vehicle can have many Maintenance Records
-    @OneToMany(mappedBy = "vehicle", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var maintenances: MutableSet<Maintenance> = mutableSetOf(),
-
     // One Vehicle can have many Reservations
     @OneToMany(mappedBy = "vehicle", cascade = [CascadeType.ALL], orphanRemoval = true)
     var reservations: MutableSet<Reservation> = mutableSetOf()
@@ -44,17 +40,6 @@ class Vehicle(
     /**
      * Utility methods to synchronize both sides of the relationships
      * **/
-
-    // Maintenances
-    fun addMaintenance(maintenance: Maintenance) {
-        maintenances.add(maintenance)
-        maintenance.vehicle = this
-    }
-
-    fun removeMaintenance(maintenance: Maintenance) {
-        maintenances.remove(maintenance)
-        maintenance.vehicle = null
-    }
 
     // Reservations
     fun addReservation(reservation: Reservation) {

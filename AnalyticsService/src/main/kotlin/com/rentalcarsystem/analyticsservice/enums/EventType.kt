@@ -1,4 +1,4 @@
 package com.rentalcarsystem.analyticsservice.enums
 enum class EventType {
-    CREATED, UPDATED, DELETED
+    CREATED, UPDATED, DELETED, FINALIZED
 }
