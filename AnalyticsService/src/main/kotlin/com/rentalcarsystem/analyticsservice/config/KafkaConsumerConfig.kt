@@ -3,6 +3,7 @@ package com.rentalcarsystem.analyticsservice.config
 import com.rentalcarsystem.analyticsservice.kafka.CarModelEventDTO
 import com.rentalcarsystem.analyticsservice.kafka.MaintenanceEventDTO
 import com.rentalcarsystem.analyticsservice.kafka.ReservationEventDTO
+import com.rentalcarsystem.analyticsservice.kafka.VehicleEventDTO
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
@@ -54,6 +55,20 @@ class KafkaConsumerConfig(private val kafkaProperties: KafkaProperties) {
     fun reservationKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, ReservationEventDTO> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, ReservationEventDTO>()
         factory.consumerFactory = reservationConsumerFactory()
+        return factory
+    }
+
+    @Bean
+    fun vehicleConsumerFactory(): ConsumerFactory<String, VehicleEventDTO> {
+        val props = kafkaProperties.buildConsumerProperties()
+        val deserializer = JsonDeserializer(VehicleEventDTO::class.java)
+        return DefaultKafkaConsumerFactory(props, StringDeserializer(), deserializer)
+    }
+
+    @Bean
+    fun vehicleKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, VehicleEventDTO> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, VehicleEventDTO>()
+        factory.consumerFactory = vehicleConsumerFactory()
         return factory
     }
 }

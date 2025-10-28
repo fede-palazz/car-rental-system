@@ -11,6 +11,7 @@ import com.rentalcarsystem.analyticsservice.models.Reservation
 import com.rentalcarsystem.analyticsservice.repositories.CarModelRepository
 import com.rentalcarsystem.analyticsservice.repositories.MaintenanceRepository
 import com.rentalcarsystem.analyticsservice.repositories.ReservationRepository
+import com.rentalcarsystem.analyticsservice.repositories.VehicleRepository
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -20,7 +21,8 @@ import org.slf4j.LoggerFactory
 class ReservationServiceListener(
     private val carModelRepository: CarModelRepository,
     private val maintenanceRepository: MaintenanceRepository,
-    private val reservationRepository: ReservationRepository
+    private val reservationRepository: ReservationRepository,
+    private val vehicleRepository: VehicleRepository
 ) {
     private val logger = LoggerFactory.getLogger(ReservationServiceListener::class.java)
     private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }
@@ -129,7 +131,7 @@ class ReservationServiceListener(
             }
         } catch (e: Exception) {
             // Log the error
-            logger.error("Error processing car model event: ${e.message}")
+            logger.error("Error processing maintenance event: ${e.message}")
         }
     }
 
@@ -190,10 +192,46 @@ class ReservationServiceListener(
                     reservationToUpdate.status = event.reservation.commonInfo.status
                     logger.info("Expired reservation from event: {}", mapper.writeValueAsString(reservationToUpdate))
                 }
+                else -> {
+                    throw FailureException(
+                        ResponseEnum.INVALID_EVENT_TYPE,
+                        "Invalid event type: ${event.type} for topic reservation-events"
+                    )
+                }
             }
         } catch (e: Exception) {
             // Log the error
             logger.error("Error processing reservation event: ${e.message}")
+        }
+    }
+
+    @KafkaListener(
+        topics = ["paypal.public.vehicle-events"],
+        containerFactory = "vehicleKafkaListenerContainerFactory",
+        groupId = "\${spring.kafka.consumer.group-id:reservationService}",
+    )
+    @Transactional
+    fun processVehicleEvents(event: VehicleEventDTO) {
+        try {
+/*          println("STARTED RECEIVING MESSAGE")
+            println("MESSAGE: Type: ${event.type} Received ${event.vehicles.size} vehicles")
+            println("FINISHED RECEIVING MESSAGE")*/
+            when (event.type) {
+                EventType.COPIED -> {
+                    val newVehicles = event.vehicles.map { it.toEntity() }
+                    vehicleRepository.saveAll(newVehicles)
+                    logger.info("Created {} vehicles from event", newVehicles.size)
+                }
+                else -> {
+                    throw FailureException(
+                        ResponseEnum.INVALID_EVENT_TYPE,
+                        "Invalid event type: ${event.type} for topic vehicle-events"
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            // Log the error
+            logger.error("Error processing vehicle event: ${e.message}")
         }
     }
 

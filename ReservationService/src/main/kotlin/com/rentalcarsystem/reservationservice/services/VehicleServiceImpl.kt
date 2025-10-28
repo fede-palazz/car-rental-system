@@ -7,9 +7,11 @@ import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.VehicleResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
 import com.rentalcarsystem.reservationservice.enums.CarStatus
+import com.rentalcarsystem.reservationservice.enums.EventType
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.VehicleFilter
+import com.rentalcarsystem.reservationservice.kafka.VehicleEventDTO
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Vehicle
 import com.rentalcarsystem.reservationservice.repositories.CarModelRepository
@@ -22,6 +24,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,6 +37,7 @@ import java.time.LocalDateTime
 class VehicleServiceImpl(
     private val carModelRepository: CarModelRepository,
     private val vehicleRepository: VehicleRepository,
+    private val kafkaTemplate: KafkaTemplate<String, VehicleEventDTO>,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long
 ) : VehicleService {
@@ -198,7 +202,15 @@ class VehicleServiceImpl(
 
     @Transactional
     @Scheduled(cron = "0 0 0 * * *") // runs every day at midnight
-    fun updateVehicleStatusAtMidnight() {
+    fun sendTableCopyAndUpdateVehicleStatusAtMidnight() {
+        val vehicles = vehicleRepository.findAll().map { it.toResDTO() }
+
+        try {
+            kafkaTemplate.send("paypal.public.vehicle-events", VehicleEventDTO(EventType.COPIED, vehicles))
+        } catch (ex: Exception) {
+            logger.error("Failed to send vehicle copied event", ex)
+        }
+
         val today = LocalDateTime.now()
         val endOfToday = today.plusMinutes(1439) // from 00:00 to 23:59
         val maintenanceVehicles = vehicleRepository.findByMaintenanceStartDateBetween(today, endOfToday)
