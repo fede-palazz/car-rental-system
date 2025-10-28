@@ -10,10 +10,6 @@ class Reservation(
     @Column(nullable = false)
     var customerUsername: String,
 
-    // A Reservation belongs to one Vehicle only
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    var vehicle: Vehicle? = null,
-
     @Column(nullable = false)
     var creationDate: LocalDateTime,
 

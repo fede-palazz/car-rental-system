@@ -30,25 +30,5 @@ class Vehicle(
     var kmTravelled: Double,
 
     @Column(nullable = false)
-    var pendingCleaning: Boolean,
-
-    // One Vehicle can have many Reservations
-    @OneToMany(mappedBy = "vehicle", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var reservations: MutableSet<Reservation> = mutableSetOf()
-) : BaseEntity<Long>() {
-
-    /**
-     * Utility methods to synchronize both sides of the relationships
-     * **/
-
-    // Reservations
-    fun addReservation(reservation: Reservation) {
-        reservations.add(reservation)
-        reservation.vehicle = this
-    }
-
-    fun removeReservation(reservation: Reservation) {
-        reservations.remove(reservation)
-        reservation.vehicle = null
-    }
-}
+    var pendingCleaning: Boolean
+) : BaseEntity<Long>()

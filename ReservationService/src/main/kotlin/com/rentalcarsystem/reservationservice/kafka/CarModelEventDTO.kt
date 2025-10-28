@@ -1,5 +1,6 @@
-package com.rentalcarsystem.reservationservice.dtos.response
+package com.rentalcarsystem.reservationservice.kafka
 
+import com.rentalcarsystem.reservationservice.dtos.response.CarModelResDTO
 import com.rentalcarsystem.reservationservice.enums.EventType
 
 data class CarModelEventDTO(

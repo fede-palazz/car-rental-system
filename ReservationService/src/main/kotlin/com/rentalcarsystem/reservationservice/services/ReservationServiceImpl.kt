@@ -16,11 +16,13 @@ import com.rentalcarsystem.reservationservice.dtos.response.reservation.toCustom
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.toStaffReservationResDTO
 import com.rentalcarsystem.reservationservice.enums.CarCategory
 import com.rentalcarsystem.reservationservice.enums.CarStatus
+import com.rentalcarsystem.reservationservice.enums.EventType
 import com.rentalcarsystem.reservationservice.enums.ReservationStatus
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.PaymentRecordFilter
 import com.rentalcarsystem.reservationservice.filters.ReservationFilter
+import com.rentalcarsystem.reservationservice.kafka.ReservationEventDTO
 import com.rentalcarsystem.reservationservice.models.*
 import com.rentalcarsystem.reservationservice.repositories.ReservationRepository
 import com.rentalcarsystem.reservationservice.repositories.VehicleRepository
@@ -35,6 +37,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -60,6 +63,7 @@ class ReservationServiceImpl(
     private val paymentServiceRestClient: RestClient,
     private val keycloakTokenRestClient: RestClient,
     private val taskScheduler: TaskScheduler,
+    private val kafkaTemplate: KafkaTemplate<String, ReservationEventDTO>,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long,
     @Value("\${spring.security.oauth2.client.registration.keycloak.client-id}")
@@ -387,7 +391,18 @@ class ReservationServiceImpl(
         ) + 1
         val reservationToSave = reservation.toEntity(vehicle.carModel.rentalPrice * days, customerUsername, reservationBufferDays)
         vehicle.addReservation(reservationToSave)
-        return reservationRepository.save(reservationToSave).toCustomerReservationResDTO()
+        val savedReservation = reservationRepository.save(reservationToSave)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                ReservationEventDTO(EventType.CREATED, savedReservation.toStaffReservationResDTO())
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation creation event", ex)
+        }
+
+        return savedReservation.toCustomerReservationResDTO()
     }
 
     override fun setReservationActualPickUpDate(
@@ -412,7 +427,18 @@ class ReservationServiceImpl(
         reservation.actualPickUpDate = actualPickUpDate.actualPickUpDate
         reservation.status = ReservationStatus.PICKED_UP
         reservation.pickUpStaffUsername = pickUpStaffUsername
-        return reservation.toStaffReservationResDTO()
+        val savedReservation = reservation.toStaffReservationResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                ReservationEventDTO(EventType.PICKED_UP, savedReservation)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation pick-up event", ex)
+        }
+
+        return savedReservation
     }
 
     override fun finalizeReservation(
@@ -521,7 +547,18 @@ class ReservationServiceImpl(
                 reservation.vehicle?.pendingCleaning = false
             }
         }
-        return reservation.toStaffReservationResDTO()
+        val savedReservation = reservation.toStaffReservationResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                ReservationEventDTO(EventType.FINALIZED, savedReservation)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation finalized event", ex)
+        }
+
+        return savedReservation
     }
 
     override fun updateReservationVehicle(
@@ -550,11 +587,23 @@ class ReservationServiceImpl(
         )
         reservation.updatedVehicleStaffUsername = updatedVehicleStaffUsername
         vehicle.addReservation(reservation)
-        return reservation.toStaffReservationResDTO()
+        val savedReservation = reservation.toStaffReservationResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                ReservationEventDTO(EventType.UPDATED, savedReservation)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation updated vehicle event", ex)
+        }
+
+        return savedReservation
     }
 
     override fun deleteReservation(reservationId: Long) {
         val reservation = getReservationById(reservationId)
+        val reservationToDelete = reservation.toStaffReservationResDTO()
         if (reservation.plannedPickUpDate.isBefore(LocalDateTime.now())) {
             throw FailureException(
                 ResponseEnum.RESERVATION_FORBIDDEN,
@@ -562,6 +611,15 @@ class ReservationServiceImpl(
             )
         }
         reservation.vehicle?.removeReservation(reservation)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                ReservationEventDTO(EventType.DELETED, reservationToDelete)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation deleted event", ex)
+        }
     }
 
     override fun createPaymentRequest(reservationId: Long, customerUsername: String): PaymentResDTO {
@@ -640,6 +698,15 @@ class ReservationServiceImpl(
     override fun confirmReservation(id: Long) {
         val reservation = getReservationById(id)
         reservation.status = ReservationStatus.CONFIRMED
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                ReservationEventDTO(EventType.CONFIRMED, reservation.toStaffReservationResDTO())
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation confirmed event", ex)
+        }
     }
 
     override fun getPaymentRecords(
@@ -733,6 +800,15 @@ class ReservationServiceImpl(
         for (reservation in expiredReservations) {
             reservation.status = ReservationStatus.EXPIRED
             logger.info("Set Reservation {} as expired", reservation.getId()!!)
+
+            try {
+                kafkaTemplate.send(
+                    "paypal.public.reservation-events",
+                    ReservationEventDTO(EventType.EXPIRED, reservation.toStaffReservationResDTO())
+                )
+            } catch (ex: Exception) {
+                logger.error("Failed to send reservation expired event", ex)
+            }
         }
     }
 

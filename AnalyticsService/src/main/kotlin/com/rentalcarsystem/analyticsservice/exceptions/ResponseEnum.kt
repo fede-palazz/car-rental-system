@@ -25,8 +25,11 @@ enum class ResponseEnum(
     MAINTENANCE_NOT_PROVIDED(4200, "Maintenance not provided", HttpStatus.BAD_REQUEST),
     MAINTENANCE_NOT_FOUND(4201, "Maintenance not found", HttpStatus.NOT_FOUND),
 
+    // Reservation errors
+    RESERVATION_NOT_FOUND(4300, "Reservation not found", HttpStatus.NOT_FOUND),
+
     // Vehicle errors
-    VEHICLE_NOT_FOUND(4300, "Vehicle not found", HttpStatus.NOT_FOUND);
+    VEHICLE_NOT_FOUND(4400, "Vehicle not found", HttpStatus.NOT_FOUND);
 
     // Getters
     fun getCode() = code

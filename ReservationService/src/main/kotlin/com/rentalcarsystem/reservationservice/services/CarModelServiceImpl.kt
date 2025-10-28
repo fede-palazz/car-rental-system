@@ -7,6 +7,7 @@ import com.rentalcarsystem.reservationservice.enums.*
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.CarModelFilter
+import com.rentalcarsystem.reservationservice.kafka.CarModelEventDTO
 import com.rentalcarsystem.reservationservice.models.CarFeature
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Maintenance

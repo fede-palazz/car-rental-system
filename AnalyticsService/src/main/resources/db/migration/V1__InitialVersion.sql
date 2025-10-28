@@ -40,7 +40,6 @@ CREATE TABLE reservations
     id                             BIGINT                      NOT NULL,
     version                        BIGINT                      NOT NULL,
     customer_username              VARCHAR(255)                NOT NULL,
-    vehicle_id                     BIGINT                      NOT NULL,
     creation_date                  TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     planned_pick_up_date           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     actual_pick_up_date            TIMESTAMP WITHOUT TIME ZONE,
@@ -81,9 +80,6 @@ ALTER TABLE vehicles
 
 ALTER TABLE vehicles
     ADD CONSTRAINT uc_dbc928eecab48d47c0c5bbdcb UNIQUE (entry_date, vin);
-
-ALTER TABLE reservations
-    ADD CONSTRAINT FK_RESERVATIONS_ON_VEHICLE FOREIGN KEY (vehicle_id) REFERENCES vehicles (id);
 
 -- Car models
 INSERT INTO car_models (id, version, brand, model, year, segment, category,
@@ -206,14 +202,14 @@ SELECT setval('maintenances_seq', (SELECT MAX(id) FROM maintenances));
 
 -- Reservation 1: Successful reservation with no issues
 INSERT INTO reservations (
-    id, version, customer_username, vehicle_id, creation_date,
+    id, version, customer_username, creation_date,
     planned_pick_up_date, actual_pick_up_date,
     planned_drop_off_date, actual_drop_off_date,
     buffered_drop_off_date, status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
     damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
-             1, 1, 'customer1', 1, '2025-04-01 09:00:00',
+             1, 1, 'customer1', '2025-04-01 09:00:00',
              '2025-04-03 10:00:00', '2025-04-03 10:00:00',
              '2025-04-10 10:00:00', '2025-04-10 09:45:00',
              '2025-04-11 10:00:00',
@@ -225,14 +221,14 @@ INSERT INTO reservations (
 
 -- Reservation 2: Late delivery and damage, still completed
 INSERT INTO reservations (
-    id, version, customer_username, vehicle_id, creation_date,
+    id, version, customer_username, creation_date,
     planned_pick_up_date, actual_pick_up_date,
     planned_drop_off_date, actual_drop_off_date,
     buffered_drop_off_date, status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
     damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
-             2, 1, 'customer2', 2, '2025-04-05 12:00:00',
+             2, 1, 'customer2', '2025-04-05 12:00:00',
              '2025-04-06 09:00:00', '2025-04-06 10:30:00',
              '2025-04-12 09:00:00', '2025-04-12 10:00:00',
              '2025-04-15 10:00:00',
@@ -243,14 +239,14 @@ INSERT INTO reservations (
 
 -- Reservation 3: Cancelled before pickup
 INSERT INTO reservations (
-    id, version, customer_username, vehicle_id, creation_date,
+    id, version, customer_username, creation_date,
     planned_pick_up_date, actual_pick_up_date,
     planned_drop_off_date, actual_drop_off_date,
     buffered_drop_off_date, status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
     damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
-             3, 1, 'customer1', 3, '2025-04-07 15:00:00',
+             3, 1, 'customer1', '2025-04-07 15:00:00',
              '2025-04-09 08:00:00', NULL,
              '2025-05-15 08:00:00', NULL,
              '2025-05-17 08:00:00',
@@ -261,14 +257,14 @@ INSERT INTO reservations (
 
 -- Reservation 4: Accident involved
 INSERT INTO reservations (
-    id, version, customer_username, vehicle_id, creation_date,
+    id, version, customer_username, creation_date,
     planned_pick_up_date, actual_pick_up_date,
     planned_drop_off_date, actual_drop_off_date,
     buffered_drop_off_date, status, total_amount,
     was_delivery_late, was_charged_fee, was_involved_in_accident,
     damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
 ) VALUES (
-             4, 1, 'customer2', 4, '2025-04-10 11:00:00',
+             4, 1, 'customer2', '2025-04-10 11:00:00',
              '2025-04-11 09:00:00', '2025-04-11 09:15:00',
              '2025-04-17 09:00:00', '2025-04-17 10:00:00',
              '2025-04-20 10:00:00',

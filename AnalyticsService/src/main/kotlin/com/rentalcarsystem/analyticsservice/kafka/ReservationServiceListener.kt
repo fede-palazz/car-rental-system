@@ -7,8 +7,10 @@ import com.rentalcarsystem.analyticsservice.exceptions.FailureException
 import com.rentalcarsystem.analyticsservice.exceptions.ResponseEnum
 import com.rentalcarsystem.analyticsservice.models.CarModel
 import com.rentalcarsystem.analyticsservice.models.Maintenance
+import com.rentalcarsystem.analyticsservice.models.Reservation
 import com.rentalcarsystem.analyticsservice.repositories.CarModelRepository
 import com.rentalcarsystem.analyticsservice.repositories.MaintenanceRepository
+import com.rentalcarsystem.analyticsservice.repositories.ReservationRepository
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -17,7 +19,8 @@ import org.slf4j.LoggerFactory
 @Component
 class ReservationServiceListener(
     private val carModelRepository: CarModelRepository,
-    private val maintenanceRepository: MaintenanceRepository
+    private val maintenanceRepository: MaintenanceRepository,
+    private val reservationRepository: ReservationRepository
 ) {
     private val logger = LoggerFactory.getLogger(ReservationServiceListener::class.java)
     private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }
@@ -47,7 +50,6 @@ class ReservationServiceListener(
                         throw FailureException(ResponseEnum.CAR_MODEL_NOT_PROVIDED, "Car model not provided!")
                     }
                     val modelToUpdate = getCarModelByCompositeId(event.compositeId)
-                    // Update the fields
                     modelToUpdate.brand = event.carModel.brand
                     modelToUpdate.model = event.carModel.model
                     modelToUpdate.year = event.carModel.year
@@ -65,7 +67,10 @@ class ReservationServiceListener(
                     logger.info("Deleted car model from event: {}", mapper.writeValueAsString(modelToDelete))
                 }
                 else -> {
-                    throw FailureException(ResponseEnum.INVALID_EVENT_TYPE, "Invalid event type: ${event.type}")
+                    throw FailureException(
+                        ResponseEnum.INVALID_EVENT_TYPE,
+                        "Invalid event type: ${event.type} for topic car-model-events"
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -82,7 +87,7 @@ class ReservationServiceListener(
     @Transactional
     fun processMaintenanceEvents(event: MaintenanceEventDTO) {
         try {
-/*            println("STARTED RECEIVING MESSAGE")
+/*          println("STARTED RECEIVING MESSAGE")
             println("MESSAGE: Type: ${event.type} Maintenance: ${event.maintenance}")
             println("FINISHED RECEIVING MESSAGE")*/
             when (event.type) {
@@ -99,28 +104,96 @@ class ReservationServiceListener(
                         throw FailureException(ResponseEnum.MAINTENANCE_NOT_PROVIDED, "endFleetManagerUsername not provided!")
                     }
                     val maintenanceToUpdate = getMaintenanceById(event.maintenance.id)
-                    // Update the fields
                     maintenanceToUpdate.actualEndDate = event.maintenance.actualEndDate
                     maintenanceToUpdate.endFleetManagerUsername = event.endFleetManagerUsername
                     logger.info("Updated maintenance from event: {}", mapper.writeValueAsString(maintenanceToUpdate))
                 }
                 EventType.UPDATED -> {
                     val maintenanceToUpdate = getMaintenanceById(event.maintenance.id)
-                    // Update the fields
                     maintenanceToUpdate.type = event.maintenance.type
                     maintenanceToUpdate.startDate = event.maintenance.startDate
                     maintenanceToUpdate.plannedEndDate = event.maintenance.plannedEndDate
                     logger.info("Updated maintenance from event: {}", mapper.writeValueAsString(maintenanceToUpdate))
                 }
                 EventType.DELETED -> {
-                    val modelToDelete = getMaintenanceById(event.maintenance.id)
-                    maintenanceRepository.delete(modelToDelete)
-                    logger.info("Deleted maintenance from event: {}", mapper.writeValueAsString(modelToDelete))
+                    val maintenanceToDelete = getMaintenanceById(event.maintenance.id)
+                    maintenanceRepository.delete(maintenanceToDelete)
+                    logger.info("Deleted maintenance from event: {}", mapper.writeValueAsString(maintenanceToDelete))
+                }
+                else -> {
+                    throw FailureException(
+                        ResponseEnum.INVALID_EVENT_TYPE,
+                        "Invalid event type: ${event.type} for topic maintenance-events"
+                    )
                 }
             }
         } catch (e: Exception) {
             // Log the error
             logger.error("Error processing car model event: ${e.message}")
+        }
+    }
+
+    @KafkaListener(
+        topics = ["paypal.public.reservation-events"],
+        containerFactory = "reservationKafkaListenerContainerFactory",
+        groupId = "\${spring.kafka.consumer.group-id:paymentService}",
+    )
+    @Transactional
+    fun processReservationEvents(event: ReservationEventDTO) {
+        try {
+/*          println("STARTED RECEIVING MESSAGE")
+            println("MESSAGE: Type: ${event.type} Reservation: ${event.reservation}")
+            println("FINISHED RECEIVING MESSAGE")*/
+            when (event.type) {
+                EventType.CREATED -> {
+                    val newReservation = event.reservation.toEntity()
+                    reservationRepository.save(newReservation)
+                    logger.info("Created reservation from event: {}", mapper.writeValueAsString(newReservation))
+                }
+                EventType.PICKED_UP -> {
+                    val reservationToUpdate = getReservationById(event.reservation.commonInfo.id)
+                    reservationToUpdate.actualPickUpDate = event.reservation.commonInfo.actualPickUpDate
+                    reservationToUpdate.status = event.reservation.commonInfo.status
+                    reservationToUpdate.pickUpStaffUsername = event.reservation.pickUpStaffUsername
+                    logger.info("Picked up reservation from event: {}", mapper.writeValueAsString(reservationToUpdate))
+                }
+                EventType.FINALIZED -> {
+                    val reservationToUpdate = getReservationById(event.reservation.commonInfo.id)
+                    reservationToUpdate.actualDropOffDate = event.reservation.commonInfo.actualDropOffDate
+                    reservationToUpdate.bufferedDropOffDate = event.reservation.bufferedDropOffDate
+                    reservationToUpdate.status = event.reservation.commonInfo.status
+                    reservationToUpdate.wasDeliveryLate = event.reservation.wasDeliveryLate
+                    reservationToUpdate.wasChargedFee = event.reservation.wasChargedFee
+                    reservationToUpdate.wasInvolvedInAccident = event.reservation.wasInvolvedInAccident
+                    reservationToUpdate.damageLevel = event.reservation.damageLevel
+                    reservationToUpdate.dirtinessLevel = event.reservation.dirtinessLevel
+                    reservationToUpdate.dropOffStaffUsername = event.reservation.dropOffStaffUsername
+                    logger.info("Finalized reservation from event: {}", mapper.writeValueAsString(reservationToUpdate))
+                }
+                EventType.UPDATED -> {
+                    val reservationToUpdate = getReservationById(event.reservation.commonInfo.id)
+                    reservationToUpdate.updatedVehicleStaffUsername = event.reservation.updatedVehicleStaffUsername
+                    logger.info("Updated reservation from event: {}", mapper.writeValueAsString(reservationToUpdate))
+                }
+                EventType.DELETED -> {
+                    val reservationToDelete = getReservationById(event.reservation.commonInfo.id)
+                    reservationRepository.delete(reservationToDelete)
+                    logger.info("Deleted reservation from event: {}", mapper.writeValueAsString(reservationToDelete))
+                }
+                EventType.CONFIRMED -> {
+                    val reservationToUpdate = getReservationById(event.reservation.commonInfo.id)
+                    reservationToUpdate.status = event.reservation.commonInfo.status
+                    logger.info("Confirmed reservation from event: {}", mapper.writeValueAsString(reservationToUpdate))
+                }
+                EventType.EXPIRED -> {
+                    val reservationToUpdate = getReservationById(event.reservation.commonInfo.id)
+                    reservationToUpdate.status = event.reservation.commonInfo.status
+                    logger.info("Expired reservation from event: {}", mapper.writeValueAsString(reservationToUpdate))
+                }
+            }
+        } catch (e: Exception) {
+            // Log the error
+            logger.error("Error processing reservation event: ${e.message}")
         }
     }
 
@@ -150,6 +223,12 @@ class ReservationServiceListener(
     fun getMaintenanceById(maintenanceId: Long): Maintenance {
         return maintenanceRepository.findById(maintenanceId).orElseThrow {
             FailureException(ResponseEnum.MAINTENANCE_NOT_FOUND, "Maintenance record with id $maintenanceId not found")
+        }
+    }
+
+    fun getReservationById(reservationId: Long): Reservation {
+        return reservationRepository.findById(reservationId).orElseThrow {
+            FailureException(ResponseEnum.RESERVATION_NOT_FOUND, "Reservation with id $reservationId was not found")
         }
     }
 }
