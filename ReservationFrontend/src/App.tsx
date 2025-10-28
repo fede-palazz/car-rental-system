@@ -32,6 +32,7 @@ import DeleteVehicleDialog from "./components/Forms/Vehicle/DeleteVehicleDialog.
 import TrackingPage from "./pages/TrackingPage.tsx";
 import MapVehicleCard from "./components/Map/MapVehicleCard.tsx";
 import AnalyticsPage from "./pages/AnalyticsPage.tsx";
+import DeleteMaintenanceDialog from "@/components/Forms/Maintenance/DeleteMaintenanceDialog.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -251,7 +252,7 @@ function App() {
                     user && user.role == UserRole.CUSTOMER ? (
                       <Navigate to="/models"></Navigate>
                     ) : (
-                      <AddOrEditMaintenanceDialog />
+                      <DeleteMaintenanceDialog />
                     )
                   }></Route>
                 <Route
