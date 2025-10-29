@@ -1,9 +1,10 @@
 package com.rentalcarsystem.trackingservice.services
 
 import com.rentalcarsystem.trackingservice.dtos.request.SessionReqDTO
-import com.rentalcarsystem.trackingservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.trackingservice.dtos.response.SessionResDTO
+import com.rentalcarsystem.trackingservice.models.VehicleDailyDistance
 import jakarta.validation.Valid
+import java.time.LocalDate
 
 
 interface TrackingService {
@@ -21,4 +22,7 @@ interface TrackingService {
     fun createTrackingSession(@Valid sessionReq: SessionReqDTO): SessionResDTO
 
     fun endTrackingSession(sessionId: Long): SessionResDTO
+
+    fun getDailyVehicleDistances(date: LocalDate): List<VehicleDailyDistance>
+
 }

@@ -3,8 +3,8 @@ package com.rentalcarsystem.trackingservice.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rentalcarsystem.trackingservice.dtos.request.SessionReqDTO
-import com.rentalcarsystem.trackingservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.trackingservice.dtos.response.SessionResDTO
+import com.rentalcarsystem.trackingservice.models.VehicleDailyDistance
 import com.rentalcarsystem.trackingservice.services.TrackingService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
+import java.time.LocalDate
 
 const val TRACKING_BASE_URL = "/api/v1/tracking"
 
@@ -223,4 +224,33 @@ class TrackingController(private val trackingService: TrackingService) {
 
         return ResponseEntity.ok(updatedSession)
     }
+
+    @Operation(
+        summary = "Get daily distance traveled per vehicle",
+        description = "Returns the total distance in kilometers traveled by each vehicle on the specified date",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(
+                    mediaType = "application/json",
+                    array = ArraySchema(
+                        schema = Schema(implementation = VehicleDailyDistance::class)
+                    )
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()]),
+        ]
+    )
+    @GetMapping("daily-distance")
+    fun getVehiclesDailyDistance(
+        @RequestParam date: LocalDate
+    ): ResponseEntity<List<VehicleDailyDistance>> {
+        require(!date.isAfter(LocalDate.now())) {
+            throw IllegalArgumentException("Parameter 'date' can't be a future date")
+        }
+        val dailyDistances = trackingService.getDailyVehicleDistances(date)
+        return ResponseEntity.ok(dailyDistances)
+    }
+
 }

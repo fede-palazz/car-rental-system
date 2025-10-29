@@ -1,19 +1,14 @@
 package com.rentalcarsystem.trackingservice.jobs
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rentalcarsystem.trackingservice.models.TrackingPoint
-import com.rentalcarsystem.trackingservice.models.TrackingSession
 import com.rentalcarsystem.trackingservice.repositories.TrackingPointRepository
 import com.rentalcarsystem.trackingservice.repositories.TrackingSessionRepository
-import com.rentalcarsystem.trackingservice.services.TrackingServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestClient
 import java.time.Instant
-import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -26,12 +21,12 @@ class TrackingJob(
     private val trackingPointRepository: TrackingPointRepository,
     private val osrmServiceRestClient: RestClient
 ) {
-    private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
+    private val logger = LoggerFactory.getLogger(TrackingJob::class.java)
     val turinCenterLat = 45.058360
     val turinCenterLng = 7.665896
 
     @Transactional
-    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:2000}")
+    @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:4000}")
     fun generateTrackingPoints() {
         trackingSessionRepository.findOngoingSessions().forEach { session ->
             val lastPoint = trackingPointRepository.findTopByTrackingSessionIdOrderByTimestampDesc(session.getId()!!)
@@ -42,7 +37,6 @@ class TrackingJob(
     }
 
     private fun generateNewPointForSession(lastPoint: TrackingPoint?): TrackingPoint {
-        //var bearingDegrees = 0.0 //Random.nextDouble(90.0, 95.0)
         val distanceMeters = Random.nextDouble(30.0, 80.0)
         var bearingDegrees = normalizeBearing(
             (lastPoint?.bearing ?: Random.nextDouble(0.0, 360.0)) +
@@ -122,7 +116,7 @@ class TrackingJob(
         val endpoint = StringBuilder("/nearest/v1/driving/$lng,$lat")
 
         bearing?.let {
-            endpoint.append("?bearings=${it.toInt()},45") // 10° tolerance range
+            endpoint.append("?bearings=${it.toInt()},45") // 45° tolerance range
         }
 
         val response = osrmServiceRestClient

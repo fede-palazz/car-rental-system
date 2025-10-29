@@ -1,27 +1,26 @@
 package com.rentalcarsystem.trackingservice.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rentalcarsystem.trackingservice.dtos.request.SessionReqDTO
 import com.rentalcarsystem.trackingservice.dtos.request.toEntity
-import com.rentalcarsystem.trackingservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.trackingservice.dtos.response.SessionResDTO
 import com.rentalcarsystem.trackingservice.dtos.response.toResDTO
 import com.rentalcarsystem.trackingservice.exceptions.FailureException
 import com.rentalcarsystem.trackingservice.exceptions.ResponseEnum
 import com.rentalcarsystem.trackingservice.models.TrackingPoint
 import com.rentalcarsystem.trackingservice.models.TrackingSession
+import com.rentalcarsystem.trackingservice.models.VehicleDailyDistance
 import com.rentalcarsystem.trackingservice.repositories.TrackingPointRepository
 import com.rentalcarsystem.trackingservice.repositories.TrackingSessionRepository
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.Locale
 
 
 @Service
@@ -103,6 +102,18 @@ class TrackingServiceImpl(
         trackingSessionRepository.saveAndFlush(session)
 
         return session.toResDTO()
+    }
+
+    override fun getDailyVehicleDistances(date: LocalDate): List<VehicleDailyDistance> {
+        val start = date.atStartOfDay()
+        val end = date.plusDays(1).atStartOfDay()
+
+        return trackingPointRepository.findDailyDistanceForDate(start, end) .map { raw ->
+            VehicleDailyDistance(
+                vehicleId = raw.vehicleId,
+                dailyDistanceKm = String.format(Locale.US, "%.2f", raw.dailyDistanceKm).toDouble()
+            )
+        }
     }
 
     private fun getSessionById(id: Long): TrackingSession {
