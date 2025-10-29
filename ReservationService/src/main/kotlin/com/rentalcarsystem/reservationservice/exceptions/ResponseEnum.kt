@@ -44,7 +44,10 @@ enum class ResponseEnum(
     RESERVATION_CONFLICT(4405, "Reservation conflict", HttpStatus.CONFLICT),
 
     // Payment error
-    PAYMENT_ERROR(4500, "Payment error", HttpStatus.INTERNAL_SERVER_ERROR);
+    PAYMENT_ERROR(4500, "Payment error", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // Tracking error
+    TRACKING_ERROR(4600, "Tracking error", HttpStatus.INTERNAL_SERVER_ERROR);
 
     // Getters
     fun getCode() = code

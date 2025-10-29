@@ -95,8 +95,12 @@ class TrackingServiceImpl(
         return trackingSessionRepository.save(sessionToSave).toResDTO(startingPoint.toResDTO())
     }
 
-    override fun endTrackingSession(sessionId: Long): SessionResDTO {
-        val session = getSessionById(sessionId)
+    override fun endTrackingSession(sessionReq: SessionReqDTO): SessionResDTO {
+        val session = getSessionBySessionReq(sessionReq)
+        if (session == null) {
+            throw FailureException(ResponseEnum.SESSION_NOT_FOUND,
+                "Tracking session with reservation ID ${sessionReq.reservationId} not found")
+        }
 
         session.endDate = LocalDateTime.now()
         trackingSessionRepository.saveAndFlush(session)
@@ -122,5 +126,13 @@ class TrackingServiceImpl(
                 FailureException(ResponseEnum.SESSION_NOT_FOUND,
                     "Tracking session with ID $id not found")
             }
+    }
+
+    private fun getSessionBySessionReq(sessionReq: SessionReqDTO): TrackingSession? {
+        return trackingSessionRepository.findByVehicleIdAndReservationIdAndCustomerUsername(
+            sessionReq.vehicleId,
+            sessionReq.reservationId,
+            sessionReq.customerUsername
+        )
     }
 }

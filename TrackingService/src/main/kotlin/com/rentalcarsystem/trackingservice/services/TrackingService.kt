@@ -21,7 +21,7 @@ interface TrackingService {
 
     fun createTrackingSession(@Valid sessionReq: SessionReqDTO): SessionResDTO
 
-    fun endTrackingSession(sessionId: Long): SessionResDTO
+    fun endTrackingSession(@Valid sessionReq: SessionReqDTO): SessionResDTO
 
     fun getDailyVehicleDistances(date: LocalDate): List<VehicleDailyDistance>
 

@@ -9,6 +9,16 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface TrackingSessionRepository: JpaRepository<TrackingSession, Long> {
+    @Query("""
+        SELECT ts 
+        FROM TrackingSession ts
+        WHERE ts.vehicleId = :vehicleId AND ts.reservationId = :reservationId AND ts.customerUsername = :customerUsername
+    """)
+    fun findByVehicleIdAndReservationIdAndCustomerUsername(
+        vehicleId: Long,
+        reservationId: Long,
+        customerUsername: String
+    ): TrackingSession?
 
     @Query("SELECT ts FROM TrackingSession ts WHERE ts.endDate IS NULL")
     fun findOngoingSessions(sort: Sort): List<TrackingSession>

@@ -4,6 +4,7 @@ import com.rentalcarsystem.reservationservice.dtos.request.VehicleReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.VehicleUpdateReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.toEntity
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
+import com.rentalcarsystem.reservationservice.dtos.response.VehicleDailyDistanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.VehicleResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
 import com.rentalcarsystem.reservationservice.enums.CarStatus
@@ -24,11 +25,18 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.util.LinkedMultiValueMap
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Service
@@ -37,11 +45,35 @@ import java.time.LocalDateTime
 class VehicleServiceImpl(
     private val carModelRepository: CarModelRepository,
     private val vehicleRepository: VehicleRepository,
+    private val trackingServiceRestClient: RestClient,
+    private val keycloakTokenRestClient: RestClient,
     private val kafkaTemplate: KafkaTemplate<String, VehicleEventDTO>,
+    @Value("\${spring.security.oauth2.client.registration.keycloak.client-id}")
+    private val clientId: String,
+    @Value("\${spring.security.oauth2.client.registration.keycloak.client-secret}")
+    private val clientSecret: String,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long
 ) : VehicleService {
     private val logger = LoggerFactory.getLogger(VehicleServiceImpl::class.java)
+
+    fun getAccessToken(): String {
+        val body = LinkedMultiValueMap<String, String>().apply {
+            add("grant_type", "client_credentials")
+            add("client_id", clientId)
+            add("client_secret", clientSecret)
+        }
+        //println(body)
+        val response: Map<*, *> = keycloakTokenRestClient
+            .post()
+            .uri("") // Base URL already includes token path
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .body(body)
+            .retrieve()
+            .body(Map::class.java)!!
+
+        return response["access_token"] as String
+    }
 
     override fun getVehicles(
         page: Int,
@@ -202,9 +234,32 @@ class VehicleServiceImpl(
 
     @Transactional
     @Scheduled(cron = "0 0 0 * * *") // runs every day at midnight
-    fun sendTableCopyAndUpdateVehicleStatusAtMidnight() {
-        val vehicles = vehicleRepository.findAll().map { it.toResDTO() }
+    fun getDailyKmTravelledAndSendTableCopyAndUpdateVehicleStatusAtMidnight() {
+        val trackingRes: List<VehicleDailyDistanceResDTO>?
+        try {
+            val token = getAccessToken()
+            trackingRes = trackingServiceRestClient.get().uri { uriBuilder ->
+                uriBuilder
+                    .path("/daily-distance")
+                    .queryParam("date", LocalDate.now().minusDays(1).toString()) // Add the date parameter
+                    .build()
+            }.header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            ).retrieve().body<List<VehicleDailyDistanceResDTO>>()
+        } catch (e: Exception) {
+            logger.error("Failed to get daily distance ${e.message}")
+            throw FailureException(ResponseEnum.TRACKING_ERROR, e.message)
+        }
+        if (trackingRes == null) {
+            throw FailureException(ResponseEnum.TRACKING_ERROR, "Failed to get daily distance, received null")
+        }
+        trackingRes.forEach { trackingRes ->
+            vehicleRepository.findById(trackingRes.vehicleId).ifPresent { vehicle ->
+                vehicle.kmTravelled = trackingRes.dailyDistanceKm
+            }
+        }
 
+        val vehicles = vehicleRepository.findAll().map { it.toResDTO() }
         try {
             kafkaTemplate.send("paypal.public.vehicle-events", VehicleEventDTO(EventType.COPIED, vehicles))
         } catch (ex: Exception) {

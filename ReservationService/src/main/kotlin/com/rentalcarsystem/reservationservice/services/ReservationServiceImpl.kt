@@ -1,6 +1,7 @@
 package com.rentalcarsystem.reservationservice.services
 
 import com.rentalcarsystem.reservationservice.dtos.request.PaymentReqDTO
+import com.rentalcarsystem.reservationservice.dtos.request.SessionReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.UserUpdateReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.reservation.ActualPickUpDateReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.reservation.FinalizeReservationReqDTO
@@ -62,6 +63,7 @@ class ReservationServiceImpl(
     private val userManagementRestClient: RestClient,
     private val paymentServiceRestClient: RestClient,
     private val keycloakTokenRestClient: RestClient,
+    private val trackingServiceRestClient: RestClient,
     private val taskScheduler: TaskScheduler,
     private val kafkaTemplate: KafkaTemplate<String, ReservationEventDTO>,
     @Value("\${reservation.buffer-days}")
@@ -74,7 +76,6 @@ class ReservationServiceImpl(
     private val expirationOffsetMinutes: Long
 ) : ReservationService {
     private val logger = LoggerFactory.getLogger(ReservationServiceImpl::class.java)
-
     fun getAccessToken(): String {
         val body = LinkedMultiValueMap<String, String>().apply {
             add("grant_type", "client_credentials")
@@ -428,6 +429,23 @@ class ReservationServiceImpl(
         reservation.status = ReservationStatus.PICKED_UP
         reservation.pickUpStaffUsername = pickUpStaffUsername
         val savedReservation = reservation.toStaffReservationResDTO()
+        
+        try {
+            val token = getAccessToken()
+            trackingServiceRestClient.post().uri("/sessions/start").body(SessionReqDTO(
+                vehicleId = reservation.vehicle?.getId()!!,
+                reservationId = reservationId,
+                customerUsername = reservation.customerUsername
+            )).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            )
+        } catch (e: Exception) {
+            logger.error("Failed to send session request ${e.message}")
+            throw FailureException(
+                ResponseEnum.TRACKING_ERROR,
+                e.message
+            )
+        }
 
         try {
             kafkaTemplate.send(
@@ -548,6 +566,23 @@ class ReservationServiceImpl(
             }
         }
         val savedReservation = reservation.toStaffReservationResDTO()
+
+        try {
+            val token = getAccessToken()
+            trackingServiceRestClient.post().uri("/sessions/end").body(SessionReqDTO(
+                vehicleId = reservation.vehicle?.getId()!!,
+                reservationId = reservationId,
+                customerUsername = reservation.customerUsername
+            )).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            )
+        } catch (e: Exception) {
+            logger.error("Failed to send session request ${e.message}")
+            throw FailureException(
+                ResponseEnum.TRACKING_ERROR,
+                e.message
+            )
+        }
 
         try {
             kafkaTemplate.send(
