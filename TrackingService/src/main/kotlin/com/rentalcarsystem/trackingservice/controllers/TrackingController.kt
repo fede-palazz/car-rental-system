@@ -46,18 +46,10 @@ class TrackingController(private val trackingService: TrackingService) {
     )
     @GetMapping("sessions")
     fun getOngoingTrackingSessions(
-        @RequestParam("page", defaultValue = "0") page: Int,
-        @RequestParam("size", defaultValue = "10") size: Int,
         @RequestParam("sort", defaultValue = "startDate") sortBy: String,
         @RequestParam("order", defaultValue = "desc") sortOrder: String,
     ): ResponseEntity<List<SessionResDTO>> {
         // Validate filters
-        if (page < 0) {
-            throw IllegalArgumentException("Parameter 'page' must be greater than or equal to zero")
-        }
-        if (size < 1) {
-            throw IllegalArgumentException("Parameter 'size' must be greater than zero")
-        }
         val allowedSortFields = listOf(
             "customerUsername",
             "startDate",
@@ -70,9 +62,7 @@ class TrackingController(private val trackingService: TrackingService) {
             throw IllegalArgumentException("Parameter 'sortOrder' invalid. Allowed values: ['asc', 'desc']")
         }
         return ResponseEntity.ok(
-            trackingService.getOngoingSessions(
-                page, size, sortBy, sortOrder
-            )
+            trackingService.getOngoingSessions(sortBy, sortOrder)
         )
     }
 

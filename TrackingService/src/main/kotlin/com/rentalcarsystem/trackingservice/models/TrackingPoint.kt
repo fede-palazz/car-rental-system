@@ -16,9 +16,9 @@ class TrackingPoint(
     @Column(nullable = false)
     var timestamp: Instant,
 
-    var bearing: Double? = null,
-    
-    var distanceIncremental: Double? = null,
+    var bearing: Double,
+
+    var distanceIncremental: Double,
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     var trackingSession: TrackingSession? = null

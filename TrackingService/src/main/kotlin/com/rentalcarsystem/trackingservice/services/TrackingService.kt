@@ -8,7 +8,7 @@ import jakarta.validation.Valid
 
 interface TrackingService {
 
-    fun getOngoingSessions(page: Int, size: Int, sortBy: String, sortOrder: String): List<SessionResDTO>
+    fun getOngoingSessions(sortBy: String, sortOrder: String): List<SessionResDTO>
 
     fun getTrackingSession(sessionId: Long): SessionResDTO
 

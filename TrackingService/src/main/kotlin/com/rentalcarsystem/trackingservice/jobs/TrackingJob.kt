@@ -42,8 +42,12 @@ class TrackingJob(
     }
 
     private fun generateNewPointForSession(lastPoint: TrackingPoint?): TrackingPoint {
-        val bearingDegrees = 0.0 //Random.nextDouble(90.0, 95.0)
-        val distanceMeters = Random.nextDouble(30.0, 100.0)
+        //var bearingDegrees = 0.0 //Random.nextDouble(90.0, 95.0)
+        val distanceMeters = Random.nextDouble(30.0, 80.0)
+        var bearingDegrees = normalizeBearing(
+            (lastPoint?.bearing ?: Random.nextDouble(0.0, 360.0)) +
+                    Random.nextDouble(-45.0, 45.0)
+        )
 
         // Calculate next pair of coordinates
         val (lat, lng) = if (lastPoint != null) {
@@ -54,13 +58,21 @@ class TrackingJob(
 
         // Place generated coordinates on the actual street
         val (alignedLat, alignedLng) = alignToNearestRoad(lat, lng, bearingDegrees)
+        val distanceIncremental = distanceMeters + (lastPoint?.distanceIncremental ?: 0.0)
+
+        if (alignedLat == lastPoint?.lat || alignedLng == lastPoint?.lng) {
+            // Change direction
+            bearingDegrees = if (lastPoint.bearing == 0.0) 180.0 else 0.0
+        }
 
         return TrackingPoint(
             lat = alignedLat,
             lng = alignedLng,
+//            lat = lat,
+//            lng = lng,
             timestamp = Instant.now(),
             bearing = bearingDegrees,
-            distanceIncremental = distanceMeters,
+            distanceIncremental = distanceIncremental
         )
     }
 
@@ -112,7 +124,7 @@ class TrackingJob(
         val endpoint = StringBuilder("/nearest/v1/driving/$lng,$lat")
 
         bearing?.let {
-            endpoint.append("?bearings=${it.toInt()},0") // 10° tolerance range
+            endpoint.append("?bearings=${it.toInt()},45") // 10° tolerance range
         }
 
         val response = osrmServiceRestClient
@@ -127,6 +139,15 @@ class TrackingJob(
         } else {
             Pair(lat, lng) // fallback to original
         }
+    }
+
+    /**
+     * Keeps the bearing angle within [0, 359.99] degrees.
+     */
+    private fun normalizeBearing(bearing: Double): Double {
+        var b = bearing % 360.0
+        if (b < 0) b += 360.0
+        return b
     }
 
 }

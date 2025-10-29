@@ -33,30 +33,17 @@ class TrackingServiceImpl(
     private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
 
     override fun getOngoingSessions(
-        page: Int,
-        size: Int,
         sortBy: String,
         sortOrder: String
     ): List<SessionResDTO> {
-        val sessions = trackingSessionRepository.findOngoingSessions()
+        val sortDirection = if (sortOrder == "ASC") Sort.Direction.ASC else Sort.Direction.DESC
+        val sort = Sort.by(sortDirection, sortBy)
 
-        val sessionsDTO = sessions.map { session ->
+        return trackingSessionRepository.findOngoingSessions(sort).map { session ->
             val lastPoint = trackingPointRepository
                 .findTopByTrackingSessionIdOrderByTimestampDesc(session.getId()!!)
             session.toResDTO(lastPoint?.toResDTO())
         }
-
-        //logger.info("sessionsDTO: {}", objectMapper.writeValueAsString(sessionsDTO))
-
-        return sessionsDTO
-
-//        return PagedResDTO(
-//            currentPage = pageResult.number,
-//            totalPages = pageResult.totalPages,
-//            totalElements = pageResult.totalElements,
-//            elementsInPage = pageResult.numberOfElements,
-//            content = pageResult.content.map { it.toResDTO() }
-//        )
     }
 
 
