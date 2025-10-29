@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { MaintenanceType } from "@/models/enums/MaintenanceType";
 import { Reservation } from "@/models/Reservation";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { Control, useWatch } from "react-hook-form";
 import { Link } from "react-router-dom";
@@ -74,6 +75,7 @@ export default function AddOrEditMaintenanceForm({
     <>
       <FormField
         control={control}
+        disabled={startDate < new Date()}
         name="startDate"
         render={({ field }) => (
           <FormItem className="flex flex-col">
@@ -134,7 +136,9 @@ export default function AddOrEditMaintenanceForm({
                   <Link
                     to={`/reservations/change-vehicle/${r.id}`}
                     className="underline text-warning">
-                    {r.id}
+                    {format(r.plannedPickUpDate, "dd/MM/yyyy HH:mm") +
+                      " - " +
+                      format(r.plannedPickUpDate, "dd/MM/yyyy HH:mm")}
                   </Link>
                   {idx < overlappingReservations.length - 1 ? ", " : ""}
                 </span>
@@ -145,7 +149,7 @@ export default function AddOrEditMaintenanceForm({
               Change {overlappingReservations.length == 1 ? "its" : "their"}{" "}
               vehicle or delete{" "}
               {overlappingReservations.length == 1 ? "it" : "them"} to add the
-              maintenance. Click the reservation number to manage it.
+              maintenance. Click the reservation interval to manage it.
             </FormLabel>
           </>
         )}

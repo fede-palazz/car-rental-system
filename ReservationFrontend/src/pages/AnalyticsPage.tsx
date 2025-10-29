@@ -1,44 +1,10 @@
-import AnalyticsAPI from "@/API/AnalyticsAPI";
-import PieChartCard from "@/components/Analytics/PieChartCard";
-import PieChartConfigs from "@/components/Analytics/pieChartConfigs";
+import DamageOrDirtinessLevelChartCard from "@/components/Analytics/DamageOrDirtinessLevelChartCard";
+import VehicleStatusChartCard from "../components/Analytics/VehiclesStatusChartCard";
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { PieChartData } from "@/models/analytics/PieChartData";
-import { VehicleStatusesAnalytics } from "@/models/analytics/VehicleStatusesAnalytics";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { ChartAreaInteractive } from "@/components/Analytics/base/AreaChartCard";
 
 function AnalyticsPage() {
-  const [vehiclesStatusData, setVehiclesStatusData] = useState<PieChartData[]>(
-    []
-  );
-
-  useEffect(() => {
-    AnalyticsAPI.getVehiclesStatus(new Date())
-      .then((vehicleStatusesAnalytics: VehicleStatusesAnalytics) => {
-        setVehiclesStatusData([
-          {
-            label: "available",
-            count: vehicleStatusesAnalytics.availableCount,
-            fill: "var(--color-available)",
-          },
-          {
-            label: "rented",
-            count: vehicleStatusesAnalytics.rentedCount,
-            fill: "var(--color-rented)",
-          },
-          {
-            label: "inMaintenance",
-            count: vehicleStatusesAnalytics.inMaintenanceCount,
-            fill: "var(--color-inMaintenance)",
-          },
-        ]);
-      })
-      .catch((err) => {
-        toast.error(err);
-      });
-  }, []);
-
   return (
     <SidebarInset
       id="sidebar-inset"
@@ -51,10 +17,15 @@ function AnalyticsPage() {
         <ThemeToggler></ThemeToggler>
       </div>
       <div className="grow flex flex-col">
-        <PieChartCard
-          title={"Current Vehicles status"}
-          chartConfig={PieChartConfigs.vehiclesStatusConfig}
-          chartData={vehiclesStatusData}></PieChartCard>
+        <div className="grid grid-cols-3 gap-4 w-full px-2">
+          <VehicleStatusChartCard></VehicleStatusChartCard>
+          <DamageOrDirtinessLevelChartCard></DamageOrDirtinessLevelChartCard>
+          <DamageOrDirtinessLevelChartCard
+            dirtiness={true}></DamageOrDirtinessLevelChartCard>
+          <div className="col-span-full">
+            <ChartAreaInteractive></ChartAreaInteractive>
+          </div>
+        </div>
       </div>
       ;
     </SidebarInset>

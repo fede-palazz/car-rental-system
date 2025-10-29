@@ -26,7 +26,7 @@ import ReservationsAPI from "@/API/ReservationsAPI";
 import { FinalizeReservationDTO } from "@/models/dtos/request/FinalizeReservationDTO";
 import { Switch } from "@/components/ui/switch";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
-import { addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import { Spinner } from "@/components/ui/spinner";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import {
@@ -55,8 +55,8 @@ export default function FinalizeReservationDialog() {
           required_error: "Actual Dropoff Date is required",
           invalid_type_error: "Actual Dropoff Date must be a valid date",
         })
-        .refine((date) => date <= new Date() || date > new Date(), {
-          message: "Actual Dropoff Date cannot be in the past",
+        .refine((date) => date <= new Date(), {
+          message: "Actual Dropoff Date cannot be in the future",
         }),
       bufferedDropOffDate: z
         .date({
@@ -69,11 +69,11 @@ export default function FinalizeReservationDialog() {
       wasDeliveryLate: z.boolean().optional(),
       wasChargedFee: z.boolean().optional(),
       wasInvolvedInAccident: z.boolean().optional(),
-      damageLevel: z
+      damageLevel: z.coerce
         .number()
         .min(0, { message: "Damage level must be at least 0" })
         .max(5, { message: "Damage level must be at most 5" }),
-      dirtinessLevel: z
+      dirtinessLevel: z.coerce
         .number()
         .min(0, { message: "Dirtiness level must be at least 0" })
         .max(5, { message: "Dirtiness level must be at most 5" }),
@@ -217,7 +217,9 @@ export default function FinalizeReservationDialog() {
                           <Link
                             to={`/reservations/change-vehicle/${r.id}`}
                             className="underline text-warning">
-                            {r.id}
+                            {format(r.plannedPickUpDate, "dd/MM/yyyy HH:mm") +
+                              " - " +
+                              format(r.plannedPickUpDate, "dd/MM/yyyy HH:mm")}
                           </Link>
                           {idx < overlappingReservations.length - 1 ? ", " : ""}
                         </span>

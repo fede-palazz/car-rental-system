@@ -6,7 +6,7 @@ function VehicleDetailsList({
   isOutsideForm = true,
 }: {
   vehicle: Vehicle | undefined;
-  isInCard: boolean;
+  isInCard?: boolean;
   isOutsideForm?: boolean;
 }) {
   const cols = isInCard ? "2" : "3";

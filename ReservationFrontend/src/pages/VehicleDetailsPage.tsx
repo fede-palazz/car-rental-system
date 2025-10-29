@@ -240,7 +240,7 @@ function VehicleDetailsPage() {
                                   </div>
                                   <div className="flex justify-end">
                                     <Button
-                                      variant="ghost"
+                                      variant="destructive"
                                       size="icon"
                                       className=" justify-self-center"
                                       onClick={() => {
@@ -263,6 +263,16 @@ function VehicleDetailsPage() {
                                       }>
                                       <span className="material-symbols-outlined md-18">
                                         edit
+                                      </span>
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      className="justify-self-center"
+                                      onClick={() =>
+                                        navigate(`finalize/${maintenance.id}`)
+                                      }>
+                                      <span className="material-symbols-outlined md-18">
+                                        handshake
                                       </span>
                                     </Button>
                                   </div>

@@ -44,7 +44,6 @@ function CarMarker({
   }
 
   const handleClick = () => {
-    console.log("click preso");
     navigate(`${vehicleId}`);
   };
 

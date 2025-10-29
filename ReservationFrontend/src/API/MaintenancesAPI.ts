@@ -156,6 +156,40 @@ async function editMaintenanceById(
   }
 }
 
+async function finalizeMaintenanceByMaintenanceId(
+  vehicleId: number,
+  maintenanceId: number,
+  actualEndDate: Date
+): Promise<Maintenance> {
+  const response = await fetch(
+    baseURL + `vehicles/${vehicleId}/maintenances/${maintenanceId}/finalize`,
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "X-CSRF-TOKEN": getCsrfToken(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(actualEndDate),
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    }
+    throw new Error(
+      errDetail.error || "Something went wrong, please reload the page"
+    );
+  }
+}
+
 async function deleteMaintenanceById(
   vehicleId: number,
   maintenanceId: number
@@ -193,6 +227,7 @@ const MaintenancesAPI = {
   deleteMaintenanceById,
   createMaintenance,
   editMaintenanceById,
+  finalizeMaintenanceByMaintenanceId,
 };
 
 export default MaintenancesAPI;

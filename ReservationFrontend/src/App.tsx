@@ -33,6 +33,7 @@ import TrackingPage from "./pages/TrackingPage.tsx";
 import MapVehicleCard from "./components/Map/MapVehicleCard.tsx";
 import AnalyticsPage from "./pages/AnalyticsPage.tsx";
 import DeleteMaintenanceDialog from "@/components/Forms/Maintenance/DeleteMaintenanceDialog.tsx";
+import FinalizeMaintenanceDialog from "./components/Forms/Maintenance/FinalizeMaintenanceDialog.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -247,6 +248,15 @@ function App() {
                     )
                   }></Route>
                 <Route
+                  path="finalize/:maintenanceId"
+                  element={
+                    user && user.role == UserRole.CUSTOMER ? (
+                      <Navigate to="/models"></Navigate>
+                    ) : (
+                      <FinalizeMaintenanceDialog />
+                    )
+                  }></Route>
+                <Route
                   path="delete-maintenance/:maintenanceId"
                   element={
                     user && user.role == UserRole.CUSTOMER ? (
@@ -295,7 +305,7 @@ function App() {
                   )
                 }>
                 <Route
-                  path="pick-up-date"
+                  path="pick-up-date/:reservationId"
                   element={
                     user && user.role == UserRole.CUSTOMER ? (
                       <Navigate to="/reservations"></Navigate>
