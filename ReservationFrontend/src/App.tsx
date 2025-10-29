@@ -248,7 +248,7 @@ function App() {
                     )
                   }></Route>
                 <Route
-                  path="finalize/:maintenanceId"
+                  path="finalize-maintenance/:maintenanceId"
                   element={
                     user && user.role == UserRole.CUSTOMER ? (
                       <Navigate to="/models"></Navigate>

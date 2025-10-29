@@ -21,6 +21,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import MaintenancesAPI from "@/API/MaintenancesAPI";
+import { toast } from "sonner";
 
 export default function FinalizeMaintenanceDialog() {
   const navigate = useNavigate();
@@ -29,11 +30,11 @@ export default function FinalizeMaintenanceDialog() {
     maintenanceId: string;
   }>();
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (!vehicleId || !maintenanceId) {
       navigate("/vehicles");
     }
-  }, [vehicleId, maintenanceId]);
+  }, [vehicleId, maintenanceId]);*/
 
   const finalizeMaintenanceSchema = z.object({
     actualEndDate: z
@@ -68,10 +69,13 @@ export default function FinalizeMaintenanceDialog() {
       actualEndDate
     )
       .then(() => {
-        navigate(-1);
+        toast.success("Maintenance finalized successfully");
       })
       .catch((err) => {
-        console.log(err);
+        toast.error(err.message);
+      })
+      .finally(() => {
+        navigate(-1);
       });
   };
 
@@ -101,6 +105,10 @@ export default function FinalizeMaintenanceDialog() {
                   <FormLabel>Actual End Date</FormLabel>
                   <DateTimePicker
                     modalPopover
+                    displayFormat={{
+                      hour24: "yyyy-MM-dd",
+                      hour12: "yyyy-MM-dd",
+                    }}
                     className="!bg-background overflow-hidden"
                     calendarDisabled={(val) => val > new Date()}
                     defaultPopupValue={field.value ? field.value : new Date()}

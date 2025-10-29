@@ -170,7 +170,7 @@ async function finalizeMaintenanceByMaintenanceId(
         "X-CSRF-TOKEN": getCsrfToken(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(actualEndDate),
+      body: JSON.stringify({ actualEndDate: actualEndDate.toISOString() }),
     }
   );
   if (response.ok) {
@@ -183,10 +183,11 @@ async function finalizeMaintenanceByMaintenanceId(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

@@ -238,7 +238,7 @@ function VehicleDetailsPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex justify-end">
+                                  <div className="flex justify-end gap-2">
                                     <Button
                                       variant="destructive"
                                       size="icon"
@@ -269,7 +269,9 @@ function VehicleDetailsPage() {
                                       size="icon"
                                       className="justify-self-center"
                                       onClick={() =>
-                                        navigate(`finalize/${maintenance.id}`)
+                                        navigate(
+                                          `finalize-maintenance/${maintenance.id}`
+                                        )
                                       }>
                                       <span className="material-symbols-outlined md-18">
                                         handshake
@@ -340,7 +342,7 @@ function VehicleDetailsPage() {
                                       {note.content}
                                     </p>
                                   </div>
-                                  <div className="flex justify-end">
+                                  <div className="flex justify-end gap-2">
                                     <Button
                                       variant="ghost"
                                       size="icon"

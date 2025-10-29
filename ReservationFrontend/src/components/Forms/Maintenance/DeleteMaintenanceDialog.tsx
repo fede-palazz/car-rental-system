@@ -20,6 +20,7 @@ function DeleteMaintenanceDialog() {
       })
       .catch((err) => {
         toast.error(err);
+        navigate(-1);
       });
   };
 
