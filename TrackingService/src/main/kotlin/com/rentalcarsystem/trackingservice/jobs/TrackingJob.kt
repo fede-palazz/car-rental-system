@@ -68,8 +68,6 @@ class TrackingJob(
         return TrackingPoint(
             lat = alignedLat,
             lng = alignedLng,
-//            lat = lat,
-//            lng = lng,
             timestamp = Instant.now(),
             bearing = bearingDegrees,
             distanceIncremental = distanceIncremental

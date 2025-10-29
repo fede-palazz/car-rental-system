@@ -9,6 +9,7 @@ import com.rentalcarsystem.trackingservice.dtos.response.SessionResDTO
 import com.rentalcarsystem.trackingservice.dtos.response.toResDTO
 import com.rentalcarsystem.trackingservice.exceptions.FailureException
 import com.rentalcarsystem.trackingservice.exceptions.ResponseEnum
+import com.rentalcarsystem.trackingservice.models.TrackingPoint
 import com.rentalcarsystem.trackingservice.models.TrackingSession
 import com.rentalcarsystem.trackingservice.repositories.TrackingPointRepository
 import com.rentalcarsystem.trackingservice.repositories.TrackingSessionRepository
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
+import java.time.Instant
 import java.time.LocalDateTime
 
 
@@ -29,6 +31,9 @@ class TrackingServiceImpl(
     private val trackingPointRepository: TrackingPointRepository,
     private val objectMapper: ObjectMapper,
     ) : TrackingService {
+
+    val turinCenterLat = 45.058360
+    val turinCenterLng = 7.665896
 
     private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
 
@@ -80,7 +85,15 @@ class TrackingServiceImpl(
                 "A tracking session with the same customer, vehicle or reservation already exists")
 
         val sessionToSave = sessionReq.toEntity()
-        return trackingSessionRepository.save(sessionToSave).toResDTO()
+        val startingPoint = TrackingPoint(
+            lat = turinCenterLat,
+            lng = turinCenterLng,
+            timestamp = Instant.now(),
+            bearing = 0.0,
+            distanceIncremental = 0.0
+        )
+        sessionToSave.addTrackingPoint(startingPoint)
+        return trackingSessionRepository.save(sessionToSave).toResDTO(startingPoint.toResDTO())
     }
 
     override fun endTrackingSession(sessionId: Long): SessionResDTO {
