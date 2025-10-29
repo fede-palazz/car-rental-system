@@ -27,8 +27,8 @@ class TrackingJob(
     private val osrmServiceRestClient: RestClient
 ) {
     private val logger = LoggerFactory.getLogger(TrackingServiceImpl::class.java)
-    val turinCenterLat = 45.0703
-    val turinCenterLng = 7.6869
+    val turinCenterLat = 45.058360
+    val turinCenterLng = 7.665896
 
     @Transactional
     @Scheduled(fixedDelayString = "\${tracking.generator.interval-ms:2000}")
