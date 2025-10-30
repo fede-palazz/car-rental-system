@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import kotlin.Long
 
 data class SessionReqDTO(
@@ -24,5 +25,5 @@ fun SessionReqDTO.toEntity(): TrackingSession = TrackingSession(
     vehicleId,
     reservationId,
     customerUsername,
-    startDate = LocalDateTime.now()
+    startDate = LocalDateTime.now(ZoneOffset.UTC)
 )

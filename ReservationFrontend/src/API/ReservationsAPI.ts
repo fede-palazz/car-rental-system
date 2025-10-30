@@ -129,6 +129,7 @@ async function getPendingReservation(): Promise<PagedResDTO<Reservation>> {
         } as Reservation;
       }
     );
+    console.log(res.content);
 
     return res;
   } else {

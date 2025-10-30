@@ -38,6 +38,7 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Service
 @Validated
@@ -241,12 +242,14 @@ class VehicleServiceImpl(
             trackingRes = trackingServiceRestClient.get().uri { uriBuilder ->
                 uriBuilder
                     .path("/daily-distance")
-                    .queryParam("date", LocalDate.now().minusDays(1).toString()) // Add the date parameter
+                    .queryParam("date", LocalDate.now(ZoneOffset.UTC).minusDays(1).toString()) // Add the date parameter
                     .build()
             }.header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                 APPLICATION_JSON
-            ).retrieve().body<List<VehicleDailyDistanceResDTO>>() ?:
-            throw FailureException(ResponseEnum.TRACKING_ERROR, "Failed to get daily distance, received null")
+            ).retrieve().body<List<VehicleDailyDistanceResDTO>>() ?: throw FailureException(
+                ResponseEnum.TRACKING_ERROR,
+                "Failed to get daily distance, received null"
+            )
         } catch (e: Exception) {
             logger.error("Failed to get daily distance ${e.message}")
             throw FailureException(ResponseEnum.TRACKING_ERROR, e.message)
@@ -274,7 +277,7 @@ class VehicleServiceImpl(
             logger.error("Failed to send vehicle copied event", ex)
         }
 
-        val today = LocalDateTime.now()
+        val today = LocalDateTime.now(ZoneOffset.UTC)
         val endOfToday = today.plusMinutes(1439) // from 00:00 to 23:59
         val maintenanceVehicles = vehicleRepository.findByMaintenanceStartDateBetween(today, endOfToday)
         maintenanceVehicles.forEach { vehicle ->

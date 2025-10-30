@@ -4,6 +4,7 @@ import com.rentalcarsystem.analyticsservice.enums.CarStatus
 import com.rentalcarsystem.analyticsservice.enums.EventType
 import com.rentalcarsystem.analyticsservice.models.Vehicle
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 data class VehicleEventDTO(
     val type: EventType,
@@ -24,7 +25,7 @@ data class VehicleResDTO(
 )
 
 fun VehicleResDTO.toEntity() = Vehicle(
-    entryDate = LocalDate.now(),
+    entryDate = LocalDate.now(ZoneOffset.UTC),
     licensePlate = this.licensePlate,
     vin = this.vin,
     status = this.status,

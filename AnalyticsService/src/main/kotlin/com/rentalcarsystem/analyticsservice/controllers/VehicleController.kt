@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 @RestController
 @RequestMapping("/api/v1/analytics/vehicles")
@@ -51,7 +52,7 @@ class VehicleController(
         @RequestParam("desiredDate", required = true)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) desiredDate: LocalDate,
     ): ResponseEntity<VehicleStatusCountResDTO> {
-        require(!desiredDate.isAfter(LocalDate.now())) {
+        require(!desiredDate.isAfter(LocalDate.now(ZoneOffset.UTC))) {
             "Parameter 'desiredDate' must be on or before the current date and time"
         }
         return ResponseEntity.ok(

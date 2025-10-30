@@ -20,6 +20,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.Locale
 
 
@@ -29,7 +30,7 @@ class TrackingServiceImpl(
     private val trackingSessionRepository: TrackingSessionRepository,
     private val trackingPointRepository: TrackingPointRepository,
     private val objectMapper: ObjectMapper,
-    ) : TrackingService {
+) : TrackingService {
 
     val turinCenterLat = 45.058360
     val turinCenterLng = 7.665896
@@ -78,10 +79,13 @@ class TrackingServiceImpl(
         if (trackingSessionRepository.hasConflictingSession(
                 sessionReq.customerUsername,
                 sessionReq.reservationId,
-                sessionReq.vehicleId)
+                sessionReq.vehicleId
             )
-            throw FailureException(ResponseEnum.SESSION_ALREADY_EXIST,
-                "A tracking session with the same customer, vehicle or reservation already exists")
+        )
+            throw FailureException(
+                ResponseEnum.SESSION_ALREADY_EXIST,
+                "A tracking session with the same customer, vehicle or reservation already exists"
+            )
 
         val sessionToSave = sessionReq.toEntity()
         val startingPoint = TrackingPoint(
@@ -98,11 +102,13 @@ class TrackingServiceImpl(
     override fun endTrackingSession(sessionReq: SessionReqDTO): SessionResDTO {
         val session = getSessionBySessionReq(sessionReq)
         if (session == null) {
-            throw FailureException(ResponseEnum.SESSION_NOT_FOUND,
-                "Tracking session with reservation ID ${sessionReq.reservationId} not found")
+            throw FailureException(
+                ResponseEnum.SESSION_NOT_FOUND,
+                "Tracking session with reservation ID ${sessionReq.reservationId} not found"
+            )
         }
 
-        session.endDate = LocalDateTime.now()
+        session.endDate = LocalDateTime.now(ZoneOffset.UTC)
         trackingSessionRepository.saveAndFlush(session)
 
         return session.toResDTO()
@@ -112,7 +118,7 @@ class TrackingServiceImpl(
         val start = date.atStartOfDay()
         val end = date.plusDays(1).atStartOfDay()
 
-        return trackingPointRepository.findDailyDistanceForDate(start, end) .map { raw ->
+        return trackingPointRepository.findDailyDistanceForDate(start, end).map { raw ->
             VehicleDailyDistance(
                 vehicleId = raw.vehicleId,
                 dailyDistanceKm = String.format(Locale.US, "%.2f", raw.dailyDistanceKm).toDouble()
@@ -123,8 +129,10 @@ class TrackingServiceImpl(
     private fun getSessionById(id: Long): TrackingSession {
         return trackingSessionRepository.findById(id)
             .orElseThrow {
-                FailureException(ResponseEnum.SESSION_NOT_FOUND,
-                    "Tracking session with ID $id not found")
+                FailureException(
+                    ResponseEnum.SESSION_NOT_FOUND,
+                    "Tracking session with ID $id not found"
+                )
             }
     }
 

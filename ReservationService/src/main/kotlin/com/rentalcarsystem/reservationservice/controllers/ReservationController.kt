@@ -34,6 +34,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 const val RESERVATION_BASE_URL = "/api/v1/reservations"
 
@@ -222,7 +223,7 @@ class ReservationController(
         require(reservationToUpdateId == null || reservationToUpdateId > 0) {
             "Invalid reservation id $reservationToUpdateId: if provided it must be a positive number"
         }
-        require(desiredPickUpDate.isAfter(LocalDateTime.now())) {
+        require(desiredPickUpDate.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             "Parameter 'desiredPickUpDate' must be in the future"
         }
         require(desiredDropOffDate.isAfter(desiredPickUpDate)) {

@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 const val TRACKING_BASE_URL = "/api/v1/tracking"
 
@@ -244,7 +245,7 @@ class TrackingController(private val trackingService: TrackingService) {
     fun getVehiclesDailyDistance(
         @RequestParam date: LocalDate
     ): ResponseEntity<List<VehicleDailyDistance>> {
-        require(!date.isAfter(LocalDate.now())) {
+        require(!date.isAfter(LocalDate.now(ZoneOffset.UTC))) {
             throw IllegalArgumentException("Parameter 'date' can't be a future date")
         }
         val dailyDistances = trackingService.getDailyVehicleDistances(date)

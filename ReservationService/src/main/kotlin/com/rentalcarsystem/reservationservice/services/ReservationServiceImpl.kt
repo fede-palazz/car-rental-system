@@ -49,6 +49,7 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 @Service
@@ -556,7 +557,7 @@ class ReservationServiceImpl(
         if (updatedCustomerRes != null && updatedCustomerRes.eligibilityScore != newScore) {
             throw RuntimeException("Failed to update customer's score")
         }
-        if (reservation.bufferedDropOffDate.isAfter(LocalDateTime.now())) {
+        if (reservation.bufferedDropOffDate.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             reservation.vehicle?.let {
                 reservation.vehicle?.pendingCleaning = true
                 scheduleVehicleAvailabilityUpdate(it, reservation.bufferedDropOffDate)
@@ -646,7 +647,7 @@ class ReservationServiceImpl(
     override fun deleteReservation(reservationId: Long) {
         val reservation = getReservationById(reservationId)
         val reservationToDelete = reservation.toStaffReservationResDTO()
-        if (reservation.plannedPickUpDate.isBefore(LocalDateTime.now())) {
+        if (reservation.plannedPickUpDate.isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
             throw FailureException(
                 ResponseEnum.RESERVATION_FORBIDDEN,
                 "You are not allowed to delete reservation $reservationId as it has already started"
@@ -759,7 +760,8 @@ class ReservationServiceImpl(
             notificationService.sendReservationConfirmedEmail(
                 customer.email,
                 "${customer.firstName} ${customer.lastName}",
-                payload)
+                payload
+            )
         } catch (ex: Exception) {
             logger.error("Failed to send reservation confirmed event", ex)
         }
@@ -849,7 +851,7 @@ class ReservationServiceImpl(
     @Transactional
     @Scheduled(fixedRate = 10 * 60 * 1000) // runs every 10 minutes
     fun expireOldReservations() {
-        val expirationThreshold = LocalDateTime.now().minusMinutes(expirationOffsetMinutes)
+        val expirationThreshold = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(expirationOffsetMinutes)
         val expiredReservations = reservationRepository.findExpiredReservations(
             activeStatus = ReservationStatus.PENDING,
             expiryThreshold = expirationThreshold
