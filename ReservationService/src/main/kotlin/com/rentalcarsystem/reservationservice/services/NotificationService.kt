@@ -9,4 +9,10 @@ interface NotificationService {
         recipientName: String,
         reservationEvent: ReservationEventDTO
     )
+
+    fun sendReservationCancelledEmail(
+        recipientEmail: String,
+        recipientName: String,
+        reservationEvent: ReservationEventDTO
+    )
 }

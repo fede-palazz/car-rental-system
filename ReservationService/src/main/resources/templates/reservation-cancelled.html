@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservation Confirmed</title>
+    <title>Reservation Cancelled</title>
     <style>
         body {
             margin: 0;
@@ -18,7 +18,7 @@
             background-color: #1a1f2e;
         }
         .header {
-            background: linear-gradient(135deg, #4d6fd4 0%, #6b8ce8 100%);
+            background: linear-gradient(135deg, #b34848 0%, #d86565 100%);
             padding: 40px 30px;
             text-align: center;
         }
@@ -30,7 +30,7 @@
         }
         .header p {
             margin: 10px 0 0 0;
-            color: #e8ecfd;
+            color: #fce8e8;
             font-size: 16px;
         }
         .content {
@@ -46,6 +46,31 @@
             line-height: 1.6;
             color: #b4b9c8;
             margin-bottom: 30px;
+        }
+        .alert-box {
+            background-color: rgba(179, 72, 72, 0.15);
+            border: 1px solid rgba(216, 101, 101, 0.3);
+            border-left: 4px solid #d86565;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .alert-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #d86565;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .alert-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .alert-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.5;
         }
         .card {
             background-color: #232938;
@@ -101,34 +126,51 @@
             color: #fafafa;
             font-weight: 600;
         }
-        .total-amount {
-            background: linear-gradient(135deg, #4d6fd4 0%, #6b8ce8 100%);
-            color: #ffffff;
+        .cancelled-amount {
+            background-color: rgba(179, 72, 72, 0.2);
+            border: 1px solid rgba(216, 101, 101, 0.3);
+            color: #fafafa;
             padding: 20px;
             border-radius: 8px;
             text-align: center;
             margin-top: 20px;
         }
-        .total-label {
+        .cancelled-label {
             font-size: 14px;
-            color: #e8ecfd;
+            color: #d86565;
             margin-bottom: 8px;
+            font-weight: 600;
         }
-        .total-value {
+        .cancelled-value {
             font-size: 32px;
             font-weight: 700;
-            color: #f7f8fc;
+            color: #fafafa;
+            text-decoration: line-through;
+            opacity: 0.7;
         }
         .badge {
             display: inline-block;
             padding: 6px 12px;
-            background-color: #232938;
-            color: #6b8ce8;
+            background-color: rgba(179, 72, 72, 0.2);
+            color: #d86565;
             border-radius: 6px;
             font-size: 14px;
             font-weight: 600;
             margin-top: 8px;
+            border: 1px solid rgba(216, 101, 101, 0.3);
+        }
+        .info-box {
+            background-color: rgba(107, 140, 232, 0.15);
             border: 1px solid rgba(107, 140, 232, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .info-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.6;
+            margin: 0;
         }
         .footer {
             background-color: #161b26;
@@ -159,7 +201,7 @@
             .vehicle-name {
                 font-size: 20px;
             }
-            .total-value {
+            .cancelled-value {
                 font-size: 28px;
             }
         }
@@ -169,8 +211,8 @@
 <div class="email-container">
     <!-- Header -->
     <div class="header">
-        <h1>✓ Reservation Confirmed</h1>
-        <p>Your booking is all set!</p>
+        <h1>✕ Reservation Cancelled</h1>
+        <p>Your booking has been cancelled</p>
     </div>
 
     <!-- Content -->
@@ -179,13 +221,24 @@
             Hello <span th:text="${recipientName}">Customer</span>,
         </div>
 
+        <!-- Alert Box -->
+        <div class="alert-box">
+            <div class="alert-title">
+                <span class="alert-icon">⚠️</span>
+                Cancellation Notice
+            </div>
+            <div class="alert-text">
+                This is to confirm that your car rental reservation has been cancelled. The booking is no longer active and will not be processed.
+            </div>
+        </div>
+
         <div class="message">
-            Great news! Your car reservation has been confirmed. We're excited to serve you and make your journey comfortable.
+            Below is a summary of the cancelled reservation for your records.
         </div>
 
         <!-- Vehicle Information Card -->
         <div class="card">
-            <div class="card-title">Your Vehicle</div>
+            <div class="card-title">Cancelled Vehicle</div>
             <div class="vehicle-info">
                 <div class="vehicle-name" th:text="${brand + ' ' + model + ' ' + year}">Toyota Camry 2023</div>
                 <div class="vehicle-detail">
@@ -196,38 +249,47 @@
 
         <!-- Reservation Details Card -->
         <div class="card">
-            <div class="card-title">Reservation Details</div>
+            <div class="card-title">Cancelled Reservation Details</div>
 
             <div class="detail-row">
                 <div class="detail-label">Reservation ID</div>
                 <div class="detail-value">
                     #<span th:text="${reservationId}">12345</span>
-                    <span class="badge">CONFIRMED</span>
+                    <span class="badge">CANCELLED</span>
                 </div>
             </div>
 
             <div class="detail-row">
-                <div class="detail-label">📅 Pick-up Date</div>
+                <div class="detail-label">Originally Created</div>
+                <div class="detail-value" th:text="${creationDate}">Jan 10, 2025 at 02:30 PM</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">📅 Planned Pick-up Date</div>
                 <div class="detail-value" th:text="${pickUpDate}">Jan 15, 2025 at 10:00 AM</div>
             </div>
 
             <div class="detail-row">
-                <div class="detail-label">📅 Drop-off Date</div>
+                <div class="detail-label">📅 Planned Drop-off Date</div>
                 <div class="detail-value" th:text="${dropOffDate}">Jan 20, 2025 at 10:00 AM</div>
             </div>
 
-            <div class="total-amount">
-                <div class="total-label">Total Amount</div>
-                <div class="total-value">€<span th:text="${totalAmount}">250.00</span></div>
+            <div class="cancelled-amount">
+                <div class="cancelled-label">CANCELLED AMOUNT</div>
+                <div class="cancelled-value">€<span th:text="${totalAmount}">250.00</span></div>
             </div>
         </div>
 
-        <div class="message">
-            Please arrive at our location at least 15 minutes before your scheduled pick-up time. Don't forget to bring your driver's license and payment method.
+        <!-- Info Box -->
+        <div class="info-box">
+            <p class="info-text">
+                <strong>What happens next?</strong><br>
+                If you made a payment, any eligible refunds will be processed according to our cancellation policy. Please allow 5-10 business days for refunds to appear in your account.
+            </p>
         </div>
 
         <div class="message">
-            If you have any questions or need to make changes to your reservation, please don't hesitate to contact us.
+            If you'd like to make a new reservation or have any questions about this cancellation, please don't hesitate to contact us.
         </div>
     </div>
 
@@ -235,10 +297,10 @@
     <div class="footer">
         <p class="footer-text">
             <strong>Car Rental System</strong><br>
-            Thank you for choosing our service!
+            We're here to help with your next journey!
         </p>
         <p class="footer-text">
-            Need help? Contact us at
+            Need assistance? Contact us at
             <a href="mailto:support@car-rental-system.com" class="footer-link">
                 support@car-rental-system.com
             </a>

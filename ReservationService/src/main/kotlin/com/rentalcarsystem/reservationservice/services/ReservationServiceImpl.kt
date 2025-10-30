@@ -655,10 +655,21 @@ class ReservationServiceImpl(
         }
         reservation.vehicle?.removeReservation(reservation)
 
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+        val payload = ReservationEventDTO(
+            EventType.DELETED,
+            reservationToDelete
+        )
+
         try {
             kafkaTemplate.send(
                 "paypal.public.reservation-events",
-                ReservationEventDTO(EventType.DELETED, reservationToDelete)
+                payload
+            )
+            notificationService.sendReservationCancelledEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
             )
         } catch (ex: Exception) {
             logger.error("Failed to send reservation deleted event", ex)

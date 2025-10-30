@@ -63,6 +63,41 @@ class NotificationServiceImpl(
         sendEmail(recipientEmail, subject, "reservation-created", context)
     }
 
+    override fun sendReservationCancelledEmail(
+        recipientEmail: String,
+        recipientName: String,
+        reservationEvent: ReservationEventDTO
+    ) {
+        val reservation = reservationEvent.reservation
+        val context = Context().apply {
+            setVariable("recipientName", recipientName)
+            setVariable("reservationId", reservation.commonInfo.id)
+            setVariable("brand", reservation.commonInfo.brand)
+            setVariable("model", reservation.commonInfo.model)
+            setVariable("year", reservation.commonInfo.year)
+            setVariable("licensePlate", reservation.commonInfo.licensePlate)
+            setVariable("pickUpDate", reservation.commonInfo.plannedPickUpDate
+                .atZone(UTC)                     // interpret as UTC
+                .withZoneSameInstant(LOCAL_ZONE)        // convert to local zone
+                .format(DATE_FORMATTER)
+            )
+            setVariable("dropOffDate", reservation.commonInfo.plannedDropOffDate
+                .atZone(UTC)                     // interpret as UTC
+                .withZoneSameInstant(LOCAL_ZONE)        // convert to local zone
+                .format(DATE_FORMATTER)
+            )
+            setVariable("totalAmount", String.format("%.2f", reservation.commonInfo.totalAmount))
+            setVariable("creationDate", reservation.commonInfo.creationDate
+                .atZone(UTC)                     // interpret as UTC
+                .withZoneSameInstant(LOCAL_ZONE)        // convert to local zone
+                .format(DATE_FORMATTER)
+            )
+        }
+
+        val subject = "Reservation Cancelled - ${reservation.commonInfo.brand} ${reservation.commonInfo.model}"
+        sendEmail(recipientEmail, subject, "reservation-cancelled", context)
+    }
+
     private fun sendEmail(
         to: String,
         subject: String,
