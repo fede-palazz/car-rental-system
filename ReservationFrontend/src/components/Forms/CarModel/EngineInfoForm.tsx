@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import { CarFeature } from "@/models/CarFeature";
 import CarModelAPI from "@/API/CarModelsAPI";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { toast } from "sonner";
 
 function EngineInfoForm({ control }: { control: Control }) {
   const engineTypes = Object.entries(EngineType).map(([key, value]) => ({
@@ -52,8 +53,8 @@ function EngineInfoForm({ control }: { control: Control }) {
       .then((features) => {
         setCarFeatures(features);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, []);
 

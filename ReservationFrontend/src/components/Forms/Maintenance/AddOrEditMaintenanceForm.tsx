@@ -31,6 +31,7 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { Control, useWatch } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function AddOrEditMaintenanceForm({
   control,
@@ -66,8 +67,8 @@ export default function AddOrEditMaintenanceForm({
         console.log(res.content);
         setOverlappingReservations(res.content);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [vehicleId, startDate, endDate]);
 

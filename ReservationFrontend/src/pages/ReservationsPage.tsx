@@ -103,9 +103,8 @@ function ReservationsPage() {
         setTotalPages(res.totalPages);
         //setPageSize(vehicles.elementsInPage);
       })
-      .catch((err) => {
-        //console.log(err);
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
     //Fetch the pending reservation if it is a customer
     if (user != undefined && user.role == UserRole.CUSTOMER) {
@@ -114,8 +113,8 @@ function ReservationsPage() {
           const pending = res.content[0];
           setPendingReservation(pending);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         });
     }
   };

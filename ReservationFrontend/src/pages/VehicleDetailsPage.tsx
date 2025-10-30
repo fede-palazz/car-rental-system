@@ -30,6 +30,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 function VehicleDetailsPage() {
   const navigate = useNavigate();
@@ -59,8 +60,8 @@ function VehicleDetailsPage() {
         setVehicle(vehicle);
         fetchMaintenancesAndNotes(vehicle.id);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [vehicleId, location.pathname]);
 

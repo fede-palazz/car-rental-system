@@ -12,10 +12,14 @@ function DeleteVehicleDialog() {
     VehicleAPI.deleteVehicleById(Number(vehicleId))
       .then(() => {
         toast.success("Vehicle deleted successfully");
-        navigate(-1);
+        if (location.pathname.includes(`/${vehicleId}/delete`)) {
+          navigate(-2);
+        } else {
+          navigate(-1);
+        }
       })
-      .catch((err) => {
-        toast.error(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

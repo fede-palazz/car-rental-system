@@ -25,6 +25,7 @@ import ReservationsAPI from "@/API/ReservationsAPI";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 export default function SetActualPickupDateDialog() {
   const navigate = useNavigate();
@@ -42,8 +43,8 @@ export default function SetActualPickupDateDialog() {
         console.log(reservation);
         setReservation(reservation);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [reservationId, location.pathname]);
 
@@ -90,10 +91,11 @@ export default function SetActualPickupDateDialog() {
     if (!reservation) return;
     ReservationsAPI.setActualPickUpDate(reservation.id, values)
       .then(() => {
+        toast.success("Pick-Up date set successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

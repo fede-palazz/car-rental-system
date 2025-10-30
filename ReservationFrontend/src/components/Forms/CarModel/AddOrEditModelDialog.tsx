@@ -25,6 +25,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CarCategory } from "@/models/enums/CarCategory";
 import { CarModelCreateDTO } from "@/models/dtos/request/CarModelCreateDTO";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 const modelInfoSchema = z.object({
   brand: z.string().min(1, "Brand must not be blank").max(50),
@@ -211,8 +212,8 @@ function StepperizedForm({
           keepDirtyValues: true,
         });
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [carModelId, location.pathname]);
 
@@ -344,20 +345,22 @@ export default function AddOrEditModelDialog() {
   const handleEdit = (values: CarModelCreateDTO) => {
     CarModelAPI.editModelById(values, Number(carModelId))
       .then(() => {
+        toast.success("Model edited successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
   const handleCreate = (values: CarModelCreateDTO) => {
     CarModelAPI.createModel(values)
       .then(() => {
+        toast.success("Model created successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

@@ -71,7 +71,7 @@ export default function FinalizeMaintenanceDialog() {
       .then(() => {
         toast.success("Maintenance finalized successfully");
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         toast.error(err.message);
       })
       .finally(() => {

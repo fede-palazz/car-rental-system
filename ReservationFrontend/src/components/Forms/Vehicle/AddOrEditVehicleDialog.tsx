@@ -132,8 +132,8 @@ export default function AddOrEditVehicleDialog() {
           { keepDefaultValues: true, keepDirtyValues: true }
         );
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [vehicleId, location.pathname]);
 
@@ -142,8 +142,8 @@ export default function AddOrEditVehicleDialog() {
       .then((models: PagedResDTO<CarModel>) => {
         setModels(models.content);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
@@ -165,9 +165,8 @@ export default function AddOrEditVehicleDialog() {
         toast.success("Vehicle modified successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        toast.error(err);
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
@@ -175,12 +174,10 @@ export default function AddOrEditVehicleDialog() {
     VehiclesAPI.createVehicle(values)
       .then(() => {
         toast.success("Vehicle created successfully");
-
         navigate(-1);
       })
-      .catch((err) => {
-        toast.error(err);
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

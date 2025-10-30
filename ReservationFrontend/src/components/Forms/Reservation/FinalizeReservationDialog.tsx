@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { damageAndDirtinessLevelLabels } from "@/utils/damageAndDirtinessLevelLabels";
+import { toast } from "sonner";
 
 export default function FinalizeReservationDialog() {
   const navigate = useNavigate();
@@ -98,8 +99,8 @@ export default function FinalizeReservationDialog() {
       .then((reservation: Reservation) => {
         setReservation(reservation);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [reservationId]);
 
@@ -130,8 +131,8 @@ export default function FinalizeReservationDialog() {
         console.log(res.content);
         setOverlappingReservations(res.content);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [reservationId, bufferedDropOffDate]);
 
@@ -146,10 +147,11 @@ export default function FinalizeReservationDialog() {
   const handleSubmit = (values: FinalizeReservationDTO) => {
     ReservationsAPI.finalizeReservation(Number(reservationId), values)
       .then(() => {
+        toast.success("Reservation finalized successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

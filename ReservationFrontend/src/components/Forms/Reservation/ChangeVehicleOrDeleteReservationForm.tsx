@@ -8,6 +8,7 @@ import { Vehicle } from "@/models/Vehicle";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Control } from "react-hook-form";
+import { toast } from "sonner";
 
 function ChangeVehicleOrDeleteReservationForm({
   control,
@@ -57,8 +58,8 @@ function ChangeVehicleOrDeleteReservationForm({
         setTotalPages(vehicles.totalPages);
         //setPageSize(vehicles.elementsInPage);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
@@ -67,8 +68,8 @@ function ChangeVehicleOrDeleteReservationForm({
       .then((vehicle: Vehicle) => {
         setCurrentVehicle(vehicle);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

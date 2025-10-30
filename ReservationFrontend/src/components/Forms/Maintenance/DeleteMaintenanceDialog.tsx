@@ -18,8 +18,8 @@ function DeleteMaintenanceDialog() {
         toast.success("Maintenance deleted successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        toast.error(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
         navigate(-1);
       });
   };

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { AreaChartCard } from "./base/AreaChartCard";
 import AreaChartConfigs from "./base/config/areaChartConfig";
+import { toast } from "sonner";
 
 function ReservationsCountChartCard() {
   const [granularity, setGranularity] = useState<"DAY" | "MONTH" | "YEAR">(
@@ -50,8 +51,12 @@ function ReservationsCountChartCard() {
         }
       );
       setSumAndAvgAmountData(sumAndAvgData);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("An unknown error occurred.");
+      }
     }
   };
 

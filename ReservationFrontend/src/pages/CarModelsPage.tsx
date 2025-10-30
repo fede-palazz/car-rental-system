@@ -37,6 +37,7 @@ import { UserRole } from "@/models/enums/UserRole";
 
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 function CarModelsPage({
   date,
@@ -92,8 +93,8 @@ function CarModelsPage({
           setTotalPages(models.totalPages);
           //setPageSize(models.elementsInPage);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         });
     } else {
       CarModelAPI.getAllModels(
@@ -109,8 +110,8 @@ function CarModelsPage({
           setTotalPages(models.totalPages);
           //setPageSize(models.elementsInPage);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         });
     }
   };

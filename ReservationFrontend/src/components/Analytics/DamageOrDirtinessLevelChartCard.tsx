@@ -27,7 +27,6 @@ function DamageOrDirtinessLevelChartCard({
       dirtiness
     )
       .then((damageOrDirtinessAnalytics: DamageOrDirtinessAnalytics) => {
-        console.log(damageOrDirtinessAnalytics);
         setDamageOrDirtinessLevelData([
           {
             label: "zero", //damageAndDirtinessLevelLabels[0],
@@ -61,8 +60,8 @@ function DamageOrDirtinessLevelChartCard({
           },
         ]);
       })
-      .catch((err) => {
-        toast.error(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

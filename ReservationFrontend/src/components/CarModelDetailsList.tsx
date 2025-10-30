@@ -3,6 +3,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { useEffect } from "react";
 import { CarFeature } from "@/models/CarFeature";
 import CarModelAPI from "@/API/CarModelsAPI";
+import { toast } from "sonner";
 
 function CarModelDetailsList({
   model,
@@ -22,8 +23,8 @@ function CarModelDetailsList({
         .then((feat) => {
           model.features[index].description = feat.description;
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         })
     );
   }, []);

@@ -113,8 +113,8 @@ export default function AddReservationDialog({
         .then((models: PagedResDTO<CarModel>) => {
           setAvailableModels(models.content);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         });
     }
   };
@@ -127,8 +127,8 @@ export default function AddReservationDialog({
           const pending = res.content[0];
           setHasPendingReservation(pending !== undefined);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         });
     }
   }
@@ -147,9 +147,8 @@ export default function AddReservationDialog({
         toast.success("Reservation successfull");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
-        toast.error(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
         navigate(-1);
       });
   };

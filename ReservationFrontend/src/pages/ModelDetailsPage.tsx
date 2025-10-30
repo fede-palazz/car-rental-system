@@ -10,6 +10,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { UserRole } from "@/models/enums/UserRole";
 import UserContext from "@/contexts/UserContext";
+import { toast } from "sonner";
 
 function ModelDetailsPage() {
   const user = useContext(UserContext);
@@ -24,8 +25,8 @@ function ModelDetailsPage() {
       .then((model: CarModel) => {
         setModel(model);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [carModelId, location.pathname]);
 

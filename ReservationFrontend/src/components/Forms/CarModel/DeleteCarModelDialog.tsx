@@ -18,8 +18,8 @@ function DeleteCarModelDialog() {
           navigate(-1);
         }
       })
-      .catch((err) => {
-        toast.error(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

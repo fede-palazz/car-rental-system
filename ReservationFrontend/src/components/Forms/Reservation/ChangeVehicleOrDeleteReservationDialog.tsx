@@ -106,9 +106,8 @@ function StepperizedForm({
         toast.success("Reservation changed successfully");
         methods.next();
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         toast.error(err.message);
-        console.log(err);
         navigate(-1);
       });
   }
@@ -120,9 +119,8 @@ function StepperizedForm({
         toast.success("Reservation deleted successfully");
         methods.next();
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         toast.error(err.message);
-        console.log(err);
         navigate(-1);
       });
   }
@@ -146,10 +144,11 @@ function StepperizedForm({
     };
     MaintenancesAPI.createMaintenance(oldVehicleId, reqDTO)
       .then(() => {
+        toast.success("Maintenance created successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }
 
@@ -299,8 +298,8 @@ export default function ChangeVehicleOrDeleteReservationDialog() {
         console.log(reservation);
         setReservation(reservation);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [reservationId, location.pathname]);
 

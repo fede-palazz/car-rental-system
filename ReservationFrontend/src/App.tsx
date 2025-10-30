@@ -54,10 +54,11 @@ function App() {
     setFetchingUser(true);
     UserAPI.getLoggedUserInfo()
       .then((res) => {
+        toast.success("Login successfull");
         setUser(res);
         setCsrfToken(res.csrf);
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         toast.error(err.message);
         setUser(undefined);
         setCsrfToken("");
@@ -108,7 +109,7 @@ function App() {
                 <Route
                   path="add"
                   element={
-                    user && user.role == UserRole.CUSTOMER ? (
+                    user && user.role != UserRole.FLEET_MANAGER ? (
                       <Navigate to="/models"></Navigate>
                     ) : (
                       <AddOrEditModelDialog />

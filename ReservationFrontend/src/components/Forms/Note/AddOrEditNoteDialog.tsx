@@ -25,6 +25,7 @@ import { NoteReqDTO } from "@/models/dtos/request/NoteReqDTO";
 import NotesAPI from "@/API/NotesAPI";
 import { Note } from "@/models/Note";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 const noteSchema = z.object({
   content: z.string().min(1, "Content must not be blank"),
@@ -50,7 +51,9 @@ export default function AddOrEditNoteDialog() {
       .then((note: Note) => {
         form.reset(note, { keepDefaultValues: true });
       })
-      .catch();
+      .catch((err: Error) => {
+        toast.error(err.message);
+      });
   }, [form, noteId, vehicleId]);
 
   async function onSubmit() {
@@ -68,20 +71,22 @@ export default function AddOrEditNoteDialog() {
   const handleEdit = (values: NoteReqDTO) => {
     NotesAPI.editNoteById(Number(vehicleId), values, Number(noteId))
       .then(() => {
+        toast.success("Note edited successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
   const handleCreate = (values: NoteReqDTO) => {
     NotesAPI.createNote(Number(vehicleId), values)
       .then(() => {
+        toast.success("Note created successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

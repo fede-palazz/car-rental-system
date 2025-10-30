@@ -19,6 +19,7 @@ import { Maintenance } from "@/models/Maintenance";
 import { useParams } from "react-router-dom";
 import AddOrEditMaintenanceForm from "./AddOrEditMaintenanceForm";
 import { MaintenanceType } from "@/models/enums/MaintenanceType";
+import { toast } from "sonner";
 
 const maintenanceSchema = z
   .object({
@@ -78,7 +79,9 @@ export default function AddOrEditMaintenanceDialog() {
       .then((maintenance: Maintenance) => {
         form.reset(maintenance, { keepDefaultValues: true });
       })
-      .catch();
+      .catch((err: Error) => {
+        toast.error(err.message);
+      });
   }, [form, maintenanceId, vehicleId]);
 
   async function onSubmit() {
@@ -100,20 +103,22 @@ export default function AddOrEditMaintenanceDialog() {
       Number(maintenanceId)
     )
       .then(() => {
+        toast.success("Maintenance edited successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
   const handleCreate = (values: MaintenanceReqDTO) => {
     MaintenancesAPI.createMaintenance(Number(vehicleId), values)
       .then(() => {
+        toast.success("Maintenance created successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 

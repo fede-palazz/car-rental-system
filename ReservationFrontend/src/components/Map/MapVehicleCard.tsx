@@ -25,8 +25,8 @@ function MapVehicleCard() {
       .then((vehicle) => {
         setVehicle(vehicle);
       })
-      .catch((err) => {
-        toast.error(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
         navigate(-1);
       });
   }, [vehicleId]);

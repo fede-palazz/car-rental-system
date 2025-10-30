@@ -15,8 +15,8 @@ function DeleteNoteDialog() {
         toast.success("Note deleted successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        toast.error(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
