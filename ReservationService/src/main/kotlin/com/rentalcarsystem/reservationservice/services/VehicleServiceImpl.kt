@@ -235,7 +235,7 @@ class VehicleServiceImpl(
     @Transactional
     @Scheduled(cron = "0 0 0 * * *")//@Scheduled(fixedRate = 2 * 60 * 1000)  // runs every day at midnight
     fun getDailyKmTravelledAndSendTableCopyAndUpdateVehicleStatusAtMidnight() {
-        val trackingRes: List<VehicleDailyDistanceResDTO>?
+        val trackingRes: List<VehicleDailyDistanceResDTO>
         try {
             val token = getAccessToken()
             trackingRes = trackingServiceRestClient.get().uri { uriBuilder ->
@@ -245,21 +245,29 @@ class VehicleServiceImpl(
                     .build()
             }.header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                 APPLICATION_JSON
-            ).retrieve().body<List<VehicleDailyDistanceResDTO>>()
+            ).retrieve().body<List<VehicleDailyDistanceResDTO>>() ?:
+            throw FailureException(ResponseEnum.TRACKING_ERROR, "Failed to get daily distance, received null")
         } catch (e: Exception) {
             logger.error("Failed to get daily distance ${e.message}")
             throw FailureException(ResponseEnum.TRACKING_ERROR, e.message)
         }
-        if (trackingRes == null) {
-            throw FailureException(ResponseEnum.TRACKING_ERROR, "Failed to get daily distance, received null")
-        }
         trackingRes.forEach { trackingRes ->
             vehicleRepository.findById(trackingRes.vehicleId).ifPresent { vehicle ->
-                vehicle.kmTravelled = trackingRes.dailyDistanceKm
+                vehicle.kmTravelled += trackingRes.dailyDistanceKm
             }
+        }
+        val trackingResMap: Map<Long, Double> = trackingRes.associate { dto ->
+            dto.vehicleId to dto.dailyDistanceKm
         }
 
         val vehicles = vehicleRepository.findAll().map { it.toResDTO() }
+        vehicles.forEach { it ->
+            if (it.id in trackingResMap) {
+                it.kmTravelled = trackingResMap[it.id]!!
+            } else {
+                it.kmTravelled = 0.0
+            }
+        }
         try {
             kafkaTemplate.send("paypal.public.vehicle-events", VehicleEventDTO(EventType.COPIED, vehicles))
         } catch (ex: Exception) {

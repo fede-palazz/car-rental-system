@@ -8,7 +8,7 @@ data class VehicleResDTO(
     val licensePlate: String,
     val vin: String,
     val status: CarStatus,
-    val kmTravelled: Double,
+    var kmTravelled: Double,
     val pendingCleaning: Boolean,
     val brand: String,
     val model: String,
