@@ -21,7 +21,6 @@ function DamageOrDirtinessLevelChartCard({
   });
 
   const fetchLevels = () => {
-    console.log("FETCHING WITH" + dateRange.from + " " + dateRange.to);
     AnalyticsAPI.getDamageOrDirtinessAnalytics(
       dateRange.from,
       dateRange.to,

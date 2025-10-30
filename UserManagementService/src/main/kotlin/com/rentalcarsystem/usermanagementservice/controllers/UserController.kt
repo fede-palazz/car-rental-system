@@ -22,7 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @RestController
 @RequestMapping("/api/v1/users")
-@CrossOrigin(origins = ["http://localhost:5173"], allowCredentials = "true")
+@CrossOrigin(origins = ["http://localhost:8083"], allowCredentials = "true")
 class UserController(private val userService: UserService) {
     private val logger = LoggerFactory.getLogger(UserController::class.java)
     private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }

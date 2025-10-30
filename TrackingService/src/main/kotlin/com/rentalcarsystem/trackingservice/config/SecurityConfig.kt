@@ -52,7 +52,7 @@ class SecurityConfig {
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .csrf {
-                it.disable()
+                //it.disable()
             }
             .cors { it.disable() }
             .build()

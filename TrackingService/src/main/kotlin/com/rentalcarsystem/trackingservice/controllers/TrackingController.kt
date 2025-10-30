@@ -170,7 +170,7 @@ class TrackingController(private val trackingService: TrackingService) {
 //        val jwt = authentication.principal as Jwt
 //        val username = jwt.getClaimAsString("preferred_username")
 //        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
-
+        println("AO")
         val createdSession = trackingService.createTrackingSession(sessionReq)
         logger.info(
             "Created tracking session for vehicle {}: {}",

@@ -390,7 +390,8 @@ class ReservationServiceImpl(
             reservation.plannedPickUpDate.toLocalDate(),
             reservation.plannedDropOffDate.toLocalDate()
         ) + 1
-        val reservationToSave = reservation.toEntity(vehicle.carModel.rentalPrice * days, customerUsername, reservationBufferDays)
+        val reservationToSave =
+            reservation.toEntity(vehicle.carModel.rentalPrice * days, customerUsername, reservationBufferDays)
         vehicle.addReservation(reservationToSave)
         val savedReservation = reservationRepository.save(reservationToSave)
 
@@ -429,16 +430,18 @@ class ReservationServiceImpl(
         reservation.status = ReservationStatus.PICKED_UP
         reservation.pickUpStaffUsername = pickUpStaffUsername
         val savedReservation = reservation.toStaffReservationResDTO()
-        
+
         try {
             val token = getAccessToken()
-            trackingServiceRestClient.post().uri("/sessions/start").body(SessionReqDTO(
-                vehicleId = reservation.vehicle?.getId()!!,
-                reservationId = reservationId,
-                customerUsername = reservation.customerUsername
-            )).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+            val response = trackingServiceRestClient.post().uri("/sessions/start").body(
+                SessionReqDTO(
+                    vehicleId = reservation.vehicle?.getId()!!,
+                    reservationId = reservationId,
+                    customerUsername = reservation.customerUsername
+                )
+            ).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                 APPLICATION_JSON
-            )
+            ).retrieve().body<Any>()
         } catch (e: Exception) {
             logger.error("Failed to send session request ${e.message}")
             throw FailureException(
@@ -569,13 +572,15 @@ class ReservationServiceImpl(
 
         try {
             val token = getAccessToken()
-            trackingServiceRestClient.post().uri("/sessions/end").body(SessionReqDTO(
-                vehicleId = reservation.vehicle?.getId()!!,
-                reservationId = reservationId,
-                customerUsername = reservation.customerUsername
-            )).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+            trackingServiceRestClient.post().uri("/sessions/end").body(
+                SessionReqDTO(
+                    vehicleId = reservation.vehicle?.getId()!!,
+                    reservationId = reservationId,
+                    customerUsername = reservation.customerUsername
+                )
+            ).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                 APPLICATION_JSON
-            )
+            ).retrieve().body<Any>()
         } catch (e: Exception) {
             logger.error("Failed to send session request ${e.message}")
             throw FailureException(
@@ -604,7 +609,8 @@ class ReservationServiceImpl(
         val reservation = getReservationById(reservationId)
         if (reservation.status == ReservationStatus.CANCELLED
             || reservation.status == ReservationStatus.PICKED_UP
-            || reservation.status == ReservationStatus.DELIVERED) {
+            || reservation.status == ReservationStatus.DELIVERED
+        ) {
             throw FailureException(
                 ResponseEnum.RESERVATION_WRONG_STATUS,
                 "Cannot update reservation $reservationId as it has already been cancelled, picked up or delivered"
@@ -670,16 +676,17 @@ class ReservationServiceImpl(
         val carModel = reservation.vehicle!!.carModel
 
         val paymentReqDTO = PaymentReqDTO(reservationId)
-        paymentReqDTO.customerUsername=customerUsername
+        paymentReqDTO.customerUsername = customerUsername
         paymentReqDTO.amount = reservation.totalAmount
         paymentReqDTO.description =
             "Customer $customerUsername pays reservation for ${carModel.brand} ${carModel.model} of total amount: ${paymentReqDTO.amount}"
         val paymentRes: PaymentResDTO?
         try {
             val token = getAccessToken()
-            paymentRes = paymentServiceRestClient.post().uri("/create").body(paymentReqDTO).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
-                APPLICATION_JSON
-            ).retrieve().body<PaymentResDTO>()
+            paymentRes = paymentServiceRestClient.post().uri("/create").body(paymentReqDTO)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                    APPLICATION_JSON
+                ).retrieve().body<PaymentResDTO>()
         } catch (e: Exception) {
             logger.error("Failed to create a payment request ${e.message}")
             throw FailureException(
@@ -697,9 +704,10 @@ class ReservationServiceImpl(
     override fun getPaymentRecordByReservationId(reservationId: Long): PaymentRecordResDTO {
         try {
             val token = getAccessToken()
-            return paymentServiceRestClient.get().uri("/order/reservation/{reservationId}", reservationId).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
-                APPLICATION_JSON
-            ).retrieve().body<PaymentRecordResDTO>()!!
+            return paymentServiceRestClient.get().uri("/order/reservation/{reservationId}", reservationId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                    APPLICATION_JSON
+                ).retrieve().body<PaymentRecordResDTO>()!!
         } catch (e: Exception) {
             logger.error("Failed to create a payment request ${e.message}")
             throw FailureException(
@@ -712,9 +720,10 @@ class ReservationServiceImpl(
     override fun getPaymentRecordByToken(token: String): PaymentRecordResDTO {
         try {
             val jwtToken = getAccessToken()
-            return paymentServiceRestClient.get().uri("/order/token/{token}", token).header(HttpHeaders.AUTHORIZATION, "Bearer $jwtToken").accept(
-                APPLICATION_JSON
-            ).retrieve().body<PaymentRecordResDTO>()!!
+            return paymentServiceRestClient.get().uri("/order/token/{token}", token)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $jwtToken").accept(
+                    APPLICATION_JSON
+                ).retrieve().body<PaymentRecordResDTO>()!!
         } catch (e: Exception) {
             logger.error("Failed to create a payment request ${e.message}")
             throw FailureException(
@@ -798,9 +807,10 @@ class ReservationServiceImpl(
         }
         val carModel = carModelService.getActualCarModelById(reservation.carModelId)
         val token = getAccessToken()
-        val userScore = userManagementRestClient.get().uri("/username/{username}", customerUsername).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
-            APPLICATION_JSON
-        ).retrieve().body<UserResDTO>()?.eligibilityScore
+        val userScore = userManagementRestClient.get().uri("/username/{username}", customerUsername)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            ).retrieve().body<UserResDTO>()?.eligibilityScore
 
         if (userScore!! < CarCategory.getValue(carModel.category)!!) {
             throw FailureException(
