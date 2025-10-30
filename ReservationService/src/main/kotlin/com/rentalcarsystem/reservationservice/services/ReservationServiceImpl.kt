@@ -452,10 +452,18 @@ class ReservationServiceImpl(
             )
         }
 
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+        val payload = ReservationEventDTO(EventType.PICKED_UP, savedReservation)
+
         try {
             kafkaTemplate.send(
                 "paypal.public.reservation-events",
-                ReservationEventDTO(EventType.PICKED_UP, savedReservation)
+                payload
+            )
+            notificationService.sendVehiclePickedUpEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
             )
         } catch (ex: Exception) {
             logger.error("Failed to send reservation pick-up event", ex)
@@ -591,10 +599,17 @@ class ReservationServiceImpl(
             )
         }
 
+        val payload = ReservationEventDTO(EventType.FINALIZED, savedReservation)
+
         try {
             kafkaTemplate.send(
                 "paypal.public.reservation-events",
-                ReservationEventDTO(EventType.FINALIZED, savedReservation)
+                payload
+            )
+            notificationService.sendVehicleDroppedOffEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
             )
         } catch (ex: Exception) {
             logger.error("Failed to send reservation finalized event", ex)
@@ -632,10 +647,18 @@ class ReservationServiceImpl(
         vehicle.addReservation(reservation)
         val savedReservation = reservation.toStaffReservationResDTO()
 
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+        val payload = ReservationEventDTO(EventType.UPDATED, savedReservation)
+
         try {
             kafkaTemplate.send(
                 "paypal.public.reservation-events",
-                ReservationEventDTO(EventType.UPDATED, savedReservation)
+                payload
+            )
+            notificationService.sendReservationModifiedEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
             )
         } catch (ex: Exception) {
             logger.error("Failed to send reservation updated vehicle event", ex)

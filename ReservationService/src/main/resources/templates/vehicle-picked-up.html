@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Picked Up</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0f1419;
+            color: #fafafa;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #1a1f2e;
+        }
+        .header {
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #f7f8fc;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            color: #dcfce7;
+            font-size: 16px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #fafafa;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #b4b9c8;
+            margin-bottom: 30px;
+        }
+        .success-box {
+            background-color: rgba(22, 163, 74, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-left: 4px solid #22c55e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .success-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #22c55e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .success-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .success-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.5;
+        }
+        .card {
+            background-color: #232938;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #b4b9c8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .vehicle-info {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .vehicle-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #22c55e;
+            margin-bottom: 8px;
+        }
+        .vehicle-detail {
+            font-size: 14px;
+            color: #b4b9c8;
+            margin-bottom: 4px;
+        }
+        .detail-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .detail-label {
+            font-size: 14px;
+            color: #b4b9c8;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            font-size: 16px;
+            color: #fafafa;
+            font-weight: 600;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: rgba(22, 163, 74, 0.2);
+            color: #22c55e;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .reminder-box {
+            background-color: rgba(245, 183, 62, 0.15);
+            border: 1px solid rgba(245, 183, 62, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .reminder-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f5b73e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        .reminder-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .reminder-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .reminder-list li {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+        .reminder-list li:last-child {
+            margin-bottom: 0;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.2) 0%, rgba(34, 197, 94, 0.2) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .highlight-label {
+            font-size: 14px;
+            color: #22c55e;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .highlight-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fafafa;
+        }
+        .emergency-box {
+            background-color: rgba(107, 140, 232, 0.15);
+            border: 1px solid rgba(107, 140, 232, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .emergency-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #6b8ce8;
+            margin-bottom: 12px;
+        }
+        .emergency-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.6;
+            margin: 0 0 12px 0;
+        }
+        .emergency-contact {
+            font-size: 16px;
+            color: #6b8ce8;
+            font-weight: 700;
+        }
+        .footer {
+            background-color: #161b26;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .footer-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.6;
+            margin: 0 0 10px 0;
+        }
+        .footer-link {
+            color: #6b8ce8;
+            text-decoration: none;
+        }
+        .footer-link:hover {
+            color: #8ba5ef;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .header {
+                padding: 30px 20px;
+            }
+            .vehicle-name {
+                font-size: 20px;
+            }
+            .highlight-value {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🚗 Vehicle Picked Up</h1>
+        <p>Enjoy your journey!</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="greeting">
+            Hello <span th:text="${recipientName}">Customer</span>,
+        </div>
+
+        <!-- Success Box -->
+        <div class="success-box">
+            <div class="success-title">
+                <span class="success-icon">✓</span>
+                Pick-up Successful
+            </div>
+            <div class="success-text">
+                Your vehicle has been successfully picked up. You're all set to hit the road! This email serves as your rental confirmation and contains important information about your booking.
+            </div>
+        </div>
+
+        <div class="message">
+            Thank you for choosing our service. We hope you have a safe and pleasant journey with your rental vehicle.
+        </div>
+
+        <!-- Vehicle Information Card -->
+        <div class="card">
+            <div class="card-title">Your Vehicle</div>
+            <div class="vehicle-info">
+                <div class="vehicle-name" th:text="${brand + ' ' + model + ' ' + year}">Toyota Camry 2023</div>
+                <div class="vehicle-detail">
+                    License Plate: <strong th:text="${licensePlate}">ABC-1234</strong>
+                </div>
+                <div class="vehicle-detail">
+                    VIN: <strong th:text="${vin}">1HGBH41JXMN109186</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pickup Details Card -->
+        <div class="card">
+            <div class="card-title">Pick-up Details</div>
+
+            <div class="detail-row">
+                <div class="detail-label">Reservation ID</div>
+                <div class="detail-value">
+                    #<span th:text="${reservationId}">12345</span>
+                    <span class="badge">ACTIVE</span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Picked Up On</div>
+                <div class="detail-value" th:text="${pickUpDate}">Jan 15, 2025 at 10:30 AM</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Assisted By</div>
+                <div class="detail-value" th:text="${pickUpStaff}">John Smith</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Scheduled Return Date</div>
+                <div class="detail-value" th:text="${plannedDropOffDate}">Jan 20, 2025 at 10:00 AM</div>
+            </div>
+
+            <div class="highlight-box">
+                <div class="highlight-label">RETURN BY</div>
+                <div class="highlight-value" th:text="${dropOffDateOnly}">Jan 20, 2025</div>
+            </div>
+        </div>
+
+        <!-- Reminder Box -->
+        <div class="reminder-box">
+            <div class="reminder-title">
+                <span class="reminder-icon">📋</span>
+                Important Reminders
+            </div>
+            <ul class="reminder-list">
+                <li><strong>Return on time:</strong> Please return the vehicle by the scheduled drop-off date to avoid late fees.</li>
+                <li><strong>Fuel policy:</strong> Return the vehicle with the same fuel level as at pick-up.</li>
+                <li><strong>Keep it clean:</strong> Return the vehicle in a reasonably clean condition.</li>
+                <li><strong>Report issues:</strong> Contact us immediately if you encounter any problems with the vehicle.</li>
+                <li><strong>Drive safely:</strong> Follow all traffic laws and drive responsibly.</li>
+            </ul>
+        </div>
+
+        <!-- Emergency Contact Box -->
+        <div class="emergency-box">
+            <div class="emergency-title">24/7 Emergency Support</div>
+            <p class="emergency-text">
+                If you experience any issues with the vehicle or need roadside assistance, contact our 24/7 support line:
+            </p>
+            <div class="emergency-contact">📞 +1 (800) 555-0123</div>
+        </div>
+
+        <div class="message">
+            We wish you a wonderful experience with your rental. If you have any questions during your rental period, please don't hesitate to reach out to us.
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p class="footer-text">
+            <strong>Car Rental System</strong><br>
+            Thank you for your business!
+        </p>
+        <p class="footer-text">
+            Need assistance? Contact us at
+            <a href="mailto:support@car-rental-system.com" class="footer-link">
+                support@car-rental-system.com
+            </a>
+        </p>
+        <p class="footer-text" style="font-size: 12px; color: #717684;">
+            This is an automated message. Please do not reply to this email.
+        </p>
+    </div>
+</div>
+</body>
+</html>

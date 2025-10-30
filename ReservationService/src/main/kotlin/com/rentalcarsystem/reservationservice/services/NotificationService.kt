@@ -15,4 +15,22 @@ interface NotificationService {
         recipientName: String,
         reservationEvent: ReservationEventDTO
     )
+
+    fun sendReservationModifiedEmail(
+        recipientEmail: String,
+        recipientName: String,
+        reservationEvent: ReservationEventDTO
+    )
+
+    fun sendVehiclePickedUpEmail(
+        recipientEmail: String,
+        recipientName: String,
+        reservationEvent: ReservationEventDTO
+    )
+
+    fun sendVehicleDroppedOffEmail(
+        recipientEmail: String,
+        recipientName: String,
+        reservationEvent: ReservationEventDTO
+    )
 }
