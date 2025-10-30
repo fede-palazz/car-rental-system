@@ -45,10 +45,11 @@ async function getAllVehicles(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -70,10 +71,11 @@ async function getVehicleById(id: number): Promise<Vehicle> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -95,10 +97,11 @@ async function deleteVehicleById(id: number): Promise<null> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -122,10 +125,11 @@ async function createVehicle(vehicleDTO: VehicleCreateDTO): Promise<Vehicle> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -152,10 +156,11 @@ async function editVehicleById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -191,10 +196,11 @@ async function getAvailableVehicles(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

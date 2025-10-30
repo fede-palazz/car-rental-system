@@ -20,10 +20,11 @@ async function getTrackingSessions(): Promise<TrackingSession[]> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

@@ -49,10 +49,11 @@ async function getMaintenancesByVehicleId(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -80,10 +81,11 @@ async function getMaintenanceById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -115,10 +117,11 @@ async function createMaintenance(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -149,10 +152,11 @@ async function editMaintenanceById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -215,10 +219,11 @@ async function deleteMaintenanceById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

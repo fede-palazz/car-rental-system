@@ -48,10 +48,11 @@ async function getNotesByVehicleId(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -76,10 +77,11 @@ async function getNoteById(vehicleId: number, noteId: number): Promise<Note> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -106,10 +108,11 @@ async function createNote(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -140,10 +143,11 @@ async function editNoteById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -171,10 +175,11 @@ async function deleteNoteById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

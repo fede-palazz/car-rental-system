@@ -41,7 +41,6 @@ async function getAllReservations(
   });
   if (response.ok) {
     const res = await response.json();
-    console.log(res);
     if (!isCustomer) {
       res.content = res.content.map((reservation: StaffReservationResDTO) => {
         const { commonInfo, ...otherProperties } =
@@ -87,10 +86,11 @@ async function getAllReservations(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -133,10 +133,11 @@ async function getPendingReservation(): Promise<PagedResDTO<Reservation>> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -178,10 +179,11 @@ async function getReservationById(id: number): Promise<Reservation> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -204,10 +206,11 @@ async function deleteReservationById(id: number): Promise<null> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -234,10 +237,11 @@ async function editReservationById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -262,10 +266,11 @@ async function createReservation(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -291,10 +296,11 @@ async function setActualPickUpDate(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -320,10 +326,11 @@ async function finalizeReservation(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -348,10 +355,11 @@ async function payReservation(id: number) {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -379,10 +387,11 @@ async function updateReservationVehicle(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -440,10 +449,11 @@ async function getOverlappingReservations(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -500,10 +510,11 @@ async function getOverlappingReservationsByReservationId(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

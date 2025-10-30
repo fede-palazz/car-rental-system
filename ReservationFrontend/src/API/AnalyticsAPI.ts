@@ -3,6 +3,7 @@ import { ReservationsCountAnalytics } from "@/models/analytics/ReservationsCount
 import { ReservationsTotalAmountAnalytics } from "@/models/analytics/ReservationsTotalAmountAnalytics";
 import { VehiclesKmTravelledAnalytics } from "@/models/analytics/VehicleKmTravelledAnalytics";
 import { VehicleStatusesAnalytics } from "@/models/analytics/VehicleStatusesAnalytics";
+import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/analytics-service/";
 
@@ -31,10 +32,11 @@ async function getVehiclesStatus(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -67,10 +69,11 @@ async function getDamageOrDirtinessAnalytics(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -97,7 +100,7 @@ async function getVehicleKmTravelled(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -105,10 +108,11 @@ async function getVehicleKmTravelled(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -134,7 +138,7 @@ async function getReservationsAmount(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -142,10 +146,11 @@ async function getReservationsAmount(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -171,7 +176,7 @@ async function getReservationsCount(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -179,10 +184,11 @@ async function getReservationsCount(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
