@@ -47,7 +47,7 @@ function PieChartCard({
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        {dateRange != undefined && setDateRange != undefined && (
+        {dateRange != undefined && setDateRange != undefined ? (
           <div className="w-full flex gap-5">
             <div className="w-1/2 flex-col">
               <label className="block text-sm font-medium text-muted-foreground mb-2">
@@ -95,6 +95,23 @@ function PieChartCard({
                 value={dateRange?.to}
                 onChange={(value) => {
                   setDateRange({ from: dateRange?.from, to: value });
+                }}
+                granularity="day"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="w-full flex gap-5">
+            <div className="w-1/2 flex-col invisible">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
+                From
+              </label>
+              <DateTimePicker
+                displayFormat={{ hour24: "yyyy-MM-dd", hour12: "yyyy-MM-dd" }}
+                placeholder="From"
+                value={undefined}
+                onChange={() => {
+                  //setDateRange({ from: value, to: dateRange?.to });
                 }}
                 granularity="day"
               />

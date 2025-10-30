@@ -233,7 +233,7 @@ class VehicleServiceImpl(
     }
 
     @Transactional
-    @Scheduled(fixedRate = 2 * 60 * 1000) //@Scheduled(cron = "0 0 0 * * *") // runs every day at midnight
+    @Scheduled(cron = "0 0 0 * * *")//@Scheduled(fixedRate = 2 * 60 * 1000)  // runs every day at midnight
     fun getDailyKmTravelledAndSendTableCopyAndUpdateVehicleStatusAtMidnight() {
         val trackingRes: List<VehicleDailyDistanceResDTO>?
         try {

@@ -2,7 +2,8 @@ import DamageOrDirtinessLevelChartCard from "@/components/Analytics/DamageOrDirt
 import VehicleStatusChartCard from "../components/Analytics/VehiclesStatusChartCard";
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { ChartAreaInteractive } from "@/components/Analytics/base/AreaChartCard";
+import ReservationsAmountChartCard from "@/components/Analytics/ReservationsAmountChartCard";
+import ReservationsCountChartCard from "@/components/Analytics/ReservationsCountChartCard";
 
 function AnalyticsPage() {
   return (
@@ -23,7 +24,10 @@ function AnalyticsPage() {
           <DamageOrDirtinessLevelChartCard
             dirtiness={true}></DamageOrDirtinessLevelChartCard>
           <div className="col-span-full">
-            <ChartAreaInteractive></ChartAreaInteractive>
+            <ReservationsAmountChartCard></ReservationsAmountChartCard>
+          </div>
+          <div className="col-span-full">
+            <ReservationsCountChartCard></ReservationsCountChartCard>
           </div>
         </div>
       </div>

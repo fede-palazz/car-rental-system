@@ -14,7 +14,7 @@ const vehiclesStatusConfig = {
     color: "var(--chart-2)",
   },
   inMaintenance: {
-    label: "In Maintenance",
+    label: "Maintenance",
     color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
