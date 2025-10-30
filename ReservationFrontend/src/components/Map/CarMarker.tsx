@@ -32,8 +32,7 @@ function CarMarker({
   const map = useMap();
   const selectedVehicleId = Number(useParams().vehicleId);
   const vehicleIdRef = useRef(selectedVehicleId);
-
-  console.log(selectedVehicleId);
+  const [disableAnimation, setDisableAnimation] = useState(false);
 
   if (!Number.isNaN(selectedVehicleId)) {
     map.dragging.disable();
@@ -46,6 +45,28 @@ function CarMarker({
   const handleClick = () => {
     navigate(`${vehicleId}`);
   };
+
+  useEffect(() => {
+    if (!Number.isNaN(selectedVehicleId)) {
+      const handleZoomStart = () => {
+        console.log("zoomSTART");
+        setDisableAnimation(true);
+      };
+      const handleZoomEnd = () => {
+        console.log("zoomEND");
+
+        setDisableAnimation(false);
+      };
+
+      map.on("zoomstart", handleZoomStart);
+      map.on("zoomend", handleZoomEnd);
+
+      return () => {
+        map.off("zoomstart", handleZoomStart);
+        map.off("zoomend", handleZoomEnd);
+      };
+    }
+  }, [selectedVehicleId, map]);
 
   const myDivIcon = function (index: number) {
     return L.divIcon({
@@ -71,10 +92,6 @@ function CarMarker({
     const offsetLatLng = map.latLngToContainerPoint([latitude, longitude]);
     offsetLatLng.x -= 300;
     const adjustedLatLng = map.containerPointToLatLng(offsetLatLng);
-
-    /*if (vehicleIdRef.current == selectedVehicleId) {
-      map.panTo(adjustedLatLng);
-    } else {*/
     map.flyTo(adjustedLatLng, currentZoom, {
       duration: 0.7,
       easeLinearity: 0.3,
@@ -86,7 +103,7 @@ function CarMarker({
   useEffect(() => {
     if (prevPos[1] !== longitude && prevPos[0] !== latitude)
       setPrevPos([latitude, longitude]);
-    if (vehicleIdRef.current == selectedVehicleId) {
+    if (vehicleIdRef.current == selectedVehicleId && !disableAnimation) {
       const offsetLatLng = map.latLngToContainerPoint([latitude, longitude]);
       offsetLatLng.x -= 300;
       const adjustedLatLng = map.containerPointToLatLng(offsetLatLng);

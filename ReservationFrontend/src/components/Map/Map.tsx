@@ -8,26 +8,28 @@ import { MapContainer, TileLayer } from "react-leaflet";
 import MarkersList from "./MarkersList";
 
 const TurinBounds = L.latLngBounds(
-  [44.5, 7.0], // Much further southwest
-  [45.7, 8.5] // Much further northeast
+  [44.0, 6.5], // Further southwest to cover more area
+  [45.7, 8.5] // Further northeast remains the same
 );
+
+const center = L.latLngBounds([44.5, 7.0], [45.7, 8.5]);
 
 function Map() {
   return (
     <>
       <MapContainer
-        center={TurinBounds.getCenter()}
+        center={center.getCenter()}
         className="w-full h-full rounded-xl"
         minZoom={8}
         zoom={13}
         //maxZoom={15}
-        //bounds={TurinBounds}
-        //maxBounds={TurinBounds}
-        //maxBoundsViscosity={1.0}
+        bounds={TurinBounds}
+        maxBounds={TurinBounds}
+        maxBoundsViscosity={1.0}
         touchZoom
         doubleClickZoom
         attributionControl={true}
-        zoomControl={false}
+        zoomControl={true}
         scrollWheelZoom={false} //TODO FIX ON FIREFOX Needed to enable smooth zoom
         markerZoomAnimation>
         <TileLayer
@@ -38,12 +40,10 @@ function Map() {
         <MarkerClusterGroup
           spiderfyOnEveryZoom={false}
           spiderfyOnMaxZoom={true}
-          //iconCreateFunction={municipalityClusterIcon}
           spiderfyDistanceMultiplier={2}
           showCoverageOnHover={false}>
           <MarkersList></MarkersList>
         </MarkerClusterGroup>
-        {/*<Outlet></Outlet>*/}
       </MapContainer>
     </>
   );
