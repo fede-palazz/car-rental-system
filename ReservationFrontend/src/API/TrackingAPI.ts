@@ -1,4 +1,5 @@
 import { TrackingSession } from "@/models/tracking/TrackingSession";
+import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/tracking-service/";
 
@@ -12,7 +13,7 @@ async function getTrackingSessions(): Promise<TrackingSession[]> {
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {

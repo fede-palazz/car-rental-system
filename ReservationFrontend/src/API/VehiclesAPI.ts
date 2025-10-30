@@ -18,10 +18,12 @@ async function getAllVehicles(
     (filter
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
-          .map(
-            ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-          )
+          .map(([key, value]) => {
+            if (value instanceof Date) {
+              value = value.toISOString();
+            }
+            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+          })
           .join("&")
       : "") +
     `&order=${encodeURIComponent(order)}&sort=${encodeURIComponent(

@@ -6,6 +6,7 @@ import { StaffReservationResDTO } from "@/models/dtos/response/StaffReservationR
 import { ReservationFilter } from "@/models/filters/ReservationFilter";
 import { Reservation } from "@/models/Reservation";
 import { getCsrfToken } from "./csrfToken";
+import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/reservation-service/";
 
@@ -42,25 +43,27 @@ async function getAllReservations(
   if (response.ok) {
     const res = await response.json();
     if (!isCustomer) {
-      res.content = res.content.map((reservation: StaffReservationResDTO) => {
-        const { commonInfo, ...otherProperties } =
-          reservation as StaffReservationResDTO;
-        return {
-          ...commonInfo,
-          creationDate: new Date(commonInfo.creationDate),
-          plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
-          plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
-          actualDropOffDate: commonInfo.actualDropOffDate
-            ? new Date(commonInfo.actualDropOffDate)
-            : undefined,
-          actualPickUpDate: commonInfo.actualPickUpDate
-            ? new Date(commonInfo.actualPickUpDate)
-            : undefined,
-          ...otherProperties,
-        } as Reservation;
-      });
+      res.content = localizeDates(res.content).map(
+        (reservation: StaffReservationResDTO) => {
+          const { commonInfo, ...otherProperties } =
+            reservation as StaffReservationResDTO;
+          return {
+            ...commonInfo,
+            creationDate: new Date(commonInfo.creationDate),
+            plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+            plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+            actualDropOffDate: commonInfo.actualDropOffDate
+              ? new Date(commonInfo.actualDropOffDate)
+              : undefined,
+            actualPickUpDate: commonInfo.actualPickUpDate
+              ? new Date(commonInfo.actualPickUpDate)
+              : undefined,
+            ...otherProperties,
+          } as Reservation;
+        }
+      );
     } else {
-      res.content = res.content.map(
+      res.content = localizeDates(res.content).map(
         (reservation: CustomerReservationResDTO) => {
           return {
             ...reservation,
@@ -110,20 +113,22 @@ async function getPendingReservation(): Promise<PagedResDTO<Reservation>> {
   if (response.ok) {
     const res = await response.json();
 
-    res.content = res.content.map((reservation: CustomerReservationResDTO) => {
-      return {
-        ...reservation,
-        creationDate: new Date(reservation.creationDate),
-        plannedPickUpDate: new Date(reservation.plannedPickUpDate),
-        plannedDropOffDate: new Date(reservation.plannedDropOffDate),
-        actualDropOffDate: reservation.actualDropOffDate
-          ? new Date(reservation.actualDropOffDate)
-          : undefined,
-        actualPickUpDate: reservation.actualPickUpDate
-          ? new Date(reservation.actualPickUpDate)
-          : undefined,
-      } as Reservation;
-    });
+    res.content = localizeDates(res.content).map(
+      (reservation: CustomerReservationResDTO) => {
+        return {
+          ...reservation,
+          creationDate: new Date(reservation.creationDate),
+          plannedPickUpDate: new Date(reservation.plannedPickUpDate),
+          plannedDropOffDate: new Date(reservation.plannedDropOffDate),
+          actualDropOffDate: reservation.actualDropOffDate
+            ? new Date(reservation.actualDropOffDate)
+            : undefined,
+          actualPickUpDate: reservation.actualPickUpDate
+            ? new Date(reservation.actualPickUpDate)
+            : undefined,
+        } as Reservation;
+      }
+    );
 
     return res;
   } else {
@@ -152,7 +157,7 @@ async function getReservationById(id: number): Promise<Reservation> {
   if (response.ok) {
     const res = await response.json();
 
-    const reservation = res as StaffReservationResDTO;
+    const reservation = localizeDates(res) as StaffReservationResDTO;
 
     const { commonInfo, ...otherProperties } = reservation;
 
@@ -173,7 +178,6 @@ async function getReservationById(id: number): Promise<Reservation> {
     return returningReservation;
   } else {
     const errDetail = await response.json();
-    console.log(errDetail);
     if (Array.isArray(errDetail.errors)) {
       throw new Error(
         errDetail.errors[0].msg ||
@@ -229,7 +233,7 @@ async function editReservationById(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -258,7 +262,7 @@ async function createReservation(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -284,11 +288,11 @@ async function setActualPickUpDate(
       "X-CSRF-TOKEN": getCsrfToken(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ actualPickUpDate }),
+    body: JSON.stringify({ actualPickUpDate: actualPickUpDate.toISOString() }),
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -318,7 +322,7 @@ async function finalizeReservation(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -422,28 +426,28 @@ async function getOverlappingReservations(
   );
   if (response.ok) {
     const res = await response.json();
-    console.log(res);
-    res.content = res.content.map((reservation: StaffReservationResDTO) => {
-      const { commonInfo, ...otherProperties } =
-        reservation as StaffReservationResDTO;
-      return {
-        ...commonInfo,
-        creationDate: new Date(commonInfo.creationDate),
-        plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
-        plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
-        actualDropOffDate: commonInfo.actualDropOffDate
-          ? new Date(commonInfo.actualDropOffDate)
-          : undefined,
-        actualPickUpDate: commonInfo.actualPickUpDate
-          ? new Date(commonInfo.actualPickUpDate)
-          : undefined,
-        ...otherProperties,
-      } as Reservation;
-    });
+    res.content = localizeDates(res.content).map(
+      (reservation: StaffReservationResDTO) => {
+        const { commonInfo, ...otherProperties } =
+          reservation as StaffReservationResDTO;
+        return {
+          ...commonInfo,
+          creationDate: new Date(commonInfo.creationDate),
+          plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+          plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+          actualDropOffDate: commonInfo.actualDropOffDate
+            ? new Date(commonInfo.actualDropOffDate)
+            : undefined,
+          actualPickUpDate: commonInfo.actualPickUpDate
+            ? new Date(commonInfo.actualPickUpDate)
+            : undefined,
+          ...otherProperties,
+        } as Reservation;
+      }
+    );
     return res;
   } else {
     const errDetail = await response.json();
-    console.log(errDetail);
     if (Array.isArray(errDetail.errors)) {
       throw new Error(
         errDetail.errors[0].msg ||
@@ -483,24 +487,25 @@ async function getOverlappingReservationsByReservationId(
   );
   if (response.ok) {
     const res = await response.json();
-    console.log(res);
-    res.content = res.content.map((reservation: StaffReservationResDTO) => {
-      const { commonInfo, ...otherProperties } =
-        reservation as StaffReservationResDTO;
-      return {
-        ...commonInfo,
-        creationDate: new Date(commonInfo.creationDate),
-        plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
-        plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
-        actualDropOffDate: commonInfo.actualDropOffDate
-          ? new Date(commonInfo.actualDropOffDate)
-          : undefined,
-        actualPickUpDate: commonInfo.actualPickUpDate
-          ? new Date(commonInfo.actualPickUpDate)
-          : undefined,
-        ...otherProperties,
-      } as Reservation;
-    });
+    res.content = localizeDates(res.content).map(
+      (reservation: StaffReservationResDTO) => {
+        const { commonInfo, ...otherProperties } =
+          reservation as StaffReservationResDTO;
+        return {
+          ...commonInfo,
+          creationDate: new Date(commonInfo.creationDate),
+          plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+          plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+          actualDropOffDate: commonInfo.actualDropOffDate
+            ? new Date(commonInfo.actualDropOffDate)
+            : undefined,
+          actualPickUpDate: commonInfo.actualPickUpDate
+            ? new Date(commonInfo.actualPickUpDate)
+            : undefined,
+          ...otherProperties,
+        } as Reservation;
+      }
+    );
     return res;
   } else {
     const errDetail = await response.json();

@@ -3,6 +3,7 @@ import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { MaintenanceFilter } from "@/models/filters/MaintenanceFilter";
 import { Maintenance } from "@/models/Maintenance";
 import { getCsrfToken } from "./csrfToken";
+import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/reservation-service/";
 
@@ -18,10 +19,12 @@ async function getMaintenancesByVehicleId(
     (filter != undefined
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
-          .map(
-            ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-          )
+          .map(([key, value]) => {
+            if (value instanceof Date) {
+              value = value.toISOString();
+            }
+            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+          })
           .join("&")
       : "") +
     `&order=${encodeURIComponent(order)}&sort=${encodeURIComponent(
@@ -40,7 +43,7 @@ async function getMaintenancesByVehicleId(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     console.log(errDetail);
@@ -73,7 +76,7 @@ async function getMaintenanceById(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -109,7 +112,7 @@ async function createMaintenance(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -125,6 +128,7 @@ async function createMaintenance(
   }
 }
 
+//TODO
 async function editMaintenanceById(
   vehicleId: number,
   maintenanceDTO: MaintenanceReqDTO,
@@ -144,7 +148,7 @@ async function editMaintenanceById(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -179,7 +183,7 @@ async function finalizeMaintenanceByMaintenanceId(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
