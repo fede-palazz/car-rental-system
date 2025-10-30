@@ -21,13 +21,16 @@ class SecurityConfig(val crr: ClientRegistrationRepository) {
 
     @Bean
     fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
-        httpSecurity.cors{}
+        httpSecurity.cors {}
             .authorizeHttpRequests {
                 it.requestMatchers("/gateway-client").authenticated()
                 it.anyRequest().permitAll()
             }
             .oauth2Login {
-                it.successHandler { _, response, _ -> response.sendRedirect("/ui") }
+                it.successHandler { _, response, _ ->
+                    response.sendRedirect("/ui")
+
+                }
                 it.failureUrl("/ui?error=login")
             }
             .csrf {

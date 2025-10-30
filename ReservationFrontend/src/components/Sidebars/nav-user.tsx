@@ -111,7 +111,16 @@ export function NavUser({
               )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-
+            <DropdownMenuItem
+              onClick={() => {
+                window.location.href =
+                  "http://localhost:8083/gateway-client/update-profile";
+              }}>
+              <span className="material-symbols-outlined items-center md-18">
+                update
+              </span>
+              Update profile
+            </DropdownMenuItem>
             <form action="/logout" method="post">
               <input type="hidden" name="_csrf" value={user.csrf as string} />
               <DropdownMenuItem asChild variant="destructive">
