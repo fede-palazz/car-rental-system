@@ -33,7 +33,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.kafka:spring-kafka")
     //developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:11.7.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

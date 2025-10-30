@@ -44,8 +44,7 @@ class SecurityConfig {
         return httpSecurity
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/openapi/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                //auth.anyRequest().authenticated()
-                auth.anyRequest().permitAll()
+                auth.anyRequest().authenticated()
             }
             .oauth2ResourceServer {
                 it.jwt { jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()) }

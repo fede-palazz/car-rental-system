@@ -58,6 +58,7 @@ import java.time.temporal.ChronoUnit
 class ReservationServiceImpl(
     private val carModelService: CarModelService,
     private val vehicleService: VehicleService,
+    private val notificationService: NotificationService,
     private val vehicleRepository: VehicleRepository,
     private val reservationRepository: ReservationRepository,
     private val userManagementRestClient: RestClient,
@@ -743,11 +744,22 @@ class ReservationServiceImpl(
         val reservation = getReservationById(id)
         reservation.status = ReservationStatus.CONFIRMED
 
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+
+        val payload = ReservationEventDTO(
+            EventType.CONFIRMED,
+            reservation.toStaffReservationResDTO()
+        )
+
         try {
             kafkaTemplate.send(
                 "paypal.public.reservation-events",
-                ReservationEventDTO(EventType.CONFIRMED, reservation.toStaffReservationResDTO())
+                payload
             )
+            notificationService.sendReservationConfirmedEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload)
         } catch (ex: Exception) {
             logger.error("Failed to send reservation confirmed event", ex)
         }
@@ -870,5 +882,13 @@ class ReservationServiceImpl(
             }
             vehicleRepository.save(vehicle)
         }, runAt)
+    }
+
+    private fun getCustomerByUsername(username: String): UserResDTO? {
+        val token = getAccessToken()
+        return userManagementRestClient.get().uri("/username/{username}", username)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            ).retrieve().body<UserResDTO>()
     }
 }

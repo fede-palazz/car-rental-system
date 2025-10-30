@@ -36,6 +36,16 @@ dependencies {
     runtimeOnly("org.flywaydb:flyway-database-postgresql:11.7.2")
     implementation("org.springframework.kafka:spring-kafka")
 
+    // Spring Boot Email
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+
+    // Thymeleaf for email templates
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+
+    // Thymeleaf layout dialect (optional, but useful for email layouts)
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0")
+
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
