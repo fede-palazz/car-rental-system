@@ -64,7 +64,6 @@ export default function AddOrEditMaintenanceForm({
       true
     )
       .then((res: PagedResDTO<Reservation>) => {
-        console.log(res.content);
         setOverlappingReservations(res.content);
       })
       .catch((err: Error) => {

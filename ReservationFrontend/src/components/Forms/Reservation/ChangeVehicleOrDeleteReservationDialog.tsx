@@ -295,7 +295,6 @@ export default function ChangeVehicleOrDeleteReservationDialog() {
     //if (location.pathname !== `/reservations/${vehicleId}`) return;
     ReservationsAPI.getReservationById(Number(reservationId))
       .then((reservation: Reservation) => {
-        console.log(reservation);
         setReservation(reservation);
       })
       .catch((err: Error) => {

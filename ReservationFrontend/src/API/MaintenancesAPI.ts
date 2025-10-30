@@ -46,7 +46,6 @@ async function getMaintenancesByVehicleId(
     return localizeDates(res);
   } else {
     const errDetail = await response.json();
-    console.log(errDetail);
     if (Array.isArray(errDetail.errors)) {
       throw new Error(
         errDetail.errors[0].msg ||
@@ -96,7 +95,6 @@ async function createMaintenance(
   vehicleId: number,
   maintenanceDTO: MaintenanceReqDTO
 ): Promise<Maintenance> {
-  console.log(maintenanceDTO);
   const response = await fetch(baseURL + `vehicles/${vehicleId}/maintenances`, {
     method: "POST",
     credentials: "include",

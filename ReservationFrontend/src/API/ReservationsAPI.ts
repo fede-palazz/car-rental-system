@@ -204,7 +204,6 @@ async function deleteReservationById(id: number): Promise<null> {
     return null;
   } else {
     const errDetail = await response.json();
-    console.log(errDetail);
     if (Array.isArray(errDetail.errors)) {
       throw new Error(
         errDetail.errors[0].msg ||
@@ -509,7 +508,6 @@ async function getOverlappingReservationsByReservationId(
     return res;
   } else {
     const errDetail = await response.json();
-    console.log(errDetail);
     if (Array.isArray(errDetail.errors)) {
       throw new Error(
         errDetail.errors[0].msg ||

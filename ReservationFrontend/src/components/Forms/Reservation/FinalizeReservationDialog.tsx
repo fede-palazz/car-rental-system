@@ -128,7 +128,6 @@ export default function FinalizeReservationDialog() {
       true
     )
       .then((res: PagedResDTO<Reservation>) => {
-        console.log(res.content);
         setOverlappingReservations(res.content);
       })
       .catch((err: Error) => {

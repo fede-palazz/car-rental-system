@@ -40,7 +40,6 @@ export default function SetActualPickupDateDialog() {
   useEffect(() => {
     ReservationsAPI.getReservationById(Number(reservationId))
       .then((reservation: Reservation) => {
-        console.log(reservation);
         setReservation(reservation);
       })
       .catch((err: Error) => {

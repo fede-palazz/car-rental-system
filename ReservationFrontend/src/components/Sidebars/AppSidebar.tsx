@@ -38,7 +38,8 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
         ),
         isActive: true,
       },
-      ...(user && user.role != UserRole.CUSTOMER
+      ...(user &&
+      (user.role == UserRole.FLEET_MANAGER || user.role == UserRole.STAFF)
         ? [
             {
               title: "Vehicles",
@@ -64,7 +65,7 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
             },
           ]
         : []),
-      ...(user && user.role != UserRole.CUSTOMER
+      ...(user && user.role == UserRole.FLEET_MANAGER
         ? [
             {
               title: "Tracking",
@@ -77,7 +78,7 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
             },
           ]
         : []),
-      ...(user && user.role != UserRole.CUSTOMER
+      ...(user && user.role == UserRole.MANAGER
         ? [
             {
               title: "Analytics",

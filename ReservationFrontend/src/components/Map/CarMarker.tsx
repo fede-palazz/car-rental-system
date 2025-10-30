@@ -49,12 +49,9 @@ function CarMarker({
   useEffect(() => {
     if (!Number.isNaN(selectedVehicleId)) {
       const handleZoomStart = () => {
-        console.log("zoomSTART");
         setDisableAnimation(true);
       };
       const handleZoomEnd = () => {
-        console.log("zoomEND");
-
         setDisableAnimation(false);
       };
 
