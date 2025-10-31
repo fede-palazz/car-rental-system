@@ -2,6 +2,7 @@ package com.rentalcarsystem.reservationservice.repositories
 
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Vehicle
+import com.rentalcarsystem.reservationservice.models.VehicleVin
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -103,4 +104,15 @@ interface VehicleRepository : JpaRepository<Vehicle, Long>, JpaSpecificationExec
         @Param("start") start: LocalDateTime,
         @Param("end") end: LocalDateTime
     ): List<Vehicle>
+
+    @Query(
+        """
+        SELECT v.id, v.vin
+        FROM vehicles v
+        WHERE (:vin IS NULL OR v.vin ILIKE CONCAT(:vin, '%'))
+        ORDER BY v.vin
+        """,
+        nativeQuery = true
+    )
+    fun listVehiclesVin(@Param("vin") vin: String?): List<VehicleVin>
 }

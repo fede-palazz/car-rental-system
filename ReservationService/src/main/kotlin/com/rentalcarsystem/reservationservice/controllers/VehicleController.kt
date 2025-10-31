@@ -8,8 +8,10 @@ import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.VehicleResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
 import com.rentalcarsystem.reservationservice.filters.VehicleFilter
+import com.rentalcarsystem.reservationservice.models.VehicleVin
 import com.rentalcarsystem.reservationservice.services.VehicleService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -249,5 +251,25 @@ class VehicleController(private val vehicleService: VehicleService) {
         vehicleService.deleteVehicle(vehicleId)
         logger.info("Deleted vehicle {}", vehicleId)
         return ResponseEntity.noContent().build()
+    }
+
+    @Operation(
+        summary = "Get vehicles vin list",
+        description = "Retrieves the complete list of vehicles vin numbers filtered by the optional vin parameter",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(
+                    mediaType = "application/json",
+                    array = ArraySchema(
+                        schema = Schema(implementation = VehicleVin::class)
+                    )
+                )]
+            ),
+        ]
+    )
+    @GetMapping("/vin")
+    fun getVehiclesVin(@RequestParam(required = false) vin: String?): ResponseEntity<List<VehicleVin>> {
+        return ResponseEntity.ok(vehicleService.listVehiclesVin(vin))
     }
 }

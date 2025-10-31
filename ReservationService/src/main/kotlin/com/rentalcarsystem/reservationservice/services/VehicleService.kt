@@ -6,6 +6,7 @@ import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.VehicleResDTO
 import com.rentalcarsystem.reservationservice.filters.VehicleFilter
 import com.rentalcarsystem.reservationservice.models.Vehicle
+import com.rentalcarsystem.reservationservice.models.VehicleVin
 import jakarta.validation.Valid
 import java.time.LocalDateTime
 
@@ -33,4 +34,5 @@ interface VehicleService {
     fun updateVehicle(vehicleId: Long, @Valid vehicle: VehicleUpdateReqDTO): VehicleResDTO
     fun deleteVehicle(vehicleId: Long)
     fun deleteAllByCarModelId(carModelId: Long)
+    fun listVehiclesVin(vin: String?): List<VehicleVin>
 }

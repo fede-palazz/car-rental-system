@@ -15,6 +15,7 @@ import com.rentalcarsystem.reservationservice.filters.VehicleFilter
 import com.rentalcarsystem.reservationservice.kafka.VehicleEventDTO
 import com.rentalcarsystem.reservationservice.models.CarModel
 import com.rentalcarsystem.reservationservice.models.Vehicle
+import com.rentalcarsystem.reservationservice.models.VehicleVin
 import com.rentalcarsystem.reservationservice.repositories.CarModelRepository
 import com.rentalcarsystem.reservationservice.repositories.VehicleRepository
 import jakarta.persistence.criteria.Join
@@ -231,6 +232,10 @@ class VehicleServiceImpl(
 
     override fun deleteAllByCarModelId(carModelId: Long) {
         vehicleRepository.deleteAllByCarModelId(carModelId)
+    }
+
+    override fun listVehiclesVin(vin: String?): List<VehicleVin> {
+        return vehicleRepository.listVehiclesVin(vin)
     }
 
     @Transactional
