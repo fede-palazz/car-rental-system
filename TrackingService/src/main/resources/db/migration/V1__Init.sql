@@ -27,5 +27,18 @@ CREATE TABLE tracking_sessions
     CONSTRAINT pk_tracking_sessions PRIMARY KEY (id)
 );
 
+
+INSERT INTO tracking_sessions (
+    id, version, vehicle_id, reservation_id, customer_username, start_date, end_date
+) VALUES
+      (1, 1, 18, 559, 'customer2', '2025-10-30 16:00:00', NULL),
+      (2, 1, 17, 560, 'customer1', '2025-10-30 16:00:00', NULL),
+      (3, 1, 16, 561, 'customer1', '2025-10-30 16:00:00', NULL),
+      (4, 1, 15, 562, 'customer3', '2025-10-30 16:00:00', NULL),
+      (5, 1, 14, 563, 'customer2', '2025-10-30 16:00:00', NULL),
+      (6, 1, 13, 564, 'customer3', '2025-10-30 16:00:00', NULL);
+SELECT setval('tracking_sessions_seq', (SELECT MAX(id) FROM tracking_sessions));
+
+
 ALTER TABLE tracking_points
     ADD CONSTRAINT FK_TRACKING_POINTS_ON_TRACKINGSESSION FOREIGN KEY (tracking_session_id) REFERENCES tracking_sessions (id);

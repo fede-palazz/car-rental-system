@@ -343,7 +343,10 @@ function App() {
                 <Route
                   path="change-vehicle/:reservationId"
                   element={
-                    !user || (user && user.role != UserRole.STAFF) ? (
+                    !user ||
+                    (user &&
+                      user.role != UserRole.STAFF &&
+                      user.role != UserRole.FLEET_MANAGER) ? (
                       <Navigate to="/reservations"></Navigate>
                     ) : (
                       <ChangeVehicleOrDeleteReservationDialog />

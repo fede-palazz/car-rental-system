@@ -669,4 +669,30 @@ INSERT INTO reservations (
       (556, 'customer2', 16, '2025-03-18 18:00:00', '2025-03-19 04:00:00', '2025-03-19 05:00:00', '2025-03-28 04:00:00', '2025-03-28 06:00:00', '2025-03-29 06:00:00', 'DELIVERED', 474.48, FALSE, TRUE, FALSE, 4, 2, 'staff', 'staff', 'staff'),
       (557, 'customer1', 17, '2025-03-14 21:00:00', '2025-03-15 06:00:00', '2025-03-15 09:00:00', '2025-03-20 06:00:00', '2025-03-20 06:00:00', '2025-03-21 06:00:00', 'DELIVERED', 535.38, TRUE, FALSE, FALSE, 1, 4, 'staff', 'staff', 'staff'),
       (558, 'customer2', 18, '2025-03-02 07:00:00', '2025-03-02 15:00:00', '2025-03-02 16:00:00', '2025-03-07 15:00:00', '2025-03-07 16:00:00', '2025-03-08 16:00:00', 'DELIVERED', 818.0, TRUE, TRUE, FALSE, 4, 1, 'staff', 'staff', 'staff');
+
+
+
+
+INSERT INTO reservations (
+    id, customer_username, vehicle_id, creation_date,
+    planned_pick_up_date, actual_pick_up_date,
+    planned_drop_off_date, actual_drop_off_date,
+    buffered_drop_off_date, status, total_amount,
+    was_delivery_late, was_charged_fee, was_involved_in_accident,
+    damage_level, dirtiness_level, pick_up_staff_username, drop_off_staff_username, updated_vehicle_staff_username
+) VALUES
+      --RESERVATION ATTIVE
+    (559, 'customer2', 18, '2025-03-02 07:00:00', '2025-10-30 10:00:00', '2025-10-30 16:00:00', '2025-11-04 16:00:00', NULL, '2025-11-04 16:00:00', 'PICKED_UP', 818.0, NULL, NULL, NULL, NULL, NULL, 'staff', NULL, NULL),
+    (560, 'customer1', 17, '2025-03-02 07:00:00', '2025-10-30 10:00:00', '2025-10-30 16:00:00', '2025-11-04 16:00:00', NULL, '2025-11-04 16:00:00', 'PICKED_UP', 900.0, NULL, NULL, NULL, NULL, NULL, 'staff', NULL, NULL),
+    (561, 'customer1', 16, '2025-03-02 07:00:00', '2025-10-30 10:00:00', '2025-10-30 16:00:00', '2025-11-04 16:00:00', NULL, '2025-11-04 16:00:00', 'PICKED_UP', 900.0, NULL, NULL, NULL, NULL, NULL, 'staff', NULL, NULL),
+    (562, 'customer3', 15, '2025-03-02 07:00:00', '2025-10-30 10:00:00', '2025-10-30 16:00:00', '2025-11-04 16:00:00', NULL, '2025-11-04 16:00:00', 'PICKED_UP', 900.0, NULL, NULL, NULL, NULL, NULL, 'staff', NULL, NULL),
+    (563, 'customer2', 14, '2025-03-02 07:00:00', '2025-10-30 10:00:00', '2025-10-30 16:00:00', '2025-11-04 16:00:00', NULL, '2025-11-04 16:00:00', 'PICKED_UP', 900.0, NULL, NULL, NULL, NULL, NULL, 'staff', NULL, NULL),
+    --RESERVATION PER FINALIZE
+    (564, 'customer3', 13, '2025-03-02 07:00:00', '2025-10-30 10:00:00', '2025-10-30 16:00:00', '2025-10-31 09:00:00', NULL, '2025-11-02 09:00:00', 'PICKED_UP', 900.0, NULL, NULL, NULL, NULL, NULL, 'staff', NULL, NULL),
+    --RESERVATION PER PICKUP
+    (565, 'customer2', 12, '2025-03-02 07:00:00', '2025-10-30 10:00:00', NULL, '2025-11-10 09:00:00', NULL, '2025-11-12 09:00:00', 'CONFIRMED', 900.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    --RESERVATION POST FINALIZE PER VEICOLO 13
+      (566, 'customer1', 13, '2025-03-02 07:00:00', '2025-11-03 08:00:00', NULL, '2025-11-30 09:00:00', NULL, '2025-12-02 09:00:00', 'CONFIRMED', 900.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+
 SELECT setval('reservations_seq', (SELECT MAX(id) FROM reservations));

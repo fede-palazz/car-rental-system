@@ -672,7 +672,8 @@ function ReservationsPage() {
                 Actions
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {user?.role == UserRole.STAFF && (
+              {(user?.role == UserRole.STAFF ||
+                user?.role == UserRole.FLEET_MANAGER) && (
                 <DropdownMenuGroup>
                   <DropdownMenuItem
                     className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
@@ -709,10 +710,9 @@ function ReservationsPage() {
                   <DropdownMenuItem
                     className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
                     disabled={
-                      (cancelledOrExpired ||
-                        !!reservation.actualDropOffDate ||
-                        !reservation.actualPickUpDate) &&
-                      false
+                      cancelledOrExpired ||
+                      !!reservation.actualDropOffDate ||
+                      !reservation.actualPickUpDate
                     }
                     onClick={(e) => {
                       e.stopPropagation();
