@@ -72,7 +72,7 @@ function ReservationsPage() {
   });
   const [order, setOrder] = useState<string>("desc");
   const [sort, setSort] = useState<string>("plannedPickUpDate");
-  const [pageSize, setPageSize] = useState<number>(9);
+  const [pageSize, setPageSize] = useState<number>(15);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
 

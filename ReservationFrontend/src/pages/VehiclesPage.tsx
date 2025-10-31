@@ -35,7 +35,7 @@ const VehiclesPage = () => {
   });
   const [order, setOrder] = useState<string>("asc");
   const [sort, setSort] = useState<string>("vin");
-  const [pageSize, setPageSize] = useState<number>(9);
+  const [pageSize, setPageSize] = useState<number>(15);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
   const columns: ColumnDef<Vehicle>[] = [

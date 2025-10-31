@@ -187,12 +187,15 @@ VALUES (1, 1),
        (10, 4),
        (10, 10);
 
--- Vehicles (15)
+-- Vehicles (18)
 INSERT INTO vehicles (id, license_plate, vin, car_model_id, status, km_travelled, pending_cleaning)
 VALUES
 -- Vehicles for Car Model ID 1
 (1, 'ABC1234', '1HGCM82633A000001', 1, 'AVAILABLE', 25000.0, FALSE),
 (2, 'XYZ5678', '2T1BURHE9JC000002', 1, 'AVAILABLE', 60000.0, FALSE),
+(16, 'IERD928', '93ND9ALKG83NS9AK', 1, 'AVAILABLE', 500.0, FALSE),
+(17, 'AFRD928', '93ND9PWOD83NS9AK', 1, 'AVAILABLE', 900.0, FALSE),
+
 
 -- Vehicles for Car Model ID 2
 (3, 'JKL9012', '3VWFE21C04M000003', 2, 'AVAILABLE', 120000.0, TRUE),
@@ -213,6 +216,8 @@ VALUES
 
 -- Vehicles for Car Model ID 7
 (10, 'YZA8765', '1J4FA39S34P000010', 7, 'AVAILABLE', 12000.0, FALSE),
+(18, 'AFO3498', 'PWRD9PWO205HS9AK', 7, 'AVAILABLE', 1000.0, FALSE),
+
 
 -- Vehicles for Car Model ID 8
 (11, 'BCD5432', '3D7MX48A77G000011', 8, 'AVAILABLE', 103000.0, TRUE),
@@ -228,24 +233,24 @@ SELECT setval('vehicles_seq', (SELECT MAX(id) FROM vehicles));
 
 -- Notes
 INSERT INTO notes (id, content, author, date, vehicle_id)
-VALUES (1, 'Routine check completed. No issues found.', 'John Doe', '2024-03-01 10:15:30'::timestamp, 1),
-       (2, 'Customer reported unusual noise from the engine.', 'Jane Smith', '2024-03-02 14:30:45'::timestamp, 5),
-       (3, 'Oil and filter changed during scheduled maintenance.', 'Mike Johnson', '2024-03-02 14:30:45'::timestamp,
+VALUES (1, 'Routine check completed. No issues found.', 'staff', '2024-03-01 10:15:30'::timestamp, 1),
+       (2, 'Customer reported unusual noise from the engine.', 'Olivia Taylor', '2024-03-02 14:30:45'::timestamp, 5),
+       (3, 'Oil and filter changed during scheduled maintenance.', 'fleetmanager', '2024-03-02 14:30:45'::timestamp,
         12),
-       (4, 'Minor scratches on the front bumper noted.', 'Emily Davis', '2024-03-04 11:10:00'::timestamp, 8),
+       (4, 'Minor scratches on the front bumper noted.', 'staff', '2024-03-04 11:10:00'::timestamp, 8),
        (5, 'Vehicle returned with a low fuel level. Reminder to refuel before next rental.', 'David Brown',
         '2024-03-05 16:45:22'::timestamp, 15),
-       (6, 'Tires replaced after reaching wear limit.', 'Chris Wilson', '2024-03-06 08:05:55'::timestamp, 11),
-       (7, 'Battery issue reported, testing required.', 'Sophia Martinez', '2024-03-07 12:30:40'::timestamp, 7),
+       (6, 'Tires replaced after reaching wear limit.', 'staff', '2024-03-06 08:05:55'::timestamp, 11),
+       (7, 'Battery issue reported, testing required.', 'staff', '2024-03-07 12:30:40'::timestamp, 7),
        (8, 'Windshield wipers replaced.', 'James Anderson', '2024-03-08 14:55:10'::timestamp, 4),
-       (9, 'Brake pads worn out, scheduled for replacement.', 'Olivia Taylor', '2024-03-09 17:20:30'::timestamp, 1),
-       (10, 'Customer feedback: Excellent ride quality.', 'Daniel Thomas', '2024-03-10 13:10:00'::timestamp, 5),
-       (11, 'Interior cleaning required after last rental.', 'Emma Harris', '2024-03-11 18:40:25'::timestamp, 11),
-       (12, 'Check engine light turned on, diagnosing issue.', 'Michael Robinson', '2024-03-12 07:50:15'::timestamp,
+       (9, 'Brake pads worn out, scheduled for replacement.', 'staff', '2024-03-09 17:20:30'::timestamp, 1),
+       (10, 'Customer feedback: Excellent ride quality.', 'fleetmanager', '2024-03-10 13:10:00'::timestamp, 5),
+       (11, 'Interior cleaning required after last rental.', 'fleetmanager', '2024-03-11 18:40:25'::timestamp, 11),
+       (12, 'Check engine light turned on, diagnosing issue.', 'staff', '2024-03-12 07:50:15'::timestamp,
         4),
-       (13, 'Vehicle returned with minor dent on rear door.', 'Charlotte White', '2024-03-13 10:25:30'::timestamp, 3),
-       (14, 'Navigation system needs an update.', 'Benjamin Lewis', '2024-03-14 16:10:55'::timestamp, 8),
-       (15, 'New air freshener added after deep cleaning.', 'Mia Walker', '2024-03-15 12:00:00'::timestamp,
+       (13, 'Vehicle returned with minor dent on rear door.', 'staff', '2024-03-13 10:25:30'::timestamp, 3),
+       (14, 'Navigation system needs an update.', 'staff', '2024-03-14 16:10:55'::timestamp, 8),
+       (15, 'New air freshener added after deep cleaning.', 'fleetmanager', '2024-03-15 12:00:00'::timestamp,
         15);
 SELECT setval('notes_seq', (SELECT MAX(id) FROM notes));
 
