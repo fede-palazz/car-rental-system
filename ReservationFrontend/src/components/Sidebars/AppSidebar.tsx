@@ -28,16 +28,21 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
   const data = {
     user: user,
     navMain: [
-      {
-        title: user && user.role != UserRole.CUSTOMER ? "Car Models" : "Home",
-        url: "/models",
-        icon: (
-          <span className="material-symbols-outlined items-center md-18">
-            directions_car
-          </span>
-        ),
-        isActive: true,
-      },
+      ...((user && user.role != UserRole.MANAGER) || !user
+        ? [
+            {
+              title:
+                user && user.role != UserRole.CUSTOMER ? "Car Models" : "Home",
+              url: "/models",
+              icon: (
+                <span className="material-symbols-outlined items-center md-18">
+                  directions_car
+                </span>
+              ),
+              isActive: true,
+            },
+          ]
+        : []),
       ...(user &&
       (user.role == UserRole.FLEET_MANAGER || user.role == UserRole.STAFF)
         ? [
