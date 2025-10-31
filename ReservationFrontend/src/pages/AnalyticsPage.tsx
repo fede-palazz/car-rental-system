@@ -4,6 +4,7 @@ import { ThemeToggler } from "@/components/ThemeToggler";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ReservationsAmountChartCard from "@/components/Analytics/ReservationsAmountChartCard";
 import ReservationsCountChartCard from "@/components/Analytics/ReservationsCountChartCard";
+import VehiclesKmTravelledChartCard from "@/components/Analytics/VehiclesKmTravelledChartCard";
 
 function AnalyticsPage() {
   return (
@@ -28,6 +29,9 @@ function AnalyticsPage() {
           </div>
           <div className="col-span-full">
             <ReservationsCountChartCard></ReservationsCountChartCard>
+          </div>
+          <div className="col-span-full">
+            <VehiclesKmTravelledChartCard></VehiclesKmTravelledChartCard>
           </div>
         </div>
       </div>

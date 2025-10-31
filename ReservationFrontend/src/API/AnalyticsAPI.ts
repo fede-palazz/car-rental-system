@@ -84,7 +84,7 @@ async function getVehicleKmTravelled(
   desiredEndDate: Date = new Date(),
   average: boolean = false,
   granularity: "DAY" | "MONTH" | "YEAR"
-): Promise<VehiclesKmTravelledAnalytics> {
+): Promise<VehiclesKmTravelledAnalytics[]> {
   const queryParams = `desiredStart=${desiredStartDate?.toISOString()}&desiredEnd=${desiredEndDate?.toISOString()}&average=${average}&granularity=${granularity}`;
 
   const response = await fetch(

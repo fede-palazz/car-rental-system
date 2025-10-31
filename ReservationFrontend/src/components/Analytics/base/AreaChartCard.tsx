@@ -25,6 +25,21 @@ import {
 import { SumAndAverageAreaChartData } from "@/models/analytics/SumAndAverageAreaChartData";
 import { DateRange } from "react-day-picker";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 export function AreaChartCard({
   title,
@@ -36,6 +51,11 @@ export function AreaChartCard({
   dateRange,
   setDateRange,
   yAxeUnit,
+  availableDropdownAlternatives = undefined,
+  selectedAlternative = undefined,
+  dropdownFilter = undefined,
+  setDropdownFilter = undefined,
+  setSelectedAlternative = undefined,
 }: {
   title: string;
   subtitle?: string | undefined;
@@ -46,6 +66,11 @@ export function AreaChartCard({
   dateRange: DateRange;
   setDateRange: (value: DateRange) => void;
   yAxeUnit: "EURO" | "COUNT";
+  availableDropdownAlternatives?: string[] | undefined;
+  selectedAlternative?: string | undefined;
+  dropdownFilter?: string | undefined;
+  setDropdownFilter: ((newFilter: string) => void) | undefined;
+  setSelectedAlternative: ((newSelection: string) => void) | undefined;
 }) {
   const dateTickerFormatter = (value: any) => {
     const date = new Date(value);
@@ -76,6 +101,78 @@ export function AreaChartCard({
           <CardDescription>{subtitle && subtitle}</CardDescription>
         </div>
         <div className="flex items-end gap-5">
+          {availableDropdownAlternatives != undefined &&
+            setSelectedAlternative != undefined &&
+            setDropdownFilter != undefined && (
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Vehicle Vin
+                </label>
+                <Popover modal>
+                  <PopoverTrigger asChild>
+                    <Button
+                      size="lg"
+                      variant="ghost"
+                      role="combobox"
+                      className={cn(
+                        "text-foreground border border-input font-normal justify-between flex px-1.5",
+                        !selectedAlternative && " text-muted-foreground"
+                      )}>
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined items-center md-18 text-muted-foreground">
+                          directions_car
+                        </span>
+                        {selectedAlternative
+                          ? selectedAlternative
+                          : "Select Vehicle"}
+                      </span>
+                      <span className="material-symbols-outlined items-center md-18">
+                        expand_all
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 bg-input">
+                    <Command>
+                      <CommandInput
+                        value={dropdownFilter}
+                        onValueChange={(value) => {
+                          setDropdownFilter(value);
+                        }}
+                        placeholder="Search vin"
+                        className="h-9"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No Vin found.</CommandEmpty>
+                        <CommandGroup>
+                          {availableDropdownAlternatives.map(
+                            (alternative: string) => (
+                              <CommandItem
+                                value={alternative}
+                                key={alternative}
+                                onSelect={() => {
+                                  setSelectedAlternative(alternative);
+                                }}>
+                                {alternative}
+                                <span
+                                  className={cn(
+                                    "ml-auto",
+                                    alternative === selectedAlternative
+                                      ? "opacity-100"
+                                      : "opacity-0",
+                                    "material-symbols-outlined md-18"
+                                  )}>
+                                  check
+                                </span>
+                              </CommandItem>
+                            )
+                          )}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
           <div className="flex items-end gap-5">
             <div className="flex flex-col">
               <label className="block text-sm font-medium text-muted-foreground mb-2">
@@ -156,7 +253,7 @@ export function AreaChartCard({
       <CardContent className="pe-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full">
+          className="aspect-auto h-[300px] w-full">
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="fillSum" x1="0" y1="0" x2="0" y2="1">
@@ -201,7 +298,7 @@ export function AreaChartCard({
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickCount={5}
+              tickCount={4}
               domain={["auto", "datamax+1"]}
               tickFormatter={(value) => {
                 if (yAxeUnit === "EURO") {
@@ -227,7 +324,7 @@ export function AreaChartCard({
             />
             <Area
               dataKey="sum"
-              type="linear"
+              type="monotone"
               fill="url(#fillSum)"
               stroke="var(--color-sum)"
             />
