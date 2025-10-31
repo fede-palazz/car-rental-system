@@ -3,7 +3,6 @@ import { ReservationsCountAnalytics } from "@/models/analytics/ReservationsCount
 import { ReservationsTotalAmountAnalytics } from "@/models/analytics/ReservationsTotalAmountAnalytics";
 import { VehiclesKmTravelledAnalytics } from "@/models/analytics/VehicleKmTravelledAnalytics";
 import { VehicleStatusesAnalytics } from "@/models/analytics/VehicleStatusesAnalytics";
-import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/analytics-service/";
 
@@ -100,7 +99,7 @@ async function getVehicleKmTravelled(
   );
   if (response.ok) {
     const res = await response.json();
-    return localizeDates(res);
+    return res;
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -138,7 +137,7 @@ async function getReservationsAmount(
   );
   if (response.ok) {
     const res = await response.json();
-    return localizeDates(res);
+    return res;
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -176,7 +175,7 @@ async function getReservationsCount(
   );
   if (response.ok) {
     const res = await response.json();
-    return localizeDates(res);
+    return res;
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
