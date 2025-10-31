@@ -1,6 +1,6 @@
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import DefaultCar from "@/assets/defaultCarModel.png";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import VehicleAPI from "@/API/VehiclesAPI";
@@ -31,8 +31,11 @@ import {
 } from "@/components/ui/card";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import UserContext from "@/contexts/UserContext";
+import { UserRole } from "@/models/enums/UserRole";
 
 function VehicleDetailsPage() {
+  const user = useContext(UserContext);
   const navigate = useNavigate();
   const location = useLocation();
   const { vehicleId } = useParams<{
@@ -107,26 +110,30 @@ function VehicleDetailsPage() {
             <div className="flex flex-col min-h-full max-h-full pt-2 w-full h-full overflow-auto">
               <h2 className="text-3xl text-center font-extrabold">Details</h2>
               <VehicleDetailsList vehicle={vehicle}></VehicleDetailsList>
-              <div className="grid grid-cols-2 items-center h-full justify-center w-full gap-4 mt-8">
-                <Button
-                  variant="destructive"
-                  size="lg"
-                  className="w-1/2 justify-self-center"
-                  onClick={() => navigate("delete")}>
-                  <span className="material-symbols-outlined md-18">
-                    delete
-                  </span>
-                  Delete
-                </Button>
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="w-1/2 justify-self-center"
-                  onClick={() => navigate("edit")}>
-                  <span className="material-symbols-outlined md-18">edit</span>
-                  Edit
-                </Button>
-              </div>
+              {user && user.role == UserRole.FLEET_MANAGER && (
+                <div className="grid grid-cols-2 items-center h-full justify-center w-full gap-4 mt-8">
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    className="w-1/2 justify-self-center"
+                    onClick={() => navigate("delete")}>
+                    <span className="material-symbols-outlined md-18">
+                      delete
+                    </span>
+                    Delete
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="lg"
+                    className="w-1/2 justify-self-center"
+                    onClick={() => navigate("edit")}>
+                    <span className="material-symbols-outlined md-18">
+                      edit
+                    </span>
+                    Edit
+                  </Button>
+                </div>
+              )}
               <Separator
                 orientation="horizontal"
                 className="block mt-4"></Separator>
@@ -136,14 +143,18 @@ function VehicleDetailsPage() {
                     <h3 className="text-xl text-center font-bold">
                       Maintenances
                     </h3>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("add-maintenance")}
-                      className="w-6 h-6 min-w-0 min-h-0 p-0">
-                      <span className="material-symbols-outlined md-18">
-                        add
-                      </span>
-                    </Button>
+                    {user &&
+                      (user.role == UserRole.FLEET_MANAGER ||
+                        user.role == UserRole.STAFF) && (
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate("add-maintenance")}
+                          className="w-6 h-6 min-w-0 min-h-0 p-0">
+                          <span className="material-symbols-outlined md-18">
+                            add
+                          </span>
+                        </Button>
+                      )}
                   </div>
                   <Carousel className="flex items-center grow justify-center w-full">
                     {maintenances.length > 0 && (
@@ -239,46 +250,49 @@ function VehicleDetailsPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      variant="destructive"
-                                      size="icon"
-                                      className=" justify-self-center"
-                                      onClick={() => {
-                                        navigate(
-                                          `delete-maintenance/${maintenance.id}`
-                                        );
-                                      }}>
-                                      <span className="material-symbols-outlined md-18">
-                                        delete
-                                      </span>
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="justify-self-center"
-                                      onClick={() =>
-                                        navigate(
-                                          `edit-maintenance/${maintenance.id}`
-                                        )
-                                      }>
-                                      <span className="material-symbols-outlined md-18">
-                                        edit
-                                      </span>
-                                    </Button>
-                                    <Button
-                                      size="icon"
-                                      className="justify-self-center"
-                                      onClick={() =>
-                                        navigate(
-                                          `finalize-maintenance/${maintenance.id}`
-                                        )
-                                      }>
-                                      <span className="material-symbols-outlined md-18">
-                                        handshake
-                                      </span>
-                                    </Button>
-                                  </div>
+                                  {user &&
+                                    user.role == UserRole.FLEET_MANAGER && (
+                                      <div className="flex justify-end gap-2">
+                                        <Button
+                                          variant="destructive"
+                                          size="icon"
+                                          className=" justify-self-center"
+                                          onClick={() => {
+                                            navigate(
+                                              `delete-maintenance/${maintenance.id}`
+                                            );
+                                          }}>
+                                          <span className="material-symbols-outlined md-18">
+                                            delete
+                                          </span>
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="justify-self-center"
+                                          onClick={() =>
+                                            navigate(
+                                              `edit-maintenance/${maintenance.id}`
+                                            )
+                                          }>
+                                          <span className="material-symbols-outlined md-18">
+                                            edit
+                                          </span>
+                                        </Button>
+                                        <Button
+                                          size="icon"
+                                          className="justify-self-center"
+                                          onClick={() =>
+                                            navigate(
+                                              `finalize-maintenance/${maintenance.id}`
+                                            )
+                                          }>
+                                          <span className="material-symbols-outlined md-18">
+                                            handshake
+                                          </span>
+                                        </Button>
+                                      </div>
+                                    )}
                                 </CardContent>
                               </Card>
                             </CarouselItem>
@@ -343,30 +357,32 @@ function VehicleDetailsPage() {
                                       {note.content}
                                     </p>
                                   </div>
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className=" justify-self-center"
-                                      onClick={() => {
-                                        navigate(`delete-note/${note.id}`);
-                                      }}>
-                                      <span className="material-symbols-outlined md-18">
-                                        delete
-                                      </span>
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="justify-self-center"
-                                      onClick={() =>
-                                        navigate(`edit-note/${note.id}`)
-                                      }>
-                                      <span className="material-symbols-outlined md-18">
-                                        edit
-                                      </span>
-                                    </Button>
-                                  </div>
+                                  {user && note.author == user.username && (
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className=" justify-self-center"
+                                        onClick={() => {
+                                          navigate(`delete-note/${note.id}`);
+                                        }}>
+                                        <span className="material-symbols-outlined md-18">
+                                          delete
+                                        </span>
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="justify-self-center"
+                                        onClick={() =>
+                                          navigate(`edit-note/${note.id}`)
+                                        }>
+                                        <span className="material-symbols-outlined md-18">
+                                          edit
+                                        </span>
+                                      </Button>
+                                    </div>
+                                  )}
                                 </CardContent>
                               </Card>
                             </CarouselItem>

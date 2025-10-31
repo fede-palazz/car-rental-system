@@ -144,7 +144,9 @@ export default function AddReservationDialog({
   const handleCreate = (values: ReservationCreateDTO) => {
     ReservationsAPI.createReservation(values)
       .then(() => {
-        toast.success("Reservation successfull");
+        toast.success(
+          "Reservation successfull, navigate to reservations page to confirm it"
+        );
         navigate(-1);
       })
       .catch((err: Error) => {

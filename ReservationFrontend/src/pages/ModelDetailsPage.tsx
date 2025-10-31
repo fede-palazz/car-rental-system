@@ -80,7 +80,7 @@ function ModelDetailsPage() {
                   </span>
                 </p>
                 <div className="flex flex-col gap-4 items-center pt-auto">
-                  {user && user.role != UserRole.CUSTOMER ? (
+                  {user && user.role == UserRole.FLEET_MANAGER ? (
                     <>
                       <Button
                         variant="destructive"
@@ -104,17 +104,20 @@ function ModelDetailsPage() {
                       </Button>
                     </>
                   ) : (
-                    <Button
-                      disabled={!user}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("reserve");
-                      }}>
-                      <span className="material-symbols-outlined md-18">
-                        event_upcoming
-                      </span>
-                      {user ? "Reserve" : "Login to reserve"}
-                    </Button>
+                    user &&
+                    user.role == UserRole.CUSTOMER && (
+                      <Button
+                        disabled={!user}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate("reserve");
+                        }}>
+                        <span className="material-symbols-outlined md-18">
+                          event_upcoming
+                        </span>
+                        {user ? "Reserve" : "Login to reserve"}
+                      </Button>
+                    )
                   )}
                 </div>
               </div>

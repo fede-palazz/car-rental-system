@@ -307,7 +307,7 @@ function CarModelsPage({
                 </span>
                 Filters
               </Button>
-              {user && user.role !== UserRole.CUSTOMER && (
+              {user && user.role == UserRole.FLEET_MANAGER && (
                 <Button
                   variant="default"
                   size="lg"
@@ -373,7 +373,7 @@ function CarModelsPage({
                       </CardContent>
                       <CardFooter>
                         <div className="flex gap-3">
-                          {user && user.role !== UserRole.CUSTOMER ? (
+                          {user && user.role == UserRole.FLEET_MANAGER ? (
                             <>
                               <Button
                                 variant="destructive"

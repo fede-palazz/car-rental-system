@@ -638,122 +638,124 @@ function ReservationsPage() {
     },
   ];
 
-  const columns: ColumnDef<Reservation>[] = [
-    ...(user && user.role !== UserRole.CUSTOMER ? [staffColumns[0]] : []),
-    ...baseColumns,
-    ...(user && user.role !== UserRole.CUSTOMER ? staffColumns.slice(1) : []),
-    {
-      id: "actions",
-      header: () => (
-        <div className=" text-center flex items-center justify-center">
-          Actions
-        </div>
-      ),
-      cell: ({ row }) => {
-        const reservation = row.original;
+  const actions: ColumnDef<Reservation> = {
+    id: "actions",
+    header: () => (
+      <div className=" text-center flex items-center justify-center">
+        Actions
+      </div>
+    ),
+    cell: ({ row }) => {
+      const reservation = row.original;
 
-        const cancelledOrExpired =
-          reservation.status == ReservationStatus.CANCELLED ||
-          reservation.status == ReservationStatus.EXPIRED;
+      const cancelledOrExpired =
+        reservation.status == ReservationStatus.CANCELLED ||
+        reservation.status == ReservationStatus.EXPIRED;
 
-        return (
-          <div className="flex justify-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0 ">
-                  <span className="sr-only">Open menu</span>
-                  <span className="material-symbols-outlined md-18">
-                    more_horiz
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="min-w-56 rounded-lg p-2"
-                side={"bottom"}
-                align="end"
-                sideOffset={4}>
-                <DropdownMenuLabel className="font-extrabold text-center">
-                  Actions
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {user?.role !== UserRole.CUSTOMER && (
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem
-                      className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
-                      disabled={
-                        cancelledOrExpired ||
-                        reservation.actualPickUpDate != undefined ||
-                        (reservation.plannedPickUpDate &&
-                          reservation.plannedPickUpDate < new Date())
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`change-vehicle/${reservation.id}`);
-                      }}>
-                      <span className="material-symbols-outlined md-18">
-                        edit_road
-                      </span>
-                      Change Vehicle
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
-                      disabled={
-                        cancelledOrExpired ||
-                        reservation.actualPickUpDate != undefined
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`pick-up-date/${reservation.id}`);
-                      }}>
-                      <span className="material-symbols-outlined md-18">
-                        event_available
-                      </span>
-                      Start
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
-                      disabled={
-                        (cancelledOrExpired ||
-                          !!reservation.actualDropOffDate ||
-                          !reservation.actualPickUpDate) &&
-                        false
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`finalize/${reservation.id}`);
-                      }}>
-                      <span className="material-symbols-outlined md-18">
-                        handshake
-                      </span>
-                      Finalize
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                )}
+      return (
+        <div className="flex justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0 ">
+                <span className="sr-only">Open menu</span>
+                <span className="material-symbols-outlined md-18">
+                  more_horiz
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="min-w-56 rounded-lg p-2"
+              side={"bottom"}
+              align="end"
+              sideOffset={4}>
+              <DropdownMenuLabel className="font-extrabold text-center">
+                Actions
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {user?.role == UserRole.STAFF && (
                 <DropdownMenuGroup>
                   <DropdownMenuItem
-                    variant="destructive"
                     className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
                     disabled={
+                      cancelledOrExpired ||
                       reservation.actualPickUpDate != undefined ||
                       (reservation.plannedPickUpDate &&
                         reservation.plannedPickUpDate < new Date())
                     }
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`delete/${reservation.id}`);
+                      navigate(`change-vehicle/${reservation.id}`);
                     }}>
                     <span className="material-symbols-outlined md-18">
-                      delete
+                      edit_road
                     </span>
-                    Cancel
+                    Change Vehicle
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                    disabled={
+                      cancelledOrExpired ||
+                      reservation.actualPickUpDate != undefined
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`pick-up-date/${reservation.id}`);
+                    }}>
+                    <span className="material-symbols-outlined md-18">
+                      event_available
+                    </span>
+                    Start
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                    disabled={
+                      (cancelledOrExpired ||
+                        !!reservation.actualDropOffDate ||
+                        !reservation.actualPickUpDate) &&
+                      false
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`finalize/${reservation.id}`);
+                    }}>
+                    <span className="material-symbols-outlined md-18">
+                      handshake
+                    </span>
+                    Finalize
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
-      },
+              )}
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  variant="destructive"
+                  className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                  disabled={
+                    reservation.actualPickUpDate != undefined ||
+                    (reservation.plannedPickUpDate &&
+                      reservation.plannedPickUpDate < new Date())
+                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`delete/${reservation.id}`);
+                  }}>
+                  <span className="material-symbols-outlined md-18">
+                    delete
+                  </span>
+                  Cancel
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
     },
+  };
+
+  const columns: ColumnDef<Reservation>[] = [
+    ...(user && user.role !== UserRole.CUSTOMER ? [staffColumns[0]] : []),
+    ...baseColumns,
+    ...(user && user.role !== UserRole.CUSTOMER ? staffColumns.slice(1) : []),
+    ...(user && user.role !== UserRole.MANAGER ? [actions] : []),
   ];
 
   return (

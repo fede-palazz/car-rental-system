@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { CarStatus, Vehicle } from "@/models/Vehicle";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "@/components/ui/data-table";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { toast } from "sonner";
+import UserContext from "@/contexts/UserContext";
+import { UserRole } from "@/models/enums/UserRole";
 
 const VehiclesPage = () => {
+  const user = useContext(UserContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [vehicles, setVehicles] = useState<Vehicle[] | undefined>(undefined);
@@ -262,24 +265,30 @@ const VehiclesPage = () => {
               }}>
               <span className="material-symbols-outlined md-18">info</span>
             </Button>
-            <Button
-              variant="destructive"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`delete/${vehicle.id}`);
-              }}>
-              <span className="material-symbols-outlined md-18">delete</span>
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`edit/${vehicle.id}`);
-              }}>
-              <span className="material-symbols-outlined md-18">edit</span>
-            </Button>
+            {user && user.role == UserRole.FLEET_MANAGER && (
+              <>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`delete/${vehicle.id}`);
+                  }}>
+                  <span className="material-symbols-outlined md-18">
+                    delete
+                  </span>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`edit/${vehicle.id}`);
+                  }}>
+                  <span className="material-symbols-outlined md-18">edit</span>
+                </Button>
+              </>
+            )}
           </div>
         );
       },
