@@ -466,67 +466,15 @@
   "webAuthnPolicyPasswordlessAcceptableAaguids" : [ ],
   "webAuthnPolicyPasswordlessExtraOrigins" : [ ],
   "users" : [ {
-    "id" : "ab89168b-3bea-4841-8211-cc9b10ea07e0",
-    "username" : "acab",
-    "firstName" : "acab",
-    "lastName" : "acab",
-    "email" : "acab@gmail.com",
-    "emailVerified" : false,
-    "attributes" : {
-      "phone" : [ "wefwef" ],
-      "address" : [ "wefwefwe" ]
-    },
-    "createdTimestamp" : 1759873365764,
-    "enabled" : true,
-    "totp" : false,
-    "credentials" : [ {
-      "id" : "4390d19b-f33d-4d89-967e-bcfd96bc3ec9",
-      "type" : "password",
-      "createdDate" : 1759873365807,
-      "secretData" : "{\"value\":\"Zftq6CMlZ+rZ7SJ+fmSbx7BlPzl1uL8ER8cSRKmj5l0=\",\"salt\":\"HYryDxEisA71utp9YjZjZA==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-car-rental-realm" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "44ef039b-f2f5-4ce7-81b7-4ff450a95b63",
-    "username" : "bellouser",
-    "firstName" : "bello",
-    "lastName" : "bello",
-    "email" : "bellaemail@bello.com",
-    "emailVerified" : false,
-    "attributes" : {
-      "phone" : [ "1234" ],
-      "address" : [ "bellacasa" ]
-    },
-    "createdTimestamp" : 1760777232775,
-    "enabled" : true,
-    "totp" : false,
-    "credentials" : [ {
-      "id" : "93be578d-bb01-4cfc-acd9-c29c935ece58",
-      "type" : "password",
-      "createdDate" : 1760777233048,
-      "secretData" : "{\"value\":\"534lVwlcVzG6EWX6NryposrFQPdqmYOV65SGFthaeZE=\",\"salt\":\"eKB+GrfoWTvWKyDQzUJsyA==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-car-rental-realm", "CUSTOMER" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
     "id" : "e11c4305-7558-47d8-87bf-459762b821d7",
     "username" : "customer1",
-    "firstName" : "Customer1",
-    "lastName" : "Customer1 Surname",
+    "firstName" : "Mario",
+    "lastName" : "Rossi",
     "email" : "customer1@gmail.com",
     "emailVerified" : false,
     "attributes" : {
-      "phone" : [ "47198274" ],
-      "address" : [ "nfodsfsloa" ]
+      "phone" : [ "+393244896743" ],
+      "address" : [ "Via Verdi 22" ]
     },
     "createdTimestamp" : 1748542154262,
     "enabled" : true,
@@ -547,10 +495,14 @@
   }, {
     "id" : "b2eb77e4-28b4-4af0-943a-79c1b687405d",
     "username" : "customer2",
-    "firstName" : "Customer2",
-    "lastName" : "Customer2 Surname",
+    "firstName" : "Paolo",
+    "lastName" : "Bianchi",
     "email" : "customer2@gmail.com",
     "emailVerified" : false,
+    "attributes" : {
+      "phone" : [ "+39333879645293" ],
+      "address" : [ "Via Rossi 34" ]
+    },
     "createdTimestamp" : 1748542879418,
     "enabled" : true,
     "totp" : false,
@@ -568,12 +520,43 @@
     "notBefore" : 0,
     "groups" : [ ]
   }, {
+    "id" : "50dc732c-8925-4056-a573-f068b74efcf5",
+    "username" : "customer3",
+    "firstName" : "Francesco",
+    "lastName" : "Verdi",
+    "email" : "customer3@gmail.com",
+    "emailVerified" : false,
+    "attributes" : {
+      "phone" : [ "+39867546992" ],
+      "address" : [ "Via Bianchi 57" ]
+    },
+    "createdTimestamp" : 1761908497100,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "018453bc-ec98-4412-acd7-557a389b0ee1",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1761908559516,
+      "secretData" : "{\"value\":\"18z8b1VCtjdNQG9rCOhULWShCN0/qFVNYc7Nikyiz3c=\",\"salt\":\"j0Y1Wqj+m6zkTMBKvL4vpQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-car-rental-realm", "CUSTOMER" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
     "id" : "28bb71bb-77e2-4048-9b5d-3d9949fb29d2",
     "username" : "fleetmanager",
-    "firstName" : "Fleet",
-    "lastName" : "Manager",
+    "firstName" : "Charlie",
+    "lastName" : "Brown",
     "email" : "fleetmanager@gmail.com",
     "emailVerified" : false,
+    "attributes" : {
+      "phone" : [ "+393457865473" ],
+      "address" : [ "Via Rosa 23" ]
+    },
     "createdTimestamp" : 1748543055838,
     "enabled" : true,
     "totp" : false,
@@ -593,13 +576,13 @@
   }, {
     "id" : "6f42a582-bf2a-4637-9196-2e18c846e4b2",
     "username" : "manager",
-    "firstName" : "Manager",
-    "lastName" : "Surname",
+    "firstName" : "Bob",
+    "lastName" : "Smith",
     "email" : "manager@gmail.com",
     "emailVerified" : false,
     "attributes" : {
-      "phone" : [ "42u398745209" ],
-      "address" : [ "nfksrjlbf" ]
+      "phone" : [ "+393337862123" ],
+      "address" : [ "Via Blu 34" ]
     },
     "createdTimestamp" : 1748543084114,
     "enabled" : true,
@@ -615,84 +598,6 @@
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-car-rental-realm", "MANAGER" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "a1ced56b-f9db-4cd1-a582-fc9a3e90d3f1",
-    "username" : "pippo",
-    "firstName" : "Pippo",
-    "lastName" : "Baudo",
-    "email" : "pippo.baudo@gmail.com",
-    "emailVerified" : false,
-    "attributes" : {
-      "phone" : [ "233333333" ],
-      "address" : [ "via pippo baudo" ]
-    },
-    "createdTimestamp" : 1759874554299,
-    "enabled" : true,
-    "totp" : false,
-    "credentials" : [ {
-      "id" : "12981dac-3b33-4409-b522-8b84aae19139",
-      "type" : "password",
-      "createdDate" : 1759874554366,
-      "secretData" : "{\"value\":\"ixCq7aRy+715ujw5JLQJUcO+jb3vNOsz2BiBUf8NeXY=\",\"salt\":\"gP0BLDgNAqjy4XsDq7Bw8Q==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-car-rental-realm" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "483f3811-329c-4869-ad52-dca3f1931fc6",
-    "username" : "pippo_3",
-    "firstName" : "wefwef",
-    "lastName" : "wef",
-    "email" : "pippo_3@gmail.com",
-    "emailVerified" : false,
-    "attributes" : {
-      "phone" : [ "wef" ],
-      "address" : [ "wef" ]
-    },
-    "createdTimestamp" : 1759875012175,
-    "enabled" : true,
-    "totp" : false,
-    "credentials" : [ {
-      "id" : "a4c89829-d695-415a-b2dc-64936b794d15",
-      "type" : "password",
-      "createdDate" : 1759875012295,
-      "secretData" : "{\"value\":\"FshJpMhNyOOh4SwD9CQdB9OiLL2FjHD5fgvKKEsozgM=\",\"salt\":\"n4n633FyvcIus/MgMP8zJA==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-car-rental-realm" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "45096110-7dd5-4fa8-9667-f520f042d969",
-    "username" : "pippo_pd",
-    "firstName" : "wefw",
-    "lastName" : "efwefw",
-    "email" : "sdfwe@gmail.com",
-    "emailVerified" : false,
-    "attributes" : {
-      "phone" : [ "wefwe" ],
-      "address" : [ "fwef" ]
-    },
-    "createdTimestamp" : 1759874856117,
-    "enabled" : true,
-    "totp" : false,
-    "credentials" : [ {
-      "id" : "9c9a81fa-2047-4eda-a371-c86b06a54422",
-      "type" : "password",
-      "createdDate" : 1759874856185,
-      "secretData" : "{\"value\":\"byBbrVBBrs+7vnxvhYQfwaWRCq2YJ0i9QgEN+DCCPnY=\",\"salt\":\"GuwKexBIgCKfheroKmntdA==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-car-rental-realm" ],
     "notBefore" : 0,
     "groups" : [ ]
   }, {
@@ -768,13 +673,13 @@
   }, {
     "id" : "e0383218-4704-47a8-8674-9b5afe68e3be",
     "username" : "staff",
-    "firstName" : "Staff",
-    "lastName" : "Staff Surname",
+    "firstName" : "Diana",
+    "lastName" : "Prince",
     "email" : "staff@gmail.com",
     "emailVerified" : false,
     "attributes" : {
-      "phone" : [ "48092487" ],
-      "address" : [ "jfosidhoa" ]
+      "phone" : [ "+393628901870" ],
+      "address" : [ "Via Marrone 86" ]
     },
     "createdTimestamp" : 1748543024845,
     "enabled" : true,
@@ -1916,7 +1821,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper" ]
       }
     }, {
       "id" : "5e0a9d61-6f6d-4b48-bfb2-1f652479afa7",
@@ -1925,7 +1830,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "oidc-address-mapper", "saml-user-attribute-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "saml-role-list-mapper" ]
       }
     }, {
       "id" : "1d24d822-18a1-4620-b872-ef1f95e90760",
