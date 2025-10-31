@@ -1,6 +1,5 @@
 import AnalyticsAPI from "@/API/AnalyticsAPI";
 import { SumAndAverageAreaChartData } from "@/models/analytics/SumAndAverageAreaChartData";
-import { VehiclesKmTravelledAnalytics } from "@/models/analytics/VehicleKmTravelledAnalytics";
 import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { AreaChartCard } from "./base/AreaChartCard";

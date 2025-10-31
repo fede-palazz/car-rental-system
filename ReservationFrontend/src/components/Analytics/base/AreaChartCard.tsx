@@ -69,8 +69,8 @@ export function AreaChartCard({
   availableDropdownAlternatives?: string[] | undefined;
   selectedAlternative?: string | undefined;
   dropdownFilter?: string | undefined;
-  setDropdownFilter: ((newFilter: string) => void) | undefined;
-  setSelectedAlternative: ((newSelection: string) => void) | undefined;
+  setDropdownFilter?: ((newFilter: string) => void) | undefined;
+  setSelectedAlternative?: ((newSelection: string) => void) | undefined;
 }) {
   const dateTickerFormatter = (value: any) => {
     const date = new Date(value);
