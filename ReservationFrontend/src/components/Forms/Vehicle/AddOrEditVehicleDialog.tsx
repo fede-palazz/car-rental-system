@@ -339,7 +339,7 @@ export default function AddOrEditVehicleDialog() {
               control={form.control}
               name="kmTravelled"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={isEdit ? "col-span-full" : undefined}>
                   <FormLabel>Km travelled{!isEdit ? "" : "*"}</FormLabel>
                   <FormControl>
                     <Input

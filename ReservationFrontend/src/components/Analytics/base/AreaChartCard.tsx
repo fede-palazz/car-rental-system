@@ -250,7 +250,7 @@ export function AreaChartCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pe-2 pt-4 sm:px-6 sm:pt-6">
+      <CardContent className="pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[300px] w-full">
@@ -297,8 +297,8 @@ export function AreaChartCard({
             <YAxis
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
-              tickCount={4}
+              tickMargin={6}
+              //tickCount={4}
               domain={["auto", "datamax+1"]}
               tickFormatter={(value) => {
                 if (yAxeUnit === "EURO") {

@@ -3,11 +3,12 @@ import { ReservationsCountAnalytics } from "@/models/analytics/ReservationsCount
 import { ReservationsTotalAmountAnalytics } from "@/models/analytics/ReservationsTotalAmountAnalytics";
 import { VehiclesKmTravelledAnalytics } from "@/models/analytics/VehicleKmTravelledAnalytics";
 import { VehicleStatusesAnalytics } from "@/models/analytics/VehicleStatusesAnalytics";
+import { subDays } from "date-fns";
 
 const baseURL = "http://localhost:8083/api/v1/analytics-service/";
 
 async function getVehiclesStatus(
-  desiredDate: Date = new Date()
+  desiredDate: Date = subDays(new Date(), 1)
 ): Promise<VehicleStatusesAnalytics> {
   const queryParams = `desiredDate=${desiredDate?.toISOString()}`;
 

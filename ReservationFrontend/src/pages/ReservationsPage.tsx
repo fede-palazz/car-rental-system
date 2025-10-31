@@ -696,7 +696,8 @@ function ReservationsPage() {
                     className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
                     disabled={
                       cancelledOrExpired ||
-                      reservation.actualPickUpDate != undefined
+                      reservation.actualPickUpDate != undefined ||
+                      reservation.plannedPickUpDate > new Date()
                     }
                     onClick={(e) => {
                       e.stopPropagation();

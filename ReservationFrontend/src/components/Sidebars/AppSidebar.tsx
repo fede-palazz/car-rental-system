@@ -57,7 +57,7 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
             },
           ]
         : []),
-      ...(user
+      ...(user && user.role != UserRole.FLEET_MANAGER
         ? [
             {
               title: "Reservations",

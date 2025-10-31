@@ -56,8 +56,10 @@ function VehiclesKmTravelledChartCard() {
           );
           return {
             date: sumEntry.elementStart,
-            sum: sumEntry.vehicleKmTravelled,
-            average: avgEntry ? avgEntry.vehicleKmTravelled : 0,
+            sum: Number(sumEntry.vehicleKmTravelled.toFixed(2)),
+            average: avgEntry
+              ? Number(avgEntry.vehicleKmTravelled.toFixed(2))
+              : 0,
           };
         }
       );

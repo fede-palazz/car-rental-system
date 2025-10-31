@@ -5,6 +5,7 @@ import AnalyticsAPI from "@/API/AnalyticsAPI";
 import { VehicleStatusesAnalytics } from "@/models/analytics/VehicleStatusesAnalytics";
 import { PieChartData } from "@/models/analytics/PieChartData";
 import { useEffect, useState } from "react";
+import { subDays } from "date-fns";
 
 function VehiclesStatusChartCard() {
   const [vehiclesStatusData, setVehiclesStatusData] = useState<PieChartData[]>(
@@ -12,7 +13,7 @@ function VehiclesStatusChartCard() {
   );
 
   useEffect(() => {
-    AnalyticsAPI.getVehiclesStatus(new Date())
+    AnalyticsAPI.getVehiclesStatus(subDays(new Date(), 1))
       .then((vehicleStatusesAnalytics: VehicleStatusesAnalytics) => {
         setVehiclesStatusData([
           {

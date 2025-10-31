@@ -34,6 +34,7 @@ import MapVehicleCard from "./components/Map/MapVehicleCard.tsx";
 import AnalyticsPage from "./pages/AnalyticsPage.tsx";
 import DeleteMaintenanceDialog from "@/components/Forms/Maintenance/DeleteMaintenanceDialog.tsx";
 import FinalizeMaintenanceDialog from "./components/Forms/Maintenance/FinalizeMaintenanceDialog.tsx";
+import DeleteNoteDialog from "./components/Forms/Note/DeleteNoteDialog.tsx";
 
 function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -142,7 +143,7 @@ function App() {
                 <Route
                   path="delete/:carModelId"
                   element={
-                    user && user.role !== UserRole.FLEET_MANAGER ? (
+                    user && user.role == UserRole.FLEET_MANAGER ? (
                       <DeleteCarModelDialog />
                     ) : (
                       <Navigate to="/models"></Navigate>
@@ -316,7 +317,7 @@ function App() {
                       user.role != UserRole.STAFF) ? (
                       <Navigate to="/models"></Navigate>
                     ) : (
-                      <AddOrEditNoteDialog />
+                      <DeleteNoteDialog />
                     )
                   }></Route>
               </Route>
