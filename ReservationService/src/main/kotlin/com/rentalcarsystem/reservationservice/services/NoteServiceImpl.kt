@@ -79,6 +79,10 @@ class NoteServiceImpl(
         )
     }
 
+    override fun getNote(noteId: Long): NoteResDTO {
+        return getNoteById(noteId).toResDTO()
+    }
+
     override fun createNote(
         vehicleId: Long,
         @Valid noteReq: NoteReqDTO,
@@ -89,11 +93,6 @@ class NoteServiceImpl(
         val noteToSave = noteReq.toEntity(username)
         vehicle.addNote(noteToSave)
         return noteRepository.save(noteToSave).toResDTO()
-    }
-
-    fun getNoteById(id: Long): Note {
-        return noteRepository.findById(id)
-            .orElseThrow { FailureException(ResponseEnum.NOTE_NOT_FOUND, "Note with ID $id not found") }
     }
 
     override fun updateNote(
@@ -132,5 +131,10 @@ class NoteServiceImpl(
         }
         // Remove note from both sides
         vehicle.removeNote(note)
+    }
+
+    private fun getNoteById(id: Long): Note {
+        return noteRepository.findById(id)
+            .orElseThrow { FailureException(ResponseEnum.NOTE_NOT_FOUND, "Note with ID $id not found") }
     }
 }

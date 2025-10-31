@@ -88,6 +88,29 @@ class NoteController(private val noteService: NoteService) {
     }
 
     @Operation(
+        summary = "Get vehicle note by id",
+        description = "Retrieves a specific note related to a vehicle based on the specified id",
+        responses = [
+            ApiResponse(
+                responseCode = "200", content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = NoteResDTO::class)
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()]),
+        ]
+    )
+    @GetMapping("{noteId}")
+    fun getVehicleNotes(@PathVariable noteId: Long): ResponseEntity<NoteResDTO> {
+        if (noteId <= 0) {
+            throw IllegalArgumentException("Note id must be a positive number")
+        }
+        return ResponseEntity.ok(noteService.getNote(noteId))
+    }
+
+    @Operation(
         summary = "Add vehicle's note",
         description = "Creates a new note for the specified vehicle ",
         requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
