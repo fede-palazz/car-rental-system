@@ -10,5 +10,4 @@ export interface VehicleFilter {
   minKmTravelled?: number;
   maxKmTravelled?: number;
   pendingCleaning?: boolean;
-  pendingRepair?: boolean;
 }

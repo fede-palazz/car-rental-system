@@ -95,13 +95,40 @@ function ModelInfoForm({ control }: { control: Control }) {
               <FormLabel>Year*</FormLabel>
               <FormControl>
                 <Input
+                  min={1950}
+                  max={new Date().getFullYear()}
+                  inputMode="numeric"
                   placeholder={"Year"}
+                  pattern="\d{4}"
+                  maxLength={4}
+                  className="[&::-webkit-inner-spin-button]:appearance-none"
                   startIcon={
                     <span className="material-symbols-outlined items-center md-18">
                       calendar_today
                     </span>
                   }
                   {...field}
+                  onKeyDown={(e) => {
+                    // Allow only digits, navigation, and editing keys
+                    if (
+                      !/[0-9]/.test(e.key) &&
+                      e.key !== "Backspace" &&
+                      e.key !== "Tab" &&
+                      e.key !== "ArrowLeft" &&
+                      e.key !== "ArrowRight"
+                    ) {
+                      e.preventDefault();
+                    }
+                    // Prevent entering more than 4 digits
+                    if (
+                      /[0-9]/.test(e.key) &&
+                      e.currentTarget.value.length >= 4 &&
+                      !e.currentTarget.selectionStart &&
+                      !e.currentTarget.selectionEnd
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -117,6 +144,9 @@ function ModelInfoForm({ control }: { control: Control }) {
             <FormLabel>Doors Number*</FormLabel>
             <FormControl>
               <Input
+                className="[&::-webkit-inner-spin-button]:appearance-none"
+                min={1}
+                inputMode="numeric"
                 startIcon={
                   <span className="material-symbols-outlined items-center md-18">
                     door_open
@@ -124,6 +154,18 @@ function ModelInfoForm({ control }: { control: Control }) {
                 }
                 placeholder={"Doors Number"}
                 {...field}
+                onKeyDown={(e) => {
+                  // Allow only digits, navigation, and editing keys
+                  if (
+                    !/[0-9]/.test(e.key) &&
+                    e.key !== "Backspace" &&
+                    e.key !== "Tab" &&
+                    e.key !== "ArrowLeft" &&
+                    e.key !== "ArrowRight"
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -139,6 +181,9 @@ function ModelInfoForm({ control }: { control: Control }) {
             <FormLabel>Seating Capacity*</FormLabel>
             <FormControl>
               <Input
+                className="[&::-webkit-inner-spin-button]:appearance-none"
+                min={1}
+                inputMode="numeric"
                 startIcon={
                   <span className="material-symbols-outlined items-center md-18">
                     chair
@@ -146,6 +191,18 @@ function ModelInfoForm({ control }: { control: Control }) {
                 }
                 placeholder={"Seating Capacity"}
                 {...field}
+                onKeyDown={(e) => {
+                  // Allow only digits, navigation, and editing keys
+                  if (
+                    !/[0-9]/.test(e.key) &&
+                    e.key !== "Backspace" &&
+                    e.key !== "Tab" &&
+                    e.key !== "ArrowLeft" &&
+                    e.key !== "ArrowRight"
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -160,6 +217,9 @@ function ModelInfoForm({ control }: { control: Control }) {
             <FormLabel>Luggage Capacity*</FormLabel>
             <FormControl>
               <Input
+                className="[&::-webkit-inner-spin-button]:appearance-none"
+                min={1}
+                inputMode="numeric"
                 startIcon={
                   <span className="material-symbols-outlined items-center md-18">
                     luggage
@@ -167,6 +227,18 @@ function ModelInfoForm({ control }: { control: Control }) {
                 }
                 placeholder={"Luggage Capacity"}
                 {...field}
+                onKeyDown={(e) => {
+                  // Allow only digits, navigation, and editing keys
+                  if (
+                    !/[0-9]/.test(e.key) &&
+                    e.key !== "Backspace" &&
+                    e.key !== "Tab" &&
+                    e.key !== "ArrowLeft" &&
+                    e.key !== "ArrowRight"
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -179,7 +251,7 @@ function ModelInfoForm({ control }: { control: Control }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Category</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -211,7 +283,7 @@ function ModelInfoForm({ control }: { control: Control }) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput placeholder="Search segment" className="h-9" />
                   <CommandList>
@@ -253,7 +325,7 @@ function ModelInfoForm({ control }: { control: Control }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Segment</FormLabel>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -285,7 +357,7 @@ function ModelInfoForm({ control }: { control: Control }) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent modal className="p-0 bg-input">
+              <PopoverContent className="p-0 bg-input">
                 <Command>
                   <CommandInput placeholder="Search segment" className="h-9" />
                   <CommandList>
@@ -331,6 +403,10 @@ function ModelInfoForm({ control }: { control: Control }) {
               <FormLabel>Rental Price*</FormLabel>
               <FormControl>
                 <Input
+                  min={0}
+                  inputMode="decimal"
+                  pattern="[0-9]*\.?[0-9]*"
+                  className="[&::-webkit-inner-spin-button]:appearance-none"
                   startIcon={
                     <span className="material-symbols-outlined items-center md-18">
                       payments
@@ -338,6 +414,18 @@ function ModelInfoForm({ control }: { control: Control }) {
                   }
                   placeholder={"Rental Price"}
                   {...field}
+                  onKeyDown={(e) => {
+                    // Allow only digits and dot
+                    if (
+                      !/[0-9.]/.test(e.key) &&
+                      e.key !== "Backspace" &&
+                      e.key !== "Tab" &&
+                      e.key !== "ArrowLeft" &&
+                      e.key !== "ArrowRight"
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </FormControl>
               <FormDescription>Per day</FormDescription>

@@ -1,44 +1,41 @@
-
-
-
 <!DOCTYPE html>
 <html id="htmlId">
 <head>
-  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-  <title>Coverage Report > ReservationControllerKt</title>
-  <style type="text/css">
-    @import "../../css/coverage.css";
-    @import "../../css/idea.min.css";
-  </style>
-  <script type="text/javascript" src="../../js/highlight.min.js"></script>
-  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+    <meta content="text/html;charset=UTF-8" http-equiv="Content-Type">
+    <title>Coverage Report > ReservationControllerKt</title>
+    <style type="text/css">
+        @import "../../css/coverage.css";
+        @import "../../css/idea.min.css";
+    </style>
+    <script src="../../js/highlight.min.js" type="text/javascript"></script>
+    <script src="../../js/highlightjs-line-numbers.min.js" type="text/javascript"></script>
 </head>
 
 <body>
 <div class="content">
-<div class="breadCrumbs">
-Current scope:     <a href="../../index.html">all classes</a>
-    <span class="separator">|</span>
-    <a href="../index.html">com.rentalcarsystem.reservationservice.controllers</a>
-</div>
+    <div class="breadCrumbs">
+        Current scope: <a href="../../index.html">all classes</a>
+        <span class="separator">|</span>
+        <a href="../index.html">com.rentalcarsystem.reservationservice.controllers</a>
+    </div>
 
-<h1>Coverage Summary for Class: ReservationControllerKt (com.rentalcarsystem.reservationservice.controllers)</h1>
+    <h1>Coverage Summary for Class: ReservationControllerKt (com.rentalcarsystem.reservationservice.controllers)</h1>
 
-<table class="coverageStats">
-<tr>
-  <th class="name">Class</th>
-</tr>
-<tr>
-  <td class="name">ReservationControllerKt</td>
-</tr>
+    <table class="coverageStats">
+        <tr>
+            <th class="name">Class</th>
+        </tr>
+        <tr>
+            <td class="name">ReservationControllerKt</td>
+        </tr>
 
-</table>
+    </table>
 
-<br/>
-<br/>
+    <br/>
+    <br/>
 
 
-<pre>
+    <pre>
 <code class="sourceCode" id="sourceCode">&nbsp;package com.rentalcarsystem.reservationservice.controllers
 &nbsp;
 &nbsp;import com.fasterxml.jackson.databind.ObjectMapper
@@ -180,7 +177,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;        @RequestParam(&quot;order&quot;, defaultValue = &quot;asc&quot;) sortOrder: String,
 &nbsp;        @ModelAttribute filters: CarModelFilter
 &nbsp;    ): ResponseEntity&lt;PagedResDTO&lt;CarModelResDTO&gt;&gt; {
-&nbsp;        require(desiredPickUpDate.isAfter(LocalDateTime.now())) {
+&nbsp;        require(desiredPickUpDate.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
 &nbsp;            &quot;Parameter &#39;desiredPickUpDate&#39; must be in the future&quot;
 &nbsp;        }
 &nbsp;        require(desiredDropOffDate.isAfter(desiredPickUpDate)) {
@@ -403,24 +400,24 @@ Current scope:     <a href="../../index.html">all classes</a>
 </div>
 
 <script type="text/javascript">
-(function() {
-    var msie = false, msie9 = false;
-    /*@cc_on
-      msie = true;
-      @if (@_jscript_version >= 9)
-        msie9 = true;
-      @end
-    @*/
+    (function () {
+        var msie = false, msie9 = false;
+        /*@cc_on
+          msie = true;
+          @if (@_jscript_version >= 9)
+            msie9 = true;
+          @end
+        @*/
 
-    if (!msie || msie && msie9) {
-      hljs.highlightAll()
-      hljs.initLineNumbersOnLoad();
-    }
-})();
+        if (!msie || msie && msie9) {
+            hljs.highlightAll()
+            hljs.initLineNumbersOnLoad();
+        }
+    })();
 </script>
 
 <div class="footer">
-    
+
     <div style="float:right;">generated on 2025-05-01 23:29</div>
 </div>
 </body>

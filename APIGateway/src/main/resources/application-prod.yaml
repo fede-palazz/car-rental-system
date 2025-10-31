@@ -47,6 +47,14 @@ spring:
               - RewritePath=/api/v1/payment-service/?(?<segment>.*), /api/v1/$\{segment}
               - TokenRelay=
               - SetResponseHeader=Route-Matched, reservation-service
+          - id: analytics-service
+            uri: ${ANALYTICSSERVICE_URL}
+            predicates:
+              - Path=/api/v1/analytics-service/**
+            filters:
+              - RewritePath=/api/v1/analytics-service/?(?<segment>.*), /api/v1/$\{segment}
+              - TokenRelay=
+              - SetResponseHeader=Route-Matched, reservation-service
           - id: ui
             uri: ${UI_URL}
             predicates:
@@ -60,4 +68,5 @@ UI_URL: "http://api-gateway:8083"
 RESERVATIONSERVICE_URL: "http://reservation-service:8080"
 USERSERVICE_URL: "http://user-service:8081"
 PAYMENTSERVICE_URL: "http://payment-service:8082"
+ANALYTICSSERVICE_URL: "http://analytics-service:8084"
 IAM_URL: "http://keycloak:8080/realms/car-rental-system"

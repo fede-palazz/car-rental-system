@@ -1,8 +1,11 @@
+import { MaintenanceType } from "./enums/MaintenanceType";
+
 export interface Maintenance {
   id: number;
   defects: string;
-  completed: boolean;
-  type: string;
+  type: MaintenanceType;
   upcomingServiceNeeds: string;
-  date: string;
+  startDate: Date;
+  plannedEndDate: Date;
+  actualEndDate?: Date;
 }

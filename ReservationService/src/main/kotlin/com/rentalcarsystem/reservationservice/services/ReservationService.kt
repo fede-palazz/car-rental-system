@@ -11,28 +11,49 @@ import com.rentalcarsystem.reservationservice.filters.PaymentRecordFilter
 import com.rentalcarsystem.reservationservice.filters.ReservationFilter
 import com.rentalcarsystem.reservationservice.models.Reservation
 import jakarta.validation.Valid
+import java.time.LocalDateTime
 
 interface ReservationService {
     fun getReservations(
         page: Int,
         size: Int,
+        singlePage: Boolean,
         sortBy: String,
         sortOrder: String,
         isCustomer: Boolean,
         @Valid filters: ReservationFilter
     ): PagedResDTO<Any>
 
+    fun getOverlappingReservations(
+        vehicleId: Long,
+        desiredStart: LocalDateTime,
+        desiredEnd: LocalDateTime,
+        page: Int,
+        size: Int,
+        singlePage: Boolean,
+        sortBy: String,
+        sortOrder: String,
+        reservationToExcludeId: Long = 0
+    ): PagedResDTO<StaffReservationResDTO>
+
     fun createReservation(customerUsername: String, @Valid reservation: ReservationReqDTO): Any
 
     fun setReservationActualPickUpDate(
+        pickUpStaffUsername: String,
         reservationId: Long,
         @Valid actualPickUpDate: ActualPickUpDateReqDTO
     ): StaffReservationResDTO
 
     fun finalizeReservation(
-        customerUsername: String,
+        dropOffStaffUsername: String,
         reservationId: Long,
         @Valid finalizeReq: FinalizeReservationReqDTO
+    ): StaffReservationResDTO
+
+    fun updateReservationVehicle(
+        updatedVehicleStaffUsername: String,
+        reservationId: Long,
+        vehicleId: Long
     ): StaffReservationResDTO
 
     fun deleteReservation(reservationId: Long)

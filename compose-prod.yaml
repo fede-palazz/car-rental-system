@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 'password'
-      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass, payment:paymentPass
+      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass, payment:paymentPass, analytics:analyticsPass
     ports:
       - '5432:5432'
     command: postgres -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
@@ -45,6 +45,14 @@ services:
     depends_on:
       - postgres
 
+  analytics-service:
+    build: ./AnalyticsService
+    container_name: 'g15-analytics-service'
+    ports:
+      - '8084:8084'
+    depends_on:
+      - postgres
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     ports:
@@ -53,14 +61,14 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: password
     volumes:
-      - ./keycloak/car-rental-system-realm-prod.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/import/car-rental-system-realm-prod.json:/opt/keycloak/data/import/realm-export.json:ro
     command:
       - start-dev
       - --import-realm
 
   # Kafka
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnamilegacy/kafka:3.3.2
     container_name: paypal-demo-kafka
     environment:
       KAFKA_CFG_NODE_ID: 1

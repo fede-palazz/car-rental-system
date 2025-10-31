@@ -3,8 +3,11 @@ package com.rentalcarsystem.reservationservice.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
+import com.rentalcarsystem.reservationservice.dtos.request.FinalizeMaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
+import com.rentalcarsystem.reservationservice.exceptions.FailureException
+import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.MaintenanceFilter
 import com.rentalcarsystem.reservationservice.services.MaintenanceService
 import io.swagger.v3.oas.annotations.Operation
@@ -14,6 +17,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 
@@ -61,13 +66,14 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         if (size < 1) {
             throw IllegalArgumentException("Parameter 'size' must be greater than zero")
         }
-        // Retrieve MaintenanceFilter fields' names
+        // Retrieve MaintenanceResDTO fields' names
         val allowedSortFields = listOf(
             "defects",
-            "completed",
             "type",
             "upcomingServiceNeeds",
-            "date"
+            "startDate",
+            "plannedEndDate",
+            "actualEndDate"
         )
         if (sortBy !in allowedSortFields) {
             throw IllegalArgumentException("Parameter 'sort' invalid. Allowed values: $allowedSortFields")
@@ -75,8 +81,14 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         if (sortOrder !in listOf("asc", "desc")) {
             throw IllegalArgumentException("Parameter 'sortOrder' invalid. Allowed values: ['asc', 'desc']")
         }
-        if (filters.minDate != null && filters.maxDate != null && filters.minDate.isAfter(filters.maxDate)) {
-            throw IllegalArgumentException("Parameter 'minDate' must be before 'maxDate'")
+        if (filters.minStartDate != null && filters.maxStartDate != null && filters.minStartDate.isAfter(filters.maxStartDate)) {
+            throw IllegalArgumentException("Parameter 'minStartDate' must be before 'maxStartDate'")
+        }
+        if (filters.minPlannedEndDate != null && filters.maxPlannedEndDate != null && filters.minPlannedEndDate.isAfter(filters.maxPlannedEndDate)) {
+            throw IllegalArgumentException("Parameter 'minPlannedEndDate' must be before 'maxPlannedEndDate'")
+        }
+        if (filters.minActualEndDate != null && filters.maxActualEndDate != null && filters.minActualEndDate.isAfter(filters.maxActualEndDate)) {
+            throw IllegalArgumentException("Parameter 'minActualEndDate' must be before 'maxActualEndDate'")
         }
         return ResponseEntity.ok(
             maintenanceService.getMaintenances(
@@ -146,7 +158,17 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         if (vehicleId <= 0) {
             throw IllegalArgumentException("Vehicle id must be a positive number")
         }
-        val createdMaintenance = maintenanceService.createMaintenance(vehicleId, maintenanceRecord)
+        require(maintenanceRecord.startDate.isBefore(maintenanceRecord.plannedEndDate)) {
+            "Start date must be before planned end date"
+        }
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val createdMaintenance = maintenanceService.createMaintenance(vehicleId, maintenanceRecord, username)
         logger.info(
             "Created maintenance record for vehicle {}: {}",
             vehicleId,
@@ -159,6 +181,55 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         return ResponseEntity
             .created(location) // sets status 201 and Location header
             .body(createdMaintenance)
+    }
+
+    @Operation(
+        summary = "Finalize maintenance",
+        description = "Finalizes the given maintenance by setting the actual end date and the completed flag",
+        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = [Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = FinalizeMaintenanceReqDTO::class)
+            )]
+        ),
+        responses = [
+            ApiResponse(
+                responseCode = "200", content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = MaintenanceResDTO::class)
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()])
+        ]
+    )
+    @PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
+    @PutMapping("{maintenanceId}/finalize")
+    fun finalizeMaintenance(
+        @PathVariable vehicleId: Long,
+        @PathVariable maintenanceId: Long,
+        @RequestBody finalizeMaintenance: FinalizeMaintenanceReqDTO
+    ): ResponseEntity<MaintenanceResDTO> {
+        require(vehicleId > 0) { "Invalid vehicle id $vehicleId: it must be a positive number" }
+        require(maintenanceId > 0) { "Invalid maintenance id $maintenanceId: it must be a positive number" }
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val updatedMaintenance = maintenanceService.finalizeMaintenance(vehicleId, maintenanceId, finalizeMaintenance, username)
+        logger.info(
+            "Finalized maintenance record {} for vehicle {}: {}",
+            maintenanceId,
+            vehicleId,
+            mapper.writeValueAsString(updatedMaintenance)
+        )
+        return ResponseEntity.ok(updatedMaintenance)
     }
 
     @Operation(
@@ -189,6 +260,9 @@ class MaintenanceController(private val maintenanceService: MaintenanceService) 
         }
         if (maintenanceId <= 0) {
             throw IllegalArgumentException("Invalid maintenance id $maintenanceId: it must be a positive number")
+        }
+        require(maintenance.startDate.isBefore(maintenance.plannedEndDate)) {
+            "Start date must be before planned end date"
         }
         val updatedMaintenance = maintenanceService.updateMaintenance(vehicleId, maintenanceId, maintenance)
         logger.info(

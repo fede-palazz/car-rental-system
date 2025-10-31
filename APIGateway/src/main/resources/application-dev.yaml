@@ -47,6 +47,22 @@ spring:
               - RewritePath=/api/v1/payment-service/?(?<segment>.*), /api/v1/$\{segment}
               - TokenRelay=
               - SetResponseHeader=Route-Matched, reservation-service
+          - id: analytics-service
+            uri: ${ANALYTICSSERVICE_URL}
+            predicates:
+              - Path=/api/v1/analytics-service/**
+            filters:
+              - RewritePath=/api/v1/analytics-service/?(?<segment>.*), /api/v1/$\{segment}
+              - TokenRelay=
+              - SetResponseHeader=Route-Matched, reservation-service
+          - id: tracking-service
+            uri: ${TRACKINGSERVICE_URL}
+            predicates:
+              - Path=/api/v1/tracking-service/**
+            filters:
+              - RewritePath=/api/v1/tracking-service/?(?<segment>.*), /api/v1/$\{segment}
+              - TokenRelay=
+              - SetResponseHeader=Route-Matched, reservation-service
           - id: ui
             uri: ${UI_URL}
             predicates:
@@ -60,4 +76,6 @@ UI_URL: "http://localhost:4173"
 RESERVATIONSERVICE_URL: "http://localhost:8080"
 USERSERVICE_URL: "http://localhost:8081"
 PAYMENTSERVICE_URL: "http://localhost:8082"
+ANALYTICSSERVICE_URL: "http://localhost:8084"
+TRACKINGSERVICE_URL: "http://localhost:8085"
 IAM_URL: "http://localhost:9090/realms/car-rental-system"

@@ -90,9 +90,9 @@ class ReservationServiceIntegrationTest : BaseIntegrationTest() {
                 customerId = 1L,
                 vehicle = vehicle,
                 status = ReservationStatus.CONFIRMED,
-                plannedPickUpDate = LocalDateTime.now().plusDays(1),
-                plannedDropOffDate = LocalDateTime.now().plusDays(3),
-                creationDate = LocalDateTime.now()
+                plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(1),
+                plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(3),
+                creationDate = LocalDateTime.now(ZoneOffset.UTC)
             )
         )
     }

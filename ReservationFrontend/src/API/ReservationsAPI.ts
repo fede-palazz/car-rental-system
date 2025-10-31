@@ -6,6 +6,7 @@ import { StaffReservationResDTO } from "@/models/dtos/response/StaffReservationR
 import { ReservationFilter } from "@/models/filters/ReservationFilter";
 import { Reservation } from "@/models/Reservation";
 import { getCsrfToken } from "./csrfToken";
+import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/reservation-service/";
 
@@ -15,10 +16,10 @@ async function getAllReservations(
   sort: string = "brand",
   page: number = 0,
   size: number = 9,
-  isCustomer=true,
+  isCustomer = true
 ): Promise<PagedResDTO<Reservation>> {
   const queryParams =
-    (filter
+    (filter != undefined
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
           .map(([key, value]) => {
@@ -41,27 +42,28 @@ async function getAllReservations(
   });
   if (response.ok) {
     const res = await response.json();
-    console.log(res);
     if (!isCustomer) {
-      res.content = res.content.map((reservation: StaffReservationResDTO) => {
-        const { commonInfo, ...otherProperties } =
-          reservation as StaffReservationResDTO;
-        return {
-          ...commonInfo,
-          creationDate: new Date(commonInfo.creationDate),
-          plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
-          plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
-          actualDropOffDate: commonInfo.actualDropOffDate
-            ? new Date(commonInfo.actualDropOffDate)
-            : undefined,
-          actualPickUpDate: commonInfo.actualPickUpDate
-            ? new Date(commonInfo.actualPickUpDate)
-            : undefined,
-          ...otherProperties,
-        } as Reservation;
-      });
+      res.content = localizeDates(res.content).map(
+        (reservation: StaffReservationResDTO) => {
+          const { commonInfo, ...otherProperties } =
+            reservation as StaffReservationResDTO;
+          return {
+            ...commonInfo,
+            creationDate: new Date(commonInfo.creationDate),
+            plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+            plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+            actualDropOffDate: commonInfo.actualDropOffDate
+              ? new Date(commonInfo.actualDropOffDate)
+              : undefined,
+            actualPickUpDate: commonInfo.actualPickUpDate
+              ? new Date(commonInfo.actualPickUpDate)
+              : undefined,
+            ...otherProperties,
+          } as Reservation;
+        }
+      );
     } else {
-      res.content = res.content.map(
+      res.content = localizeDates(res.content).map(
         (reservation: CustomerReservationResDTO) => {
           return {
             ...reservation,
@@ -87,12 +89,109 @@ async function getAllReservations(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
+
+async function getPendingReservation(): Promise<PagedResDTO<Reservation>> {
+  const queryParams = `status=PENDING&order=${encodeURIComponent(
+    "asc"
+  )}&sort=${encodeURIComponent("brand")}&page=${encodeURIComponent(
+    0
+  )}&size=${encodeURIComponent(1)}`;
+  const response = await fetch(baseURL + `reservations?${queryParams}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.ok) {
+    const res = await response.json();
+
+    res.content = localizeDates(res.content).map(
+      (reservation: CustomerReservationResDTO) => {
+        return {
+          ...reservation,
+          creationDate: new Date(reservation.creationDate),
+          plannedPickUpDate: new Date(reservation.plannedPickUpDate),
+          plannedDropOffDate: new Date(reservation.plannedDropOffDate),
+          actualDropOffDate: reservation.actualDropOffDate
+            ? new Date(reservation.actualDropOffDate)
+            : undefined,
+          actualPickUpDate: reservation.actualPickUpDate
+            ? new Date(reservation.actualPickUpDate)
+            : undefined,
+        } as Reservation;
+      }
+    );
+    console.log(res.content);
+
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
+  }
+}
+
+async function getReservationById(id: number): Promise<Reservation> {
+  const response = await fetch(baseURL + `reservations/${id}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.ok) {
+    const res = await response.json();
+
+    const reservation = localizeDates(res) as StaffReservationResDTO;
+
+    const { commonInfo, ...otherProperties } = reservation;
+
+    const returningReservation = {
+      ...commonInfo,
+      creationDate: new Date(commonInfo.creationDate),
+      plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+      plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+      actualDropOffDate: commonInfo.actualDropOffDate
+        ? new Date(commonInfo.actualDropOffDate)
+        : undefined,
+      actualPickUpDate: commonInfo.actualPickUpDate
+        ? new Date(commonInfo.actualPickUpDate)
+        : undefined,
+      ...otherProperties,
+    } as Reservation;
+
+    return returningReservation;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
+  }
+}
+
 async function deleteReservationById(id: number): Promise<null> {
   const response = await fetch(baseURL + `reservations/${id}`, {
     method: "DELETE",
@@ -111,10 +210,11 @@ async function deleteReservationById(id: number): Promise<null> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -133,7 +233,7 @@ async function editReservationById(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -141,10 +241,11 @@ async function editReservationById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -161,7 +262,7 @@ async function createReservation(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -169,10 +270,11 @@ async function createReservation(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -186,11 +288,11 @@ async function setActualPickUpDate(
       "X-CSRF-TOKEN": getCsrfToken(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ actualPickUpDate }),
+    body: JSON.stringify({ actualPickUpDate: actualPickUpDate.toISOString() }),
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -198,10 +300,11 @@ async function setActualPickUpDate(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -219,7 +322,7 @@ async function finalizeReservation(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -227,10 +330,11 @@ async function finalizeReservation(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -255,21 +359,182 @@ async function payReservation(id: number) {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
+  }
+}
+
+async function updateReservationVehicle(
+  reservationId: number,
+  newVehicleId: number
+) {
+  const response = await fetch(
+    baseURL + `reservations/${reservationId}/vehicle/${newVehicleId}`,
+    {
+      method: "PUT",
+      headers: {
+        "X-CSRF-TOKEN": getCsrfToken(),
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
+  }
+}
+
+async function getOverlappingReservations(
+  vehicleId: number,
+  desiredStartDate: Date,
+  desiredEndDate: Date,
+  singlePage: boolean = true,
+  order: string = "asc",
+  sort: string = "brand",
+  page: number = 0,
+  size: number = 10
+): Promise<PagedResDTO<Reservation>> {
+  const queryParams = `vehicleId=${vehicleId}&desiredStart=${desiredStartDate.toISOString()}&desiredEnd=${desiredEndDate.toISOString()}&singlePage=${singlePage}&order=${encodeURIComponent(
+    order
+  )}&sort=${encodeURIComponent(sort)}&page=${encodeURIComponent(
+    page
+  )}&size=${encodeURIComponent(size)}`;
+  const response = await fetch(
+    baseURL + `reservations/overlapping?${queryParams}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    res.content = localizeDates(res.content).map(
+      (reservation: StaffReservationResDTO) => {
+        const { commonInfo, ...otherProperties } =
+          reservation as StaffReservationResDTO;
+        return {
+          ...commonInfo,
+          creationDate: new Date(commonInfo.creationDate),
+          plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+          plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+          actualDropOffDate: commonInfo.actualDropOffDate
+            ? new Date(commonInfo.actualDropOffDate)
+            : undefined,
+          actualPickUpDate: commonInfo.actualPickUpDate
+            ? new Date(commonInfo.actualPickUpDate)
+            : undefined,
+          ...otherProperties,
+        } as Reservation;
+      }
     );
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
+  }
+}
+
+async function getOverlappingReservationsByReservationId(
+  reservationId: number,
+  bufferedDropOffDate: Date,
+  singlePage: boolean = true,
+  order: string = "asc",
+  sort: string = "brand",
+  page: number = 0,
+  size: number = 10
+): Promise<PagedResDTO<Reservation>> {
+  const queryParams = `bufferedDropOffDate=${bufferedDropOffDate.toISOString()}&singlePage=${singlePage}&order=${encodeURIComponent(
+    order
+  )}&sort=${encodeURIComponent(sort)}&page=${encodeURIComponent(
+    page
+  )}&size=${encodeURIComponent(size)}`;
+  const response = await fetch(
+    baseURL + `reservations/${reservationId}/overlapping?${queryParams}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    res.content = localizeDates(res.content).map(
+      (reservation: StaffReservationResDTO) => {
+        const { commonInfo, ...otherProperties } =
+          reservation as StaffReservationResDTO;
+        return {
+          ...commonInfo,
+          creationDate: new Date(commonInfo.creationDate),
+          plannedPickUpDate: new Date(commonInfo.plannedPickUpDate),
+          plannedDropOffDate: new Date(commonInfo.plannedDropOffDate),
+          actualDropOffDate: commonInfo.actualDropOffDate
+            ? new Date(commonInfo.actualDropOffDate)
+            : undefined,
+          actualPickUpDate: commonInfo.actualPickUpDate
+            ? new Date(commonInfo.actualPickUpDate)
+            : undefined,
+          ...otherProperties,
+        } as Reservation;
+      }
+    );
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
   }
 }
 
 const ReservationsAPI = {
   getAllReservations,
+  getPendingReservation,
   deleteReservationById,
   editReservationById,
   setActualPickUpDate,
   finalizeReservation,
   createReservation,
   payReservation,
+  updateReservationVehicle,
+  getOverlappingReservations,
+  getReservationById,
+  getOverlappingReservationsByReservationId,
 };
 
 export default ReservationsAPI;

@@ -90,7 +90,7 @@ class NoteE2ETest {
         val createRequest = NoteReqDTO(
             content = "Check engine light on",
             author = "John Doe",
-            date = LocalDateTime.now()
+            date = LocalDateTime.now(ZoneOffset.UTC)
         )
 
         val postResult = mockMvc.perform(
@@ -125,7 +125,7 @@ class NoteE2ETest {
         val updateRequest = NoteReqDTO(
             content = "Engine light issue resolved",
             author = "John Doe",
-            date = LocalDateTime.now()
+            date = LocalDateTime.now(ZoneOffset.UTC)
         )
 
         mockMvc.perform(
@@ -184,7 +184,7 @@ class NoteE2ETest {
         val invalidCreate = NoteReqDTO(
             content = "", // Invalid empty content
             author = "", // Invalid empty author
-            date = LocalDateTime.now()
+            date = LocalDateTime.now(ZoneOffset.UTC)
         )
 
         mockMvc.perform(
@@ -198,11 +198,15 @@ class NoteE2ETest {
         mockMvc.perform(
             post("$BASE_URL/99999/notes")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(NoteReqDTO(
-                    content = "Test note",
-                    author = "Test author",
-                    date = LocalDateTime.now()
-                )))
+                .content(
+                    objectMapper.writeValueAsString(
+                        NoteReqDTO(
+                            content = "Test note",
+                            author = "Test author",
+                            date = LocalDateTime.now(ZoneOffset.UTC)
+                        )
+                    )
+                )
         )
             .andExpect(status().isNotFound)
 

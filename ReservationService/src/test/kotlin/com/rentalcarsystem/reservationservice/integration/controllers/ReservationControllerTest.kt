@@ -123,7 +123,7 @@ class ReservationControllerTest : BaseIntegrationTest() {
                 .andExpect(status().isOk).andReturn()
 
             val content = result.response.contentAsString
-            val typeRef = object: TypeReference<PagedResDTO<StaffReservationResDTO>>() {}
+            val typeRef = object : TypeReference<PagedResDTO<StaffReservationResDTO>>() {}
             val pagedReservations: PagedResDTO<StaffReservationResDTO> = objectMapper.readValue(content, typeRef)
 
             assertEquals(1, pagedReservations.content.size)
@@ -138,8 +138,8 @@ class ReservationControllerTest : BaseIntegrationTest() {
             val input = ReservationReqDTO(
                 customerId = 1L,
                 carModelId = 1L,
-                plannedPickUpDate = LocalDateTime.now().plusDays(1),
-                plannedDropOffDate = LocalDateTime.now().plusDays(5)
+                plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(1),
+                plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(5)
             )
 
             val result = mockMvc.perform(
@@ -170,8 +170,8 @@ class ReservationControllerTest : BaseIntegrationTest() {
                 val input = ReservationReqDTO(
                     customerId = 1L,
                     carModelId = -1L,  // Invalid car model id
-                    plannedPickUpDate = LocalDateTime.now().plusDays(1),
-                    plannedDropOffDate = LocalDateTime.now().plusDays(5)
+                    plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(1),
+                    plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(5)
                 )
 
                 mockMvc.perform(
@@ -186,8 +186,9 @@ class ReservationControllerTest : BaseIntegrationTest() {
                 val input = ReservationReqDTO(
                     customerId = 1L,
                     carModelId = 1L,
-                    plannedPickUpDate = LocalDateTime.now().minusDays(1),  // Invalid pick-up date in the past
-                    plannedDropOffDate = LocalDateTime.now().plusDays(5)
+                    plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC)
+                        .minusDays(1),  // Invalid pick-up date in the past
+                    plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(5)
                 )
 
                 mockMvc.perform(
@@ -221,8 +222,8 @@ class ReservationControllerTest : BaseIntegrationTest() {
             val input = ReservationReqDTO(
                 customerId = 1L,
                 carModelId = 1L,
-                plannedPickUpDate = LocalDateTime.now().plusDays(2),
-                plannedDropOffDate = LocalDateTime.now().plusDays(6)
+                plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(2),
+                plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(6)
             )
 
             mockMvc.perform(
@@ -241,8 +242,8 @@ class ReservationControllerTest : BaseIntegrationTest() {
                 val input = ReservationReqDTO(
                     customerId = 1L,
                     carModelId = 1L,
-                    plannedPickUpDate = LocalDateTime.now().plusDays(2),
-                    plannedDropOffDate = LocalDateTime.now().plusDays(6)
+                    plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(2),
+                    plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(6)
                 )
 
                 mockMvc.perform(

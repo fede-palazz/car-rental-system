@@ -37,6 +37,10 @@ data class ReservationFilter(
     val minActualDropOffDate: LocalDateTime? = null,
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     val maxActualDropOffDate: LocalDateTime? = null,
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    val minBufferedDropOffDate: LocalDateTime? = null,
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    val maxBufferedDropOffDate: LocalDateTime? = null,
     val status: ReservationStatus? = null,
     @field:PositiveOrZero(message = "Parameter 'minTotalAmount' must be positive")
     val minTotalAmount: Double? = null,
@@ -44,7 +48,16 @@ data class ReservationFilter(
     val maxTotalAmount: Double? = null,
     val wasDeliveryLate: Boolean? = null,
     val wasChargedFee: Boolean? = null,
-    val wasVehicleDamaged: Boolean? = null,
     val wasInvolvedInAccident: Boolean? = null,
-    val customerUsername: String? = null
+    @field:PositiveOrZero(message = "Parameter 'minDamageLevel' must be positive")
+    val minDamageLevel: Int? = null,
+    @field:Max(5, message = "Parameter 'maxDamageLevel' must be less than or equal to 5")
+    val maxDamageLevel: Int? = null,
+    @field:PositiveOrZero(message = "Parameter 'minDirtinessLevel' must be positive")
+    val minDirtinessLevel: Int? = null,
+    @field:Max(5, message = "Parameter 'maxDirtinessLevel' must be less than or equal to 5")
+    val maxDirtinessLevel: Int? = null,
+    var customerUsername: String? = null,
+    val pickUpStaffUsername: String? = null,
+    val dropOffStaffUsername: String? = null,
 )

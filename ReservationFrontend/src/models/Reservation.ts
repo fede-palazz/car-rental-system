@@ -16,9 +16,12 @@ export interface Reservation {
   plannedDropOffDate: Date;
   actualDropOffDate?: Date;
   status: ReservationStatus;
+  totalAmount: number;
   // Boolean attributes used to compute eligibility score
   wasDeliveryLate?: boolean;
   wasChargedFee?: boolean;
-  wasVehicleDamaged?: boolean;
   wasInvolvedInAccident?: boolean;
+
+  damageLevel?: number;
+  dirtinessLevel?: number;
 }

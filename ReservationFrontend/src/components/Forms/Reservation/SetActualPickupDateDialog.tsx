@@ -12,23 +12,40 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
-  FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Reservation } from "@/models/Reservation";
 
 import ReservationsAPI from "@/API/ReservationsAPI";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 export default function SetActualPickupDateDialog() {
   const navigate = useNavigate();
-  const reservation: Reservation = useOutletContext();
+  const location = useLocation();
+  const { reservationId } = useParams<{
+    reservationId: string;
+  }>();
+  const [reservation, setReservation] = useState<Reservation | undefined>(
+    undefined
+  );
+
+  useEffect(() => {
+    ReservationsAPI.getReservationById(Number(reservationId))
+      .then((reservation: Reservation) => {
+        setReservation(reservation);
+      })
+      .catch((err: Error) => {
+        toast.error(err.message);
+      });
+  }, [reservationId, location.pathname]);
 
   const reservationSchema = z
     .object({
@@ -43,6 +60,7 @@ export default function SetActualPickupDateDialog() {
     })
     .refine(
       (data) =>
+        reservation &&
         data.actualPickUpDate > reservation.plannedPickUpDate &&
         data.actualPickUpDate <= new Date(),
       {
@@ -69,12 +87,14 @@ export default function SetActualPickupDateDialog() {
   }
 
   const handleSubmit = (values: Date) => {
+    if (!reservation) return;
     ReservationsAPI.setActualPickUpDate(reservation.id, values)
       .then(() => {
+        toast.success("Pick-Up date set successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
@@ -94,65 +114,71 @@ export default function SetActualPickupDateDialog() {
         <DialogHeader>
           <DialogTitle>Set Pickup Date</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <FormField
-              control={form.control}
-              name="actualPickUpDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col col-span-full my-3 items-center">
-                  <FormLabel>Actual PickUp Date</FormLabel>
-                  <DateTimePicker
-                    modalPopover
-                    className="!bg-background overflow-hidden"
-                    calendarDisabled={(val) =>
-                      val > new Date() || val < reservation.plannedPickUpDate
-                    }
-                    defaultPopupValue={field.value ? field.value : new Date()}
-                    placeholder="Actual PickUp Date"
-                    value={field.value}
-                    onChange={field.onChange}
-                    granularity="minute"
-                  />
-                  <FormDescription>
-                    The planned date is{" "}
-                    {reservation.plannedPickUpDate
-                      .toLocaleString()
-                      .slice(0, -3)}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="col-span-full ">
-              <div className="flex items-center justify-between w-full">
-                <Button
-                  variant="secondary"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate(-1);
-                  }}>
-                  <span className="material-symbols-outlined items-center md-18">
-                    close
-                  </span>
-                  Cancel
-                </Button>
-                <Button
-                  variant="default"
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onSubmit();
-                  }}>
-                  Set
-                  <span className="material-symbols-outlined  md-18">
-                    event_available
-                  </span>
-                </Button>
-              </div>
-            </DialogFooter>
-          </form>
-        </Form>
+        {!reservation ? (
+          <div className="flex items-center justify-center w-full min-h-[300px]">
+            <Spinner />
+          </div>
+        ) : (
+          <Form {...form}>
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              <FormField
+                control={form.control}
+                name="actualPickUpDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col col-span-full my-3 items-center">
+                    <FormLabel>Actual PickUp Date</FormLabel>
+                    <DateTimePicker
+                      modalPopover
+                      className="!bg-background overflow-hidden"
+                      calendarDisabled={(val) =>
+                        val > new Date() || val < reservation.plannedPickUpDate
+                      }
+                      defaultPopupValue={field.value ? field.value : new Date()}
+                      placeholder="Actual PickUp Date"
+                      value={field.value}
+                      onChange={field.onChange}
+                      granularity="minute"
+                    />
+                    <FormDescription>
+                      The planned date is{" "}
+                      {reservation.plannedPickUpDate
+                        .toLocaleString()
+                        .slice(0, -3)}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter className="col-span-full ">
+                <div className="flex items-center justify-between w-full">
+                  <Button
+                    variant="secondary"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(-1);
+                    }}>
+                    <span className="material-symbols-outlined items-center md-18">
+                      close
+                    </span>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="default"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSubmit();
+                    }}>
+                    Set
+                    <span className="material-symbols-outlined  md-18">
+                      event_available
+                    </span>
+                  </Button>
+                </div>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -8,6 +8,7 @@ export interface CarModelFilter {
   brand?: string;
   model?: string;
   year?: number;
+  search?: string;
   segment?: CarSegment;
   category?: CarCategory;
   engineType?: EngineType;

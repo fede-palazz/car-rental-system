@@ -5,6 +5,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rentalcarsystem.reservationservice.dtos.request.NoteReqDTO
 import com.rentalcarsystem.reservationservice.dtos.response.NoteResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
+import com.rentalcarsystem.reservationservice.exceptions.FailureException
+import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.NoteFilter
 import com.rentalcarsystem.reservationservice.services.NoteService
 import io.swagger.v3.oas.annotations.Operation
@@ -14,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 
@@ -84,6 +88,29 @@ class NoteController(private val noteService: NoteService) {
     }
 
     @Operation(
+        summary = "Get vehicle note by id",
+        description = "Retrieves a specific note related to a vehicle based on the specified id",
+        responses = [
+            ApiResponse(
+                responseCode = "200", content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = NoteResDTO::class)
+                )]
+            ),
+            ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "422", content = [Content()]),
+        ]
+    )
+    @GetMapping("{noteId}")
+    fun getVehicleNotes(@PathVariable noteId: Long): ResponseEntity<NoteResDTO> {
+        if (noteId <= 0) {
+            throw IllegalArgumentException("Note id must be a positive number")
+        }
+        return ResponseEntity.ok(noteService.getNote(noteId))
+    }
+
+    @Operation(
         summary = "Add vehicle's note",
         description = "Creates a new note for the specified vehicle ",
         requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -116,7 +143,14 @@ class NoteController(private val noteService: NoteService) {
         if (vehicleId <= 0) {
             throw IllegalArgumentException("Vehicle id must be a positive number")
         }
-        val createdNote = noteService.createNote(vehicleId, note)
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val createdNote = noteService.createNote(vehicleId, note, username)
         logger.info("Created note for vehicle {}: {}", vehicleId, mapper.writeValueAsString(createdNote))
         val location = uriBuilder
             .path("$NOTE_BASE_URL/${createdNote.id}")
@@ -139,25 +173,34 @@ class NoteController(private val noteService: NoteService) {
                 )]
             ),
             ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "403", content = [Content()]),
             ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()]),
         ]
     )
     @PreAuthorize("hasAnyRole('STAFF', 'FLEET_MANAGER', 'MANAGER')")
     @PutMapping("{id}")
     fun updateNote(
-        @PathVariable id: Long,
         @PathVariable vehicleId: Long,
+        @PathVariable("id") noteId: Long,
         @RequestBody note: NoteReqDTO
     ): ResponseEntity<NoteResDTO> {
         if (vehicleId <= 0) {
             throw IllegalArgumentException("Invalid vehicle id $vehicleId: it must be a positive number")
         }
-        if (id <= 0) {
-            throw IllegalArgumentException("Invalid note id $id: it must be a positive number")
+        if (noteId <= 0) {
+            throw IllegalArgumentException("Invalid note id $noteId: it must be a positive number")
         }
-        val updatedNote = noteService.updateNote(id, vehicleId, note)
-        logger.info("Updated note {} for vehicle {}: {}", id, vehicleId, mapper.writeValueAsString(updatedNote))
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        val updatedNote = noteService.updateNote(vehicleId, noteId, note, username)
+        logger.info("Updated note {} for vehicle {}: {}", noteId, vehicleId, mapper.writeValueAsString(updatedNote))
         return ResponseEntity.ok(updatedNote)
     }
 
@@ -167,7 +210,9 @@ class NoteController(private val noteService: NoteService) {
         responses = [
             ApiResponse(responseCode = "204", content = [Content()]),
             ApiResponse(responseCode = "400", content = [Content()]),
+            ApiResponse(responseCode = "403", content = [Content()]),
             ApiResponse(responseCode = "404", content = [Content()]),
+            ApiResponse(responseCode = "409", content = [Content()]),
             ApiResponse(responseCode = "422", content = [Content()]),
         ]
     )
@@ -183,7 +228,14 @@ class NoteController(private val noteService: NoteService) {
         if (noteId <= 0) {
             throw IllegalArgumentException("Invalid note id $noteId: it must be a positive number")
         }
-        noteService.deleteNote(vehicleId, noteId)
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        // Extract username
+        val jwt = authentication.principal as Jwt
+        val username = jwt.getClaimAsString("preferred_username")
+        requireNotNull(username) { FailureException(ResponseEnum.FORBIDDEN) }
+
+        noteService.deleteNote(vehicleId, noteId, username)
         logger.info("Deleted note {} for vehicle {}", noteId, vehicleId)
         return ResponseEntity.noContent().build()
     }

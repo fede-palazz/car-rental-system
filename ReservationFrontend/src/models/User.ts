@@ -9,6 +9,6 @@ export interface User {
   email: string;
   role: UserRole;
   address: string;
-  phoneNumber: string;
+  phone: string;
   eligibilityScore?: number;
 }

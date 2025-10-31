@@ -5,6 +5,7 @@ import com.rentalcarsystem.reservationservice.models.Reservation
 import jakarta.validation.constraints.Future
 import jakarta.validation.constraints.Positive
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 data class ReservationReqDTO(
     @field:Positive(message = "Parameter 'carModelId' must be a positive integer")
@@ -15,11 +16,12 @@ data class ReservationReqDTO(
     val plannedDropOffDate: LocalDateTime,
 )
 
-fun ReservationReqDTO.toEntity(totalAmount: Double, customerUsername: String) = Reservation(
+fun ReservationReqDTO.toEntity(totalAmount: Double, customerUsername: String, defaultBufferDays: Long) = Reservation(
     customerUsername = customerUsername,
-    creationDate = LocalDateTime.now(),
+    creationDate = LocalDateTime.now(ZoneOffset.UTC),
     plannedPickUpDate = plannedPickUpDate,
     plannedDropOffDate = plannedDropOffDate,
+    bufferedDropOffDate = plannedDropOffDate.plusDays(defaultBufferDays),
     status = ReservationStatus.PENDING,
     totalAmount = totalAmount
 )

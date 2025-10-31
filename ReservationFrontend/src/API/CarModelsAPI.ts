@@ -13,21 +13,26 @@ async function getAllModels(
   order: string = "asc",
   sort: string = "brand",
   page: number = 0,
-  size: number = 9
+  size: number = 9,
+  singlePage: boolean = false
 ): Promise<PagedResDTO<CarModel>> {
   const queryParams =
     (filter
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
-          .map(
-            ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-          )
+          .map(([key, value]) => {
+            if (value instanceof Date) {
+              value = value.toISOString();
+            }
+            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+          })
           .join("&")
       : "") +
     `&order=${encodeURIComponent(order)}&sort=${encodeURIComponent(
       sort
-    )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`;
+    )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(
+      size
+    )}&singlePage=${encodeURIComponent(singlePage)}`;
 
   const response = await fetch(baseURL + `models?${queryParams}`, {
     method: "GET",
@@ -46,10 +51,11 @@ async function getAllModels(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -63,7 +69,7 @@ async function getAvailableModels(
   singlePage: boolean = false
 ): Promise<PagedResDTO<CarModel>> {
   const queryParams =
-    (filter
+    (filter != undefined
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
           .map(([key, value]) => {
@@ -93,6 +99,7 @@ async function getAvailableModels(
       method: "GET",
       credentials: "include",
       headers: {
+        "X-CSRF-TOKEN": getCsrfToken(),
         "Content-Type": "application/json",
       },
     }
@@ -107,10 +114,11 @@ async function getAvailableModels(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -132,10 +140,11 @@ async function getModelById(id: number): Promise<CarModel> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -157,10 +166,11 @@ async function deleteModelById(id: number): Promise<null> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -182,10 +192,11 @@ async function getCarFeatures(): Promise<CarFeature[]> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -207,10 +218,11 @@ async function getCarFeatureById(id: number): Promise<CarFeature> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -236,10 +248,11 @@ async function createModel(modelDTO: CarModelCreateDTO): Promise<CarModel> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -266,10 +279,11 @@ async function editModelById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

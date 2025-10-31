@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Returned</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0f1419;
+            color: #fafafa;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #1a1f2e;
+        }
+        .header {
+            background: linear-gradient(135deg, #4d6fd4 0%, #6b8ce8 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #f7f8fc;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            color: #e8ecfd;
+            font-size: 16px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #fafafa;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #b4b9c8;
+            margin-bottom: 30px;
+        }
+        .success-box {
+            background-color: rgba(22, 163, 74, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-left: 4px solid #22c55e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .success-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #22c55e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .success-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .success-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.5;
+        }
+        .warning-box {
+            background-color: rgba(216, 150, 20, 0.15);
+            border: 1px solid rgba(245, 183, 62, 0.3);
+            border-left: 4px solid #f5b73e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .warning-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f5b73e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .warning-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .warning-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.5;
+        }
+        .card {
+            background-color: #232938;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #b4b9c8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .vehicle-info {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .vehicle-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #6b8ce8;
+            margin-bottom: 8px;
+        }
+        .vehicle-detail {
+            font-size: 14px;
+            color: #b4b9c8;
+            margin-bottom: 4px;
+        }
+        .detail-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .detail-label {
+            font-size: 14px;
+            color: #b4b9c8;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            font-size: 16px;
+            color: #fafafa;
+            font-weight: 600;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #232938;
+            color: #6b8ce8;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            border: 1px solid rgba(107, 140, 232, 0.3);
+        }
+        .badge-success {
+            background-color: rgba(22, 163, 74, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .badge-warning {
+            background-color: rgba(216, 150, 20, 0.2);
+            color: #f5b73e;
+            border: 1px solid rgba(245, 183, 62, 0.3);
+        }
+        .total-amount {
+            background: linear-gradient(135deg, #4d6fd4 0%, #6b8ce8 100%);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .total-label {
+            font-size: 14px;
+            color: #e8ecfd;
+            margin-bottom: 8px;
+        }
+        .total-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f7f8fc;
+        }
+        .inspection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .inspection-item {
+            background-color: #1a1f2e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+        .inspection-label {
+            font-size: 12px;
+            color: #b4b9c8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .inspection-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fafafa;
+        }
+        .inspection-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .info-box {
+            background-color: rgba(107, 140, 232, 0.15);
+            border: 1px solid rgba(107, 140, 232, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .info-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .footer {
+            background-color: #161b26;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .footer-text {
+            font-size: 14px;
+            color: #b4b9c8;
+            line-height: 1.6;
+            margin: 0 0 10px 0;
+        }
+        .footer-link {
+            color: #6b8ce8;
+            text-decoration: none;
+        }
+        .footer-link:hover {
+            color: #8ba5ef;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .header {
+                padding: 30px 20px;
+            }
+            .vehicle-name {
+                font-size: 20px;
+            }
+            .total-value {
+                font-size: 28px;
+            }
+            .inspection-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <!-- Header -->
+    <div class="header">
+        <h1>✓ Vehicle Returned</h1>
+        <p>Thank you for your rental</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="greeting">
+            Hello <span th:text="${recipientName}">Customer</span>,
+        </div>
+
+        <!-- Success or Warning Box -->
+        <div th:if="${!wasLate and !wasChargedFee and !wasInvolvedInAccident}" class="success-box">
+            <div class="success-title">
+                <span class="success-icon">✓</span>
+                Return Successful
+            </div>
+            <div class="success-text">
+                Your vehicle has been successfully returned and inspected. Thank you for taking excellent care of our vehicle and returning it on time!
+            </div>
+        </div>
+
+        <div th:if="${wasLate or wasChargedFee or wasInvolvedInAccident}" class="warning-box">
+            <div class="warning-title">
+                <span class="warning-icon">⚠️</span>
+                Return Completed with Notes
+            </div>
+            <div class="warning-text">
+                Your vehicle has been returned and inspected. Please review the details below regarding additional charges or incidents during your rental period.
+            </div>
+        </div>
+
+        <div class="message">
+            We hope you had a pleasant experience with your rental. Below is a summary of your completed rental and vehicle inspection results.
+        </div>
+
+        <!-- Vehicle Information Card -->
+        <div class="card">
+            <div class="card-title">Returned Vehicle</div>
+            <div class="vehicle-info">
+                <div class="vehicle-name" th:text="${brand + ' ' + model + ' ' + year}">Toyota Camry 2023</div>
+                <div class="vehicle-detail">
+                    License Plate: <strong th:text="${licensePlate}">ABC-1234</strong>
+                </div>
+                <div class="vehicle-detail">
+                    VIN: <strong th:text="${vin}">1HGBH41JXMN109186</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Details Card -->
+        <div class="card">
+            <div class="card-title">Return Details</div>
+
+            <div class="detail-row">
+                <div class="detail-label">Reservation ID</div>
+                <div class="detail-value">
+                    #<span th:text="${reservationId}">12345</span>
+                    <span class="badge">COMPLETED</span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Picked Up On</div>
+                <div class="detail-value" th:text="${pickUpDate}">Jan 15, 2025 at 10:30 AM</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Scheduled Return</div>
+                <div class="detail-value" th:text="${plannedDropOffDate}">Jan 20, 2025 at 10:00 AM</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Actual Return</div>
+                <div class="detail-value">
+                    <span th:text="${actualDropOffDate}">Jan 20, 2025 at 09:45 AM</span>
+                    <span th:if="${wasLate}" class="badge badge-warning">LATE RETURN</span>
+                    <span th:if="${!wasLate}" class="badge badge-success">ON TIME</span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Processed By</div>
+                <div class="detail-value" th:text="${dropOffStaff}">Sarah Johnson</div>
+            </div>
+        </div>
+
+        <!-- Vehicle Inspection Card -->
+        <div class="card">
+            <div class="card-title">Vehicle Inspection Report</div>
+
+            <div class="inspection-grid">
+                <div class="inspection-item">
+                    <div class="inspection-icon">🔍</div>
+                    <div class="inspection-label">Damage Level</div>
+                    <div class="inspection-value">
+                        <span th:text="${damageLevel}">0</span>/10
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <div class="inspection-icon">✨</div>
+                    <div class="inspection-label">Cleanliness</div>
+                    <div class="inspection-value">
+                        <span th:text="${10 - dirtinessLevel}">10</span>/10
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${wasInvolvedInAccident}" class="detail-row" style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
+                <div class="detail-label">Accident Reported</div>
+                <div class="detail-value">
+                    <span class="badge badge-warning">YES</span>
+                </div>
+            </div>
+
+            <div th:if="${wasChargedFee}" class="detail-row" style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
+                <div class="detail-label">Additional Fees</div>
+                <div class="detail-value">
+                    <span class="badge badge-warning">APPLIED</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Amount Card -->
+        <div class="card">
+            <div class="card-title">Final Rental Summary</div>
+
+            <div class="total-amount">
+                <div class="total-label">Total Amount</div>
+                <div class="total-value">€<span th:text="${totalAmount}">250.00</span></div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div th:if="${wasChargedFee or wasLate or wasInvolvedInAccident}" class="info-box">
+            <p class="info-text">
+                <strong>Additional Charges Notice:</strong><br>
+                <span th:if="${wasLate}">Late return fees have been applied to your final total. </span>
+                <span th:if="${wasChargedFee}">Additional fees have been charged based on the vehicle inspection results. </span>
+                <span th:if="${wasInvolvedInAccident}">Accident-related charges may apply based on the incident report and insurance assessment. </span>
+                A detailed invoice will be sent to you separately.
+            </p>
+        </div>
+
+        <div th:if="${!wasChargedFee and !wasLate and !wasInvolvedInAccident}" class="info-box">
+            <p class="info-text">
+                <strong>Payment Processed:</strong><br>
+                Your rental has been completed without any additional charges. A detailed receipt has been sent to your email for your records.
+            </p>
+        </div>
+
+        <div class="message">
+            Thank you for choosing our car rental service. We hope to serve you again in the future. If you have any questions about your rental or charges, please contact our support team.
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p class="footer-text">
+            <strong>Car Rental System</strong><br>
+            We appreciate your business!
+        </p>
+        <p class="footer-text">
+            Questions? Contact us at
+                <a href="mailto:support@car-rental-system.com" class="footer-link">
+                    support@car-rental-system.com
+                </a>
+        </p>
+        <p class="footer-text" style="font-size: 12px; color: #717684;">
+            This is an automated message. Please do not reply to this email.
+        </p>
+    </div>
+</div>
+</body>
+</html>

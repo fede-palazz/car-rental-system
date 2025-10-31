@@ -22,6 +22,13 @@ class RestClientConfig {
     }
 
     @Bean
+    fun trackingServiceRestClient(@Value("\${tracking.baseurl}") trackingUrl: String): RestClient {
+        return RestClient.builder()
+            .baseUrl(trackingUrl)
+            .build()
+    }
+
+    @Bean
     fun keycloakTokenRestClient(@Value("\${spring.security.oauth2.client.provider.keycloak.token-uri}") tokenUrl: String): RestClient{
         return RestClient.builder()
             .baseUrl(tokenUrl)

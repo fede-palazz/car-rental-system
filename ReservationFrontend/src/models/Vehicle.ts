@@ -9,7 +9,6 @@ export interface Vehicle {
   status: CarStatus;
   kmTravelled: number;
   pendingCleaning: boolean;
-  pendingRepair: boolean;
 }
 
 export enum CarStatus {

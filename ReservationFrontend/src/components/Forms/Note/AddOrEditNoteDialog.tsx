@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/form";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { useParams } from "react-router-dom";
 import { NoteReqDTO } from "@/models/dtos/request/NoteReqDTO";
 import NotesAPI from "@/API/NotesAPI";
@@ -30,7 +29,6 @@ import { toast } from "sonner";
 
 const noteSchema = z.object({
   content: z.string().min(1, "Content must not be blank"),
-  author: z.string().min(1, "Authot must not be blank"),
 });
 
 export default function AddOrEditNoteDialog() {
@@ -44,7 +42,6 @@ export default function AddOrEditNoteDialog() {
     resolver: zodResolver(noteSchema),
     defaultValues: {
       content: "",
-      author: "",
     },
   });
 
@@ -52,9 +49,11 @@ export default function AddOrEditNoteDialog() {
     if (!noteId) return;
     NotesAPI.getNoteById(Number(vehicleId), Number(noteId))
       .then((note: Note) => {
-        form.reset(note);
+        form.reset(note, { keepDefaultValues: true });
       })
-      .catch();
+      .catch((err: Error) => {
+        toast.error(err.message);
+      });
   }, [form, noteId, vehicleId]);
 
   async function onSubmit() {
@@ -72,20 +71,22 @@ export default function AddOrEditNoteDialog() {
   const handleEdit = (values: NoteReqDTO) => {
     NotesAPI.editNoteById(Number(vehicleId), values, Number(noteId))
       .then(() => {
+        toast.success("Note edited successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
   const handleCreate = (values: NoteReqDTO) => {
     NotesAPI.createNote(Number(vehicleId), values)
       .then(() => {
+        toast.success("Note created successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
@@ -109,27 +110,6 @@ export default function AddOrEditNoteDialog() {
         </DialogHeader>
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <FormField
-              control={form.control}
-              name="author"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Author*</FormLabel>
-                  <FormControl>
-                    <Input
-                      startIcon={
-                        <span className="material-symbols-outlined items-center md-18">
-                          person
-                        </span>
-                      }
-                      placeholder={"Author"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="content"

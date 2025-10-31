@@ -1,7 +1,7 @@
 package com.rentalcarsystem.reservationservice.services
 
-import com.rentalcarsystem.reservationservice.controllers.MaintenanceController
 import com.rentalcarsystem.reservationservice.dtos.request.PaymentReqDTO
+import com.rentalcarsystem.reservationservice.dtos.request.SessionReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.UserUpdateReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.reservation.ActualPickUpDateReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.reservation.FinalizeReservationReqDTO
@@ -16,13 +16,17 @@ import com.rentalcarsystem.reservationservice.dtos.response.reservation.StaffRes
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.toCustomerReservationResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.reservation.toStaffReservationResDTO
 import com.rentalcarsystem.reservationservice.enums.CarCategory
+import com.rentalcarsystem.reservationservice.enums.CarStatus
+import com.rentalcarsystem.reservationservice.enums.EventType
 import com.rentalcarsystem.reservationservice.enums.ReservationStatus
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.PaymentRecordFilter
 import com.rentalcarsystem.reservationservice.filters.ReservationFilter
+import com.rentalcarsystem.reservationservice.kafka.ReservationEventDTO
 import com.rentalcarsystem.reservationservice.models.*
 import com.rentalcarsystem.reservationservice.repositories.ReservationRepository
+import com.rentalcarsystem.reservationservice.repositories.VehicleRepository
 import jakarta.persistence.criteria.Join
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -34,6 +38,8 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -42,6 +48,8 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 @Service
@@ -50,10 +58,16 @@ import java.time.temporal.ChronoUnit
 // TODO: Understand if and how to use locking mechanism to ensure concurrency control
 class ReservationServiceImpl(
     private val carModelService: CarModelService,
+    private val vehicleService: VehicleService,
+    private val notificationService: NotificationService,
+    private val vehicleRepository: VehicleRepository,
     private val reservationRepository: ReservationRepository,
     private val userManagementRestClient: RestClient,
     private val paymentServiceRestClient: RestClient,
     private val keycloakTokenRestClient: RestClient,
+    private val trackingServiceRestClient: RestClient,
+    private val taskScheduler: TaskScheduler,
+    private val kafkaTemplate: KafkaTemplate<String, ReservationEventDTO>,
     @Value("\${reservation.buffer-days}")
     private val reservationBufferDays: Long,
     @Value("\${spring.security.oauth2.client.registration.keycloak.client-id}")
@@ -63,8 +77,7 @@ class ReservationServiceImpl(
     @Value("\${reservation.expiration-offset-minutes}")
     private val expirationOffsetMinutes: Long
 ) : ReservationService {
-    private val logger = LoggerFactory.getLogger(MaintenanceController::class.java)
-
+    private val logger = LoggerFactory.getLogger(ReservationServiceImpl::class.java)
     fun getAccessToken(): String {
         val body = LinkedMultiValueMap<String, String>().apply {
             add("grant_type", "client_credentials")
@@ -83,20 +96,20 @@ class ReservationServiceImpl(
         return response["access_token"] as String
     }
 
-
     override fun getReservations(
         page: Int,
         size: Int,
+        singlePage: Boolean,
         sortBy: String,
         sortOrder: String,
         isCustomer: Boolean,
         @Valid filters: ReservationFilter
     ): PagedResDTO<Any> {
         var spec: Specification<Reservation> = Specification.where(null)
-        // Customer username TODO:
-        filters.customerUsername?.let { name ->
+        // Customer username
+        filters.customerUsername?.takeIf { it.isNotBlank() }?.let { name ->
             spec = spec.and { root, _, cb ->
-                cb.equal(root.get<String>("customerUsername"), name)
+                cb.like(cb.lower(root.get("customerUsername")), "${name.lowercase()}%")
             }
         }
         // License plate
@@ -192,6 +205,17 @@ class ReservationServiceImpl(
                 cb.lessThanOrEqualTo(root.get("actualDropOffDate"), maxActualDropOffDate)
             }
         }
+        // Buffered drop-off date
+        filters.minBufferedDropOffDate?.let { minBufferedDropOffDate ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("bufferedDropOffDate"), minBufferedDropOffDate)
+            }
+        }
+        filters.maxBufferedDropOffDate?.let { maxBufferedDropOffDate ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("bufferedDropOffDate"), maxBufferedDropOffDate)
+            }
+        }
         // Status
         filters.status?.let { status ->
             spec = spec.and { root, _, cb ->
@@ -221,16 +245,44 @@ class ReservationServiceImpl(
                 cb.equal(root.get<Boolean>("wasChargedFee"), wasChargedFee)
             }
         }
-        // Was vehicle damaged
-        filters.wasVehicleDamaged?.let { wasVehicleDamaged ->
-            spec = spec.and { root, _, cb ->
-                cb.equal(root.get<Boolean>("wasVehicleDamaged"), wasVehicleDamaged)
-            }
-        }
         // Was involved in accident
         filters.wasInvolvedInAccident?.let { wasInvolvedInAccident ->
             spec = spec.and { root, _, cb ->
                 cb.equal(root.get<Boolean>("wasInvolvedInAccident"), wasInvolvedInAccident)
+            }
+        }
+        // Damage level
+        filters.minDamageLevel?.let { minDamageLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("damageLevel"), minDamageLevel)
+            }
+        }
+        filters.maxDamageLevel?.let { maxDamageLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("damageLevel"), maxDamageLevel)
+            }
+        }
+        // Dirtiness level
+        filters.minDirtinessLevel?.let { minDirtinessLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("dirtinessLevel"), minDirtinessLevel)
+            }
+        }
+        filters.maxDirtinessLevel?.let { maxDirtinessLevel ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("dirtinessLevel"), maxDirtinessLevel)
+            }
+        }
+        // Pick-up staff username
+        filters.pickUpStaffUsername?.takeIf { it.isNotBlank() }?.let { pickUpStaffUsername ->
+            spec = spec.and { root, _, cb ->
+                cb.like(cb.lower(root.get("pickUpStaffUsername")), "${pickUpStaffUsername.lowercase()}%")
+            }
+        }
+        // Drop-off staff username
+        filters.dropOffStaffUsername?.takeIf { it.isNotBlank() }?.let { dropOffStaffUsername ->
+            spec = spec.and { root, _, cb ->
+                cb.like(cb.lower(root.get("dropOffStaffUsername")), "${dropOffStaffUsername.lowercase()}%")
             }
         }
         // Sorting
@@ -249,7 +301,8 @@ class ReservationServiceImpl(
                 Sort.by(sortOrd, sortBy)
             }
         }
-        val pageable: Pageable = PageRequest.of(page, size, sort)
+        val actualSize = if (singlePage) reservationRepository.count().toInt() else size
+        val pageable: Pageable = PageRequest.of(page, actualSize, sort)
         val pageResult = reservationRepository.findAll(spec, pageable)
 
         return PagedResDTO(
@@ -258,6 +311,69 @@ class ReservationServiceImpl(
             totalElements = pageResult.totalElements,
             elementsInPage = pageResult.numberOfElements,
             content = if (isCustomer) pageResult.content.map { it.toCustomerReservationResDTO() } else pageResult.content.map { it.toStaffReservationResDTO() }
+        )
+    }
+
+    override fun getOverlappingReservations(
+        vehicleId: Long,
+        desiredStart: LocalDateTime,
+        desiredEnd: LocalDateTime,
+        page: Int,
+        size: Int,
+        singlePage: Boolean,
+        sortBy: String,
+        sortOrder: String,
+        reservationToExcludeId: Long
+    ): PagedResDTO<StaffReservationResDTO> {
+        val vehicle = vehicleService.getVehicleById(vehicleId)
+        var spec: Specification<Reservation> = Specification.where(null)
+        // Vehicle
+        spec = spec.and { root, _, cb ->
+            cb.equal(root.get<Vehicle>("vehicle"), vehicle)
+        }
+        // Exclude the reservation reservationToExcludeId, or exclude none if reservationToExcludeId is not specified and defaults to 0
+        spec = spec.and { root, _, cb ->
+            cb.notEqual(root.get<Long>("id"), reservationToExcludeId)
+        }
+        // Only considers reservations that overlap the desired date range.
+        spec = spec.and { root, _, cb ->
+            cb.and(
+                cb.lessThan(
+                    root.get("plannedPickUpDate"),
+                    desiredEnd
+                ),
+                cb.greaterThan(
+                    root.get("plannedDropOffDate"),
+                    desiredStart
+                )
+            )
+        }
+        // Sorting
+        val sortOrd: Sort.Direction = if (sortOrder == "asc") Sort.Direction.ASC else Sort.Direction.DESC
+        val sort: Sort = when (sortBy) {
+            // Sorting on Car model fields
+            in listOf("brand", "model", "year") -> {
+                Sort.by(sortOrd, "vehicle.carModel.$sortBy")
+            }
+            // Sorting on Vehicle fields
+            in listOf("licensePlate", "vin") -> {
+                Sort.by(sortOrd, "vehicle.$sortBy")
+            }
+            // Sorting on Reservation fields
+            else -> {
+                Sort.by(sortOrd, sortBy)
+            }
+        }
+        val actualSize = if (singlePage) reservationRepository.count().toInt() else size
+        val pageable: Pageable = PageRequest.of(page, actualSize, sort)
+        val pageResult = reservationRepository.findAll(spec, pageable)
+
+        return PagedResDTO(
+            currentPage = pageResult.number,
+            totalPages = pageResult.totalPages,
+            totalElements = pageResult.totalElements,
+            elementsInPage = pageResult.numberOfElements,
+            content = pageResult.content.map { it.toStaffReservationResDTO() }
         )
     }
 
@@ -276,19 +392,35 @@ class ReservationServiceImpl(
             reservation.plannedPickUpDate.toLocalDate(),
             reservation.plannedDropOffDate.toLocalDate()
         ) + 1
-        val reservationToSave = reservation.toEntity(vehicle.carModel.rentalPrice * days, customerUsername)
+        val reservationToSave =
+            reservation.toEntity(vehicle.carModel.rentalPrice * days, customerUsername, reservationBufferDays)
         vehicle.addReservation(reservationToSave)
-        return reservationRepository.save(reservationToSave).toCustomerReservationResDTO()
+        val savedReservation = reservationRepository.save(reservationToSave)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                ReservationEventDTO(EventType.CREATED, savedReservation.toStaffReservationResDTO())
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation creation event", ex)
+        }
+
+        return savedReservation.toCustomerReservationResDTO()
     }
 
     override fun setReservationActualPickUpDate(
+        pickUpStaffUsername: String,
         reservationId: Long,
         @Valid actualPickUpDate: ActualPickUpDateReqDTO
     ): StaffReservationResDTO {
         val reservation = getReservationById(reservationId)
-        // Check if reservation is still active (car not returned yet)
-        if (reservation.status == ReservationStatus.DELIVERED) {
-            throw IllegalArgumentException("The reservation $reservationId has already been finalized")
+        // Check if reservation is still active (car paid and not returned yet)
+        if (reservation.status != ReservationStatus.CONFIRMED) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_WRONG_STATUS,
+                "The reservation $reservationId was cancelled or not paid yet or has already been finalized"
+            )
         }
         if (actualPickUpDate.actualPickUpDate.isBefore(reservation.plannedPickUpDate)) {
             throw IllegalArgumentException("The actual pick-up date cannot be before the planned pick-up date: ${reservation.plannedPickUpDate}")
@@ -298,35 +430,91 @@ class ReservationServiceImpl(
         }
         reservation.actualPickUpDate = actualPickUpDate.actualPickUpDate
         reservation.status = ReservationStatus.PICKED_UP
-        return reservation.toStaffReservationResDTO()
+        reservation.pickUpStaffUsername = pickUpStaffUsername
+        val savedReservation = reservation.toStaffReservationResDTO()
+
+        try {
+            val token = getAccessToken()
+            val response = trackingServiceRestClient.post().uri("/sessions/start").body(
+                SessionReqDTO(
+                    vehicleId = reservation.vehicle?.getId()!!,
+                    reservationId = reservationId,
+                    customerUsername = reservation.customerUsername
+                )
+            ).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            ).retrieve().body<Any>()
+        } catch (e: Exception) {
+            logger.error("Failed to send session request ${e.message}")
+            throw FailureException(
+                ResponseEnum.TRACKING_ERROR,
+                e.message
+            )
+        }
+
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+        val payload = ReservationEventDTO(EventType.PICKED_UP, savedReservation)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                payload
+            )
+            notificationService.sendVehiclePickedUpEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation pick-up event", ex)
+        }
+
+        return savedReservation
     }
 
     override fun finalizeReservation(
-        customerUsername: String,
+        dropOffStaffUsername: String,
         reservationId: Long,
         @Valid finalizeReq: FinalizeReservationReqDTO
     ): StaffReservationResDTO {
-        val reservation = reservationRepository.findById(reservationId).orElseThrow {
-            FailureException(
-                ResponseEnum.RESERVATION_NOT_FOUND,
-                "The requested reservation with id $reservationId was not found"
+        val reservation = getReservationById(reservationId)
+        if (reservation.status != ReservationStatus.PICKED_UP) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_WRONG_STATUS,
+                "The vehicle of reservation $reservationId has not been picked up yet"
             )
         }
-        if (reservation.status == ReservationStatus.CONFIRMED) {
-            throw IllegalArgumentException("The vehicle of reservation $reservationId has not been picked up yet")
+        if (finalizeReq.actualDropOffDate.isBefore(reservation.actualPickUpDate)) {
+            throw IllegalArgumentException("The actual drop-off date cannot be before the actual pick-up date: ${reservation.actualPickUpDate}")
         }
-        if (finalizeReq.actualDropOffDate.isBefore(reservation.plannedDropOffDate)) {
-            throw IllegalArgumentException("The actual drop-off date cannot be before the planned drop off date: ${reservation.plannedDropOffDate}")
+        val overlappingReservationsAmount = getOverlappingReservations(
+            vehicleId = reservation.vehicle?.getId()!!,
+            desiredStart = reservation.actualPickUpDate!!,
+            desiredEnd = finalizeReq.bufferedDropOffDate,
+            page = 0,
+            size = 1,
+            singlePage = false,
+            sortBy = "creationDate",
+            sortOrder = "asc",
+            reservationToExcludeId = reservationId
+        ).totalElements
+        if (overlappingReservationsAmount > 0) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_CONFLICT,
+                "The vehicle of reservation $reservationId has $overlappingReservationsAmount overlapping reservations"
+            )
         }
         reservation.actualDropOffDate = finalizeReq.actualDropOffDate
+        reservation.bufferedDropOffDate = finalizeReq.bufferedDropOffDate
+        reservation.status = ReservationStatus.DELIVERED
         reservation.wasDeliveryLate = finalizeReq.wasDeliveryLate
         reservation.wasChargedFee = finalizeReq.wasChargedFee
-        reservation.wasVehicleDamaged = finalizeReq.wasVehicleDamaged
         reservation.wasInvolvedInAccident = finalizeReq.wasInvolvedInAccident
-        reservation.status = ReservationStatus.DELIVERED
-        val token = getAccessToken();
-        //TODO
-        val customer = userManagementRestClient.get().uri("/username/{username}", customerUsername)
+        reservation.damageLevel = finalizeReq.damageLevel
+        reservation.dirtinessLevel = finalizeReq.dirtinessLevel
+        reservation.dropOffStaffUsername = dropOffStaffUsername
+        val token = getAccessToken()
+        val customer = userManagementRestClient.get().uri("/username/{username}", reservation.customerUsername)
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                 APPLICATION_JSON
             ).retrieve().body<UserResDTO>()
@@ -337,14 +525,21 @@ class ReservationServiceImpl(
         if (reservation.wasChargedFee == true) {
             newScore -= WAS_CHARGED_FEE_PENALTY
         }
-        if (reservation.wasVehicleDamaged == true) {
-            newScore -= WAS_VEHICLE_DAMAGED_PENALTY
-        }
         if (reservation.wasInvolvedInAccident == true) {
             newScore -= WAS_INVOLVED_IN_ACCIDENT_PENALTY
         }
+        reservation.damageLevel?.let {
+            if (it > 0) {
+                newScore -= WAS_VEHICLE_DAMAGED_PENALTY * it
+            }
+        }
+        reservation.dirtinessLevel?.let {
+            if (it > 0) {
+                newScore -= WAS_VEHICLE_DIRTY_PENALTY * it
+            }
+        }
         if (reservation.wasDeliveryLate != true && reservation.wasChargedFee != true
-            && reservation.wasVehicleDamaged != true && reservation.wasInvolvedInAccident != true
+            && reservation.wasInvolvedInAccident != true && reservation.damageLevel == 0 && reservation.dirtinessLevel == 0
         ) {
             newScore += NO_PROBLEM_BONUS
         }
@@ -362,7 +557,7 @@ class ReservationServiceImpl(
             eligibilityScore = newScore
         )
         val updatedCustomerRes =
-            userManagementRestClient.put().uri("/username/{username}", customerUsername).body(updatedCustomer)
+            userManagementRestClient.put().uri("/{userId}", customer.id).body(updatedCustomer)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
                     APPLICATION_JSON
                 ).retrieve().body<UserResDTO>()
@@ -370,18 +565,138 @@ class ReservationServiceImpl(
         if (updatedCustomerRes != null && updatedCustomerRes.eligibilityScore != newScore) {
             throw RuntimeException("Failed to update customer's score")
         }
-        return reservation.toStaffReservationResDTO()
+        if (reservation.bufferedDropOffDate.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
+            reservation.vehicle?.let {
+                reservation.vehicle?.pendingCleaning = true
+                scheduleVehicleAvailabilityUpdate(it, reservation.bufferedDropOffDate)
+            }
+        } else {
+            if (reservation.vehicle?.status == CarStatus.RENTED) {
+                reservation.vehicle?.status = CarStatus.AVAILABLE
+            }
+            if (reservation.vehicle?.pendingCleaning == true) {
+                reservation.vehicle?.pendingCleaning = false
+            }
+        }
+        val savedReservation = reservation.toStaffReservationResDTO()
+
+        try {
+            val token = getAccessToken()
+            trackingServiceRestClient.post().uri("/sessions/end").body(
+                SessionReqDTO(
+                    vehicleId = reservation.vehicle?.getId()!!,
+                    reservationId = reservationId,
+                    customerUsername = reservation.customerUsername
+                )
+            ).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            ).retrieve().body<Any>()
+        } catch (e: Exception) {
+            logger.error("Failed to send session request ${e.message}")
+            throw FailureException(
+                ResponseEnum.TRACKING_ERROR,
+                e.message
+            )
+        }
+
+        val payload = ReservationEventDTO(EventType.FINALIZED, savedReservation)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                payload
+            )
+            notificationService.sendVehicleDroppedOffEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation finalized event", ex)
+        }
+
+        return savedReservation
+    }
+
+    override fun updateReservationVehicle(
+        updatedVehicleStaffUsername: String,
+        reservationId: Long,
+        vehicleId: Long
+    ): StaffReservationResDTO {
+        val reservation = getReservationById(reservationId)
+        if (reservation.status == ReservationStatus.CANCELLED
+            || reservation.status == ReservationStatus.PICKED_UP
+            || reservation.status == ReservationStatus.DELIVERED
+        ) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_WRONG_STATUS,
+                "Cannot update reservation $reservationId as it has already been cancelled, picked up or delivered"
+            )
+        }
+        val vehicle = vehicleRepository.findAvailableVehicleByIdAndDateRange(
+            vehicleId = vehicleService.getVehicleById(vehicleId).getId()!!,
+            reservationToExcludeId = reservation.getId()!!,
+            desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),
+            desiredStart = reservation.plannedPickUpDate,
+            desiredEnd = reservation.plannedDropOffDate
+        ) ?: throw FailureException(
+            ResponseEnum.VEHICLE_NOT_AVAILABLE,
+            "The requested vehicle is not available for the selected dates"
+        )
+        reservation.updatedVehicleStaffUsername = updatedVehicleStaffUsername
+        vehicle.addReservation(reservation)
+        val savedReservation = reservation.toStaffReservationResDTO()
+
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+        val payload = ReservationEventDTO(EventType.UPDATED, savedReservation)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                payload
+            )
+            notificationService.sendReservationModifiedEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation updated vehicle event", ex)
+        }
+
+        return savedReservation
     }
 
     override fun deleteReservation(reservationId: Long) {
         val reservation = getReservationById(reservationId)
-        if (reservation.plannedPickUpDate.isBefore(LocalDateTime.now())) {
+        val reservationToDelete = reservation.toStaffReservationResDTO()
+        if (reservation.plannedPickUpDate.isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
             throw FailureException(
                 ResponseEnum.RESERVATION_FORBIDDEN,
                 "You are not allowed to delete reservation $reservationId as it has already started"
             )
         }
         reservation.vehicle?.removeReservation(reservation)
+
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+        val payload = ReservationEventDTO(
+            EventType.DELETED,
+            reservationToDelete
+        )
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                payload
+            )
+            notificationService.sendReservationCancelledEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation deleted event", ex)
+        }
     }
 
     override fun createPaymentRequest(reservationId: Long, customerUsername: String): PaymentResDTO {
@@ -397,16 +712,17 @@ class ReservationServiceImpl(
         val carModel = reservation.vehicle!!.carModel
 
         val paymentReqDTO = PaymentReqDTO(reservationId)
-        paymentReqDTO.customerUsername=customerUsername;
+        paymentReqDTO.customerUsername = customerUsername
         paymentReqDTO.amount = reservation.totalAmount
         paymentReqDTO.description =
             "Customer $customerUsername pays reservation for ${carModel.brand} ${carModel.model} of total amount: ${paymentReqDTO.amount}"
         val paymentRes: PaymentResDTO?
         try {
             val token = getAccessToken()
-            paymentRes = paymentServiceRestClient.post().uri("/create").body(paymentReqDTO).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
-                APPLICATION_JSON
-            ).retrieve().body<PaymentResDTO>()
+            paymentRes = paymentServiceRestClient.post().uri("/create").body(paymentReqDTO)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                    APPLICATION_JSON
+                ).retrieve().body<PaymentResDTO>()
         } catch (e: Exception) {
             logger.error("Failed to create a payment request ${e.message}")
             throw FailureException(
@@ -424,9 +740,10 @@ class ReservationServiceImpl(
     override fun getPaymentRecordByReservationId(reservationId: Long): PaymentRecordResDTO {
         try {
             val token = getAccessToken()
-            return paymentServiceRestClient.get().uri("/order/reservation/{reservationId}", reservationId).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
-                APPLICATION_JSON
-            ).retrieve().body<PaymentRecordResDTO>()!!
+            return paymentServiceRestClient.get().uri("/order/reservation/{reservationId}", reservationId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                    APPLICATION_JSON
+                ).retrieve().body<PaymentRecordResDTO>()!!
         } catch (e: Exception) {
             logger.error("Failed to create a payment request ${e.message}")
             throw FailureException(
@@ -439,9 +756,10 @@ class ReservationServiceImpl(
     override fun getPaymentRecordByToken(token: String): PaymentRecordResDTO {
         try {
             val jwtToken = getAccessToken()
-            return paymentServiceRestClient.get().uri("/order/token/{token}", token).header(HttpHeaders.AUTHORIZATION, "Bearer $jwtToken").accept(
-                APPLICATION_JSON
-            ).retrieve().body<PaymentRecordResDTO>()!!
+            return paymentServiceRestClient.get().uri("/order/token/{token}", token)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $jwtToken").accept(
+                    APPLICATION_JSON
+                ).retrieve().body<PaymentRecordResDTO>()!!
         } catch (e: Exception) {
             logger.error("Failed to create a payment request ${e.message}")
             throw FailureException(
@@ -460,6 +778,27 @@ class ReservationServiceImpl(
     override fun confirmReservation(id: Long) {
         val reservation = getReservationById(id)
         reservation.status = ReservationStatus.CONFIRMED
+
+        val customer = getCustomerByUsername(reservation.customerUsername)!!
+
+        val payload = ReservationEventDTO(
+            EventType.CONFIRMED,
+            reservation.toStaffReservationResDTO()
+        )
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.reservation-events",
+                payload
+            )
+            notificationService.sendReservationConfirmedEmail(
+                customer.email,
+                "${customer.firstName} ${customer.lastName}",
+                payload
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send reservation confirmed event", ex)
+        }
     }
 
     override fun getPaymentRecords(
@@ -516,9 +855,10 @@ class ReservationServiceImpl(
         }
         val carModel = carModelService.getActualCarModelById(reservation.carModelId)
         val token = getAccessToken()
-        val userScore = userManagementRestClient.get().uri("/username/{username}", customerUsername).header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
-            APPLICATION_JSON
-        ).retrieve().body<UserResDTO>()?.eligibilityScore
+        val userScore = userManagementRestClient.get().uri("/username/{username}", customerUsername)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            ).retrieve().body<UserResDTO>()?.eligibilityScore
 
         if (userScore!! < CarCategory.getValue(carModel.category)!!) {
             throw FailureException(
@@ -526,11 +866,13 @@ class ReservationServiceImpl(
                 "Your score is too low to reserve a vehicle of category ${carModel.category}"
             )
         }
-        val vehicle = reservationRepository.findFirstAvailableVehicleByModelAndDateRange(
-            carModel,
-            reservation.plannedPickUpDate.minusDays(reservationBufferDays),
-            reservation.plannedDropOffDate.plusDays(reservationBufferDays),
-        ).firstOrNull()
+        val vehicle = vehicleRepository.findAvailableVehiclesByModelAndDateRange(
+            carModel = carModel,
+            desiredEndWithBuffer = reservation.plannedDropOffDate.plusDays(reservationBufferDays),
+            desiredStart = reservation.plannedPickUpDate,
+            desiredEnd = reservation.plannedDropOffDate,
+            pageable = PageRequest.of(0, 1, Sort.Direction.ASC, "kmTravelled")
+        ).content.firstOrNull()
         if (vehicle == null) {
             throw FailureException(
                 ResponseEnum.CAR_MODEL_NOT_AVAILABLE,
@@ -543,7 +885,7 @@ class ReservationServiceImpl(
     @Transactional
     @Scheduled(fixedRate = 10 * 60 * 1000) // runs every 10 minutes
     fun expireOldReservations() {
-        val expirationThreshold = LocalDateTime.now().minusMinutes(expirationOffsetMinutes)
+        val expirationThreshold = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(expirationOffsetMinutes)
         val expiredReservations = reservationRepository.findExpiredReservations(
             activeStatus = ReservationStatus.PENDING,
             expiryThreshold = expirationThreshold
@@ -551,6 +893,38 @@ class ReservationServiceImpl(
         for (reservation in expiredReservations) {
             reservation.status = ReservationStatus.EXPIRED
             logger.info("Set Reservation {} as expired", reservation.getId()!!)
+
+            try {
+                kafkaTemplate.send(
+                    "paypal.public.reservation-events",
+                    ReservationEventDTO(EventType.EXPIRED, reservation.toStaffReservationResDTO())
+                )
+            } catch (ex: Exception) {
+                logger.error("Failed to send reservation expired event", ex)
+            }
         }
+    }
+
+    fun scheduleVehicleAvailabilityUpdate(vehicle: Vehicle, bufferedDropOffDate: LocalDateTime) {
+        val runAt = bufferedDropOffDate.atZone(ZoneId.of("Europe/Rome")).toInstant()
+        taskScheduler.schedule({
+            if (vehicle.status == CarStatus.RENTED) {
+                vehicle.status = CarStatus.AVAILABLE
+                logger.info("Set Vehicle {} as available", vehicle.getId()!!)
+            }
+            if (vehicle.pendingCleaning) {
+                vehicle.pendingCleaning = false
+                logger.info("Set Vehicle {} pending cleaning to false", vehicle.getId()!!)
+            }
+            vehicleRepository.save(vehicle)
+        }, runAt)
+    }
+
+    private fun getCustomerByUsername(username: String): UserResDTO? {
+        val token = getAccessToken()
+        return userManagementRestClient.get().uri("/username/{username}", username)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token").accept(
+                APPLICATION_JSON
+            ).retrieve().body<UserResDTO>()
     }
 }

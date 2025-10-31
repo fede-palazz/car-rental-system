@@ -9,31 +9,51 @@ import {
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Control, useForm } from "react-hook-form";
+import { Form } from "@/components/ui/form";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { MaintenanceReqDTO } from "@/models/dtos/request/MaintenanceReqDTO";
 import MaintenancesAPI from "@/API/MaintenancesAPI";
 import { Maintenance } from "@/models/Maintenance";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useParams } from "react-router-dom";
+import AddOrEditMaintenanceForm from "./AddOrEditMaintenanceForm";
+import { MaintenanceType } from "@/models/enums/MaintenanceType";
 import { toast } from "sonner";
 
-const maintenanceSchema = z.object({
-  defects: z.string().min(1, "Defects must not be blank"),
-  type: z.string().min(1, "Type must not be blank"),
-  upcomingServiceNeeds: z.string().optional(),
-  completed: z.boolean(),
-});
+const maintenanceSchema = z
+  .object({
+    startDate: z
+      .date({
+        required_error: "Start Date is required",
+        invalid_type_error: "Start Date must be a valid date",
+      })
+      .refine((date) => date >= new Date(), {
+        message: "Start Date cannot be in the past",
+      }),
+    plannedEndDate: z
+      .date({
+        required_error: "Planned End Date is required",
+        invalid_type_error: "Planned End Date must be a valid date",
+      })
+      .refine((date) => date >= new Date(), {
+        message: "Planned End Date cannot be in the past",
+      }),
+    defects: z.string().min(1, "Defects must not be blank"),
+    type: z.nativeEnum(MaintenanceType, {
+      errorMap: (issue) => {
+        if (issue.code === "invalid_type") {
+          return { message: "Maintenance Type Type is required" };
+        }
+        return { message: "Invalid maintenance type selected" };
+      },
+    }),
+    upcomingServiceNeeds: z.string(),
+  })
+  .refine((data) => data.plannedEndDate > data.startDate, {
+    path: ["plannedEndDate"],
+    message: "End date must be after start date",
+  });
 
 export default function AddOrEditMaintenanceDialog() {
   const navigate = useNavigate();
@@ -45,9 +65,10 @@ export default function AddOrEditMaintenanceDialog() {
   const form = useForm<MaintenanceReqDTO>({
     resolver: zodResolver(maintenanceSchema),
     defaultValues: {
+      startDate: new Date(),
+      plannedEndDate: undefined,
       defects: "",
-      type: "",
-      completed: false,
+      type: undefined,
       upcomingServiceNeeds: "",
     },
   });
@@ -56,9 +77,11 @@ export default function AddOrEditMaintenanceDialog() {
     if (!maintenanceId) return;
     MaintenancesAPI.getMaintenanceById(Number(vehicleId), Number(maintenanceId))
       .then((maintenance: Maintenance) => {
-        form.reset(maintenance);
+        form.reset(maintenance, { keepDefaultValues: true });
       })
-      .catch();
+      .catch((err: Error) => {
+        toast.error(err.message);
+      });
   }, [form, maintenanceId, vehicleId]);
 
   async function onSubmit() {
@@ -80,20 +103,22 @@ export default function AddOrEditMaintenanceDialog() {
       Number(maintenanceId)
     )
       .then(() => {
+        toast.success("Maintenance edited successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
   const handleCreate = (values: MaintenanceReqDTO) => {
     MaintenancesAPI.createMaintenance(Number(vehicleId), values)
       .then(() => {
+        toast.success("Maintenance created successfully");
         navigate(-1);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
@@ -119,84 +144,9 @@ export default function AddOrEditMaintenanceDialog() {
         </DialogHeader>
         <Form {...form}>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Type*</FormLabel>
-                  <FormControl>
-                    <Input
-                      startIcon={
-                        <span className="material-symbols-outlined items-center md-18">
-                          build
-                        </span>
-                      }
-                      placeholder={"Type"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="defects"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Defects*</FormLabel>
-                  <FormControl>
-                    <Input
-                      startIcon={
-                        <span className="material-symbols-outlined items-center md-18">
-                          report_problem
-                        </span>
-                      }
-                      placeholder={"Defects"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="upcomingServiceNeeds"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>Upcoming service Needs*</FormLabel>
-                  <FormControl>
-                    <Input
-                      startIcon={
-                        <span className="material-symbols-outlined items-center md-18">
-                          build_circle
-                        </span>
-                      }
-                      placeholder={"Upcoming service needs"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="completed"
-              render={({ field }) => (
-                <FormItem className="flex items-center mb-2">
-                  <FormLabel>Completed</FormLabel>
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <AddOrEditMaintenanceForm
+              control={form.control as unknown as Control}
+              vehicleId={Number(vehicleId)}></AddOrEditMaintenanceForm>
             <DialogFooter className="col-span-full ">
               <div className="flex items-center justify-between w-full">
                 <Button

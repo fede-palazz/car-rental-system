@@ -1,9 +1,8 @@
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import DefaultCar from "@/assets/defaultCarModel.png";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import VehicleAPI from "@/API/VehiclesAPI";
 import { Vehicle } from "@/models/Vehicle";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -32,62 +31,19 @@ import {
 } from "@/components/ui/card";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import UserContext from "@/contexts/UserContext";
+import { UserRole } from "@/models/enums/UserRole";
 
 function VehicleDetailsPage() {
+  const user = useContext(UserContext);
   const navigate = useNavigate();
   const location = useLocation();
   const { vehicleId } = useParams<{
     vehicleId: string;
   }>();
-  const [deletingMaintenanceId, setDeletingMaintenanceId] = useState<
-    number | undefined
-  >(undefined);
-  const [deletingNoteId, setDeletingNoteId] = useState<number | undefined>(
-    undefined
-  );
   const [vehicle, setVehicle] = useState<Vehicle | undefined>(undefined);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
-
-  const handleDelete = () => {
-    VehicleAPI.deleteVehicleById(Number(vehicleId))
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        navigate("/vehicles");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleMaintenanceDelete = () => {
-    MaintenancesAPI.deleteMaintenanceById(
-      Number(vehicleId),
-      Number(deletingMaintenanceId)
-    )
-      .then(() => {
-        setDeletingMaintenanceId(undefined);
-        setDeleteConfirmationOpen(false);
-        navigate("/vehicles");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleNoteDelete = () => {
-    NotesAPI.deleteNoteById(Number(vehicleId), Number(deletingNoteId))
-      .then(() => {
-        setDeletingNoteId(undefined);
-        setDeleteConfirmationOpen(false);
-        navigate("/vehicles");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
 
   const fetchMaintenancesAndNotes = (vehicleId: number) => {
     MaintenancesAPI.getMaintenancesByVehicleId(vehicleId).then(
@@ -107,8 +63,8 @@ function VehicleDetailsPage() {
         setVehicle(vehicle);
         fetchMaintenancesAndNotes(vehicle.id);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   }, [vehicleId, location.pathname]);
 
@@ -154,26 +110,30 @@ function VehicleDetailsPage() {
             <div className="flex flex-col min-h-full max-h-full pt-2 w-full h-full overflow-auto">
               <h2 className="text-3xl text-center font-extrabold">Details</h2>
               <VehicleDetailsList vehicle={vehicle}></VehicleDetailsList>
-              <div className="grid grid-cols-2 items-center h-full justify-center w-full gap-4 mt-8">
-                <Button
-                  variant="destructive"
-                  size="lg"
-                  className="w-1/2 justify-self-center"
-                  onClick={() => setDeleteConfirmationOpen(true)}>
-                  <span className="material-symbols-outlined md-18">
-                    delete
-                  </span>
-                  Delete
-                </Button>
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="w-1/2 justify-self-center"
-                  onClick={() => navigate("edit")}>
-                  <span className="material-symbols-outlined md-18">edit</span>
-                  Edit
-                </Button>
-              </div>
+              {user && user.role == UserRole.FLEET_MANAGER && (
+                <div className="grid grid-cols-2 items-center h-full justify-center w-full gap-4 mt-8">
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    className="w-1/2 justify-self-center"
+                    onClick={() => navigate("delete")}>
+                    <span className="material-symbols-outlined md-18">
+                      delete
+                    </span>
+                    Delete
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="lg"
+                    className="w-1/2 justify-self-center"
+                    onClick={() => navigate("edit")}>
+                    <span className="material-symbols-outlined md-18">
+                      edit
+                    </span>
+                    Edit
+                  </Button>
+                </div>
+              )}
               <Separator
                 orientation="horizontal"
                 className="block mt-4"></Separator>
@@ -183,14 +143,18 @@ function VehicleDetailsPage() {
                     <h3 className="text-xl text-center font-bold">
                       Maintenances
                     </h3>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("add-maintenance")}
-                      className="w-6 h-6 min-w-0 min-h-0 p-0">
-                      <span className="material-symbols-outlined md-18">
-                        add
-                      </span>
-                    </Button>
+                    {user &&
+                      (user.role == UserRole.FLEET_MANAGER ||
+                        user.role == UserRole.STAFF) && (
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate("add-maintenance")}
+                          className="w-6 h-6 min-w-0 min-h-0 p-0">
+                          <span className="material-symbols-outlined md-18">
+                            add
+                          </span>
+                        </Button>
+                      )}
                   </div>
                   <Carousel className="flex items-center grow justify-center w-full">
                     {maintenances.length > 0 && (
@@ -208,30 +172,52 @@ function VehicleDetailsPage() {
                                       <span className="material-symbols-outlined">
                                         build
                                       </span>
-                                      {maintenance.type}
+                                      {maintenance.type
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                        maintenance.type.slice(1).toLowerCase()}
                                     </CardTitle>
-                                    <CardDescription className="items-center flex gap-1">
-                                      <span className="material-symbols-outlined md-18">
-                                        event
-                                      </span>
-                                      {format(maintenance.date, "dd/MM/yyyy")}
+                                    <CardDescription className="flex flex-col gap-1">
+                                      <div className="flex items-end gap-1">
+                                        <span className="material-symbols-outlined md-18">
+                                          event
+                                        </span>
+                                        {"Start: " +
+                                          format(
+                                            maintenance.startDate,
+                                            "dd/MM/yyyy"
+                                          )}
+                                      </div>
+                                      <div className="flex items-end gap-1">
+                                        <span className="material-symbols-outlined md-18">
+                                          event
+                                        </span>
+                                        {"Planned end: " +
+                                          format(
+                                            maintenance.plannedEndDate,
+                                            "dd/MM/yyyy"
+                                          )}
+                                      </div>
                                     </CardDescription>
                                   </div>
                                   <Badge
                                     variant="outline"
                                     className={cn(
                                       "px-2 align-center py-1",
-                                      maintenance.completed
+                                      maintenance.actualEndDate
                                         ? "bg-green-100 text-green-700 border-green-300"
                                         : "bg-red-100 text-red-700 border-red-300"
                                     )}>
                                     <span className="material-symbols-outlined text-inherit-size md-18 mr-1 align-middle">
-                                      {maintenance.completed
+                                      {maintenance.actualEndDate
                                         ? "check_circle"
                                         : "error"}
                                     </span>
-                                    {maintenance.completed
-                                      ? "Completed"
+                                    {maintenance.actualEndDate
+                                      ? `Completed in ${format(
+                                          maintenance.actualEndDate,
+                                          "dd/MM/yyyy"
+                                        )}`
                                       : "Not Completed"}
                                   </Badge>
                                 </CardHeader>
@@ -264,35 +250,49 @@ function VehicleDetailsPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex justify-end">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className=" justify-self-center"
-                                      onClick={() => {
-                                        setDeletingMaintenanceId(
-                                          maintenance.id
-                                        );
-                                        setDeleteConfirmationOpen(true);
-                                      }}>
-                                      <span className="material-symbols-outlined md-18">
-                                        delete
-                                      </span>
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="justify-self-center"
-                                      onClick={() =>
-                                        navigate(
-                                          `edit-maintenance/${maintenance.id}`
-                                        )
-                                      }>
-                                      <span className="material-symbols-outlined md-18">
-                                        edit
-                                      </span>
-                                    </Button>
-                                  </div>
+                                  {user &&
+                                    user.role == UserRole.FLEET_MANAGER && (
+                                      <div className="flex justify-end gap-2">
+                                        <Button
+                                          variant="destructive"
+                                          size="icon"
+                                          className=" justify-self-center"
+                                          onClick={() => {
+                                            navigate(
+                                              `delete-maintenance/${maintenance.id}`
+                                            );
+                                          }}>
+                                          <span className="material-symbols-outlined md-18">
+                                            delete
+                                          </span>
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="justify-self-center"
+                                          onClick={() =>
+                                            navigate(
+                                              `edit-maintenance/${maintenance.id}`
+                                            )
+                                          }>
+                                          <span className="material-symbols-outlined md-18">
+                                            edit
+                                          </span>
+                                        </Button>
+                                        <Button
+                                          size="icon"
+                                          className="justify-self-center"
+                                          onClick={() =>
+                                            navigate(
+                                              `finalize-maintenance/${maintenance.id}`
+                                            )
+                                          }>
+                                          <span className="material-symbols-outlined md-18">
+                                            handshake
+                                          </span>
+                                        </Button>
+                                      </div>
+                                    )}
                                 </CardContent>
                               </Card>
                             </CarouselItem>
@@ -357,31 +357,32 @@ function VehicleDetailsPage() {
                                       {note.content}
                                     </p>
                                   </div>
-                                  <div className="flex justify-end">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className=" justify-self-center"
-                                      onClick={() => {
-                                        setDeletingNoteId(note.id);
-                                        setDeleteConfirmationOpen(true);
-                                      }}>
-                                      <span className="material-symbols-outlined md-18">
-                                        delete
-                                      </span>
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="justify-self-center"
-                                      onClick={() =>
-                                        navigate(`edit-note/${note.id}`)
-                                      }>
-                                      <span className="material-symbols-outlined md-18">
-                                        edit
-                                      </span>
-                                    </Button>
-                                  </div>
+                                  {user && note.author == user.username && (
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className=" justify-self-center"
+                                        onClick={() => {
+                                          navigate(`delete-note/${note.id}`);
+                                        }}>
+                                        <span className="material-symbols-outlined md-18">
+                                          delete
+                                        </span>
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="justify-self-center"
+                                        onClick={() =>
+                                          navigate(`edit-note/${note.id}`)
+                                        }>
+                                        <span className="material-symbols-outlined md-18">
+                                          edit
+                                        </span>
+                                      </Button>
+                                    </div>
+                                  )}
                                 </CardContent>
                               </Card>
                             </CarouselItem>
@@ -399,37 +400,7 @@ function VehicleDetailsPage() {
               </div>
             </div>
           </div>
-          <ConfirmationDialog
-            open={deleteConfirmationOpen}
-            handleSubmit={
-              deletingMaintenanceId
-                ? handleMaintenanceDelete
-                : deletingNoteId
-                ? handleNoteDelete
-                : handleDelete
-            }
-            title="Delete Confirmation"
-            submitButtonLabel="Delete"
-            submitButtonVariant="destructive"
-            content={`Are you sure to delete this ${
-              deletingMaintenanceId
-                ? "maintenance"
-                : deletingNoteId
-                ? "note"
-                : "vehicle"
-            }?`}
-            description="This action is irreversible"
-            descriptionClassName="text-warning"
-            handleCancel={() => {
-              setDeleteConfirmationOpen(false);
-              if (deletingMaintenanceId) {
-                setDeletingMaintenanceId(undefined);
-              }
-              if (deletingNoteId) {
-                setDeletingNoteId(undefined);
-              }
-            }}></ConfirmationDialog>
-          <Outlet context={vehicle}></Outlet>
+          <Outlet></Outlet>
         </div>
       )}
     </SidebarInset>

@@ -1,5 +1,6 @@
 package com.rentalcarsystem.reservationservice.services
 
+import com.rentalcarsystem.reservationservice.dtos.request.FinalizeMaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
@@ -21,7 +22,14 @@ interface MaintenanceService {
 
     fun getActualMaintenanceById(maintenanceId: Long): Maintenance
 
-    fun createMaintenance(vehicleId: Long, @Valid maintenanceReq: MaintenanceReqDTO): MaintenanceResDTO
+    fun createMaintenance(vehicleId: Long, @Valid maintenanceReq: MaintenanceReqDTO, username: String): MaintenanceResDTO
+
+    fun finalizeMaintenance(
+        vehicleId: Long,
+        maintenanceId: Long,
+        @Valid finalizeMaintenanceReq: FinalizeMaintenanceReqDTO,
+        username: String
+    ): MaintenanceResDTO
 
     fun updateMaintenance(
         vehicleId: Long,

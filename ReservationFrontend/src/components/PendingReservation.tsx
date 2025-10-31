@@ -14,14 +14,10 @@ import { Separator } from "./ui/separator";
 import { format } from "date-fns";
 import { Button } from "./ui/button";
 import ReservationsAPI from "@/API/ReservationsAPI";
+import { useNavigate } from "react-router-dom";
 
-function PendingReservation({
-  reservation,
-  handleCancel,
-}: {
-  reservation: Reservation;
-  handleCancel: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
+function PendingReservation({ reservation }: { reservation: Reservation }) {
+  const navigate = useNavigate();
   // Calculate the difference in minutes between now and the reservation creation date
   const minutesSinceCreation = Math.floor(
     (new Date().getTime() - reservation.creationDate.getTime()) / 60000
@@ -69,7 +65,7 @@ function PendingReservation({
           <CardTitle className="flex items-center gap-2 text-lg">{`${reservation.brand} ${reservation.model} ${reservation.year}`}</CardTitle>
           <CardDescription className="items-center flex gap-1">
             <span className="material-symbols-outlined md-18">event</span>
-            {format(reservation.creationDate, "dd/MM/yyyy")}
+            {format(reservation.creationDate, "dd/MM/yyyy HH:mm")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -162,16 +158,18 @@ function PendingReservation({
                 </li>
               </ul>
               <div className="grid grid-cols-2 items-center w-full gap-2 mt-8 mb-4">
-                <p className="text-xl font-extrabold text-center">
-
+                <p className="text-3xl font-extrabold text-center">
+                  {reservation.totalAmount.toFixed(2)} €
                 </p>
-                <div className="flex gap-1 justify-center items-center">
+                <div className="flex gap-3 justify-center items-center">
                   <div>
                     <Button
                       variant="ghost"
-
-                      onClick={handleCancel}
-                      className="text-sm text-destructive hover:text-destructive/60 w-1/2">
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`delete/${reservation.id}`);
+                      }}
+                      className="text-sm text-destructive hover:text-destructive/60">
                       <span className="material-symbols-outlined md-18">
                         cancel
                       </span>
@@ -183,8 +181,7 @@ function PendingReservation({
                       size="lg"
                       className="text-lg"
                       onClick={() => {
-                        ReservationsAPI.payReservation(reservation.id, 1).then(
-                          //TODO change customer Id
+                        ReservationsAPI.payReservation(reservation.id).then(
                           (url) => {
                             if (url.redirectURL) {
                               window.location.href = url.redirectURL;

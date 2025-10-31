@@ -38,13 +38,16 @@ ALTER TABLE user_preferences
 -- Initial data
 
 INSERT INTO users (id, username, first_name, last_name, email, phone, address, eligibility_score, role)
-VALUES (1, 'customer1', 'Alice', 'Johnson', 'customer1@example.com', '123-456-7890', '123 Main St', 100, 'CUSTOMER'),
+VALUES (1, 'customer1', 'Mario', 'Rossi', 'customer1@gmail.com', '+393244896743', 'Via Verdi 22', 100, 'CUSTOMER'),
 
-       (2, 'manager', 'Bob', 'Smith', 'manager@example.com', '321-654-0987', '456 Elm St', 10, 'MANAGER'),
+       (2, 'manager', 'Bob', 'Smith', 'manager@gmail.com', '+393337862123', 'Via Blu 34', 10, 'MANAGER'),
 
-       (3, 'fleetmanager', 'Charlie', 'Brown', 'fleet.manager@example.com', '456-234-6742', '678 Park Avenue', 40, 'FLEET_MANAGER'),
+       (3, 'fleetmanager', 'Charlie', 'Brown', 'fleetmanager@gmail.com', '+393457865473', 'Via Rosa 23', 40, 'FLEET_MANAGER'),
 
-       (4, 'staff', 'Diana', 'Prince', 'staff@example.com', '555-123-4567', '789 Oak Ave', 80, 'STAFF'),
+       (4, 'staff', 'Diana', 'Prince', 'staff@gmail.com', '+393628901870', 'Via Marrone 86', 80, 'STAFF'),
 
-       (5, 'customer2', 'Jonathan', 'John', 'customer2@example.com', '123-456-7891', '123 Main St', 100, 'CUSTOMER');
+       (5, 'customer2', 'Paolo', 'Bianchi', 'customer2@gmail.com', '+39333879645293', 'Via Rossi 34', 100, 'CUSTOMER'),
+
+        (6, 'customer3', 'Francesco', 'Verdi', 'customer3@gmail.com', '+39867546992', 'Via Bianchi 57', 100, 'CUSTOMER');
+
 SELECT setval('users_seq', (SELECT MAX(id) FROM users));

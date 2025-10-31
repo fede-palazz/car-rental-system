@@ -1,0 +1,11 @@
+export enum MaintenanceType {
+  ENGINE = "ENGINE",
+  TIRES = "TIRES",
+  OIL_CHANGE = "OIL_CHANGE",
+  BRAKES = "BRAKES",
+  CHASSIS = "CHASSIS",
+  BATTERY = "BATTERY",
+  LIGHTS = "LIGHTS",
+  WINDSHIELD = "WINDSHIELD",
+  OTHER = "OTHER",
+}

@@ -79,6 +79,12 @@ class UserServiceImpl(
         }
     }
 
+    override fun getActualUserByUsername(username: String): User {
+        return userRepository.findByUsername(username).orElseThrow {
+            FailureException(ResponseEnum.USER_NOT_FOUND, "User with username $username not found")
+        }
+    }
+
     override fun addUser(@Valid userReq: UserReqDTO): UserResDTO {
         if (userRepository.existsByEmail(userReq.email)) {
             throw FailureException(ResponseEnum.USER_DUPLICATED, "A user with email ${userReq.email} already exists")
@@ -92,8 +98,8 @@ class UserServiceImpl(
         user.lastName = userReq.lastName
         user.phone = userReq.phone
         user.address = userReq.address
-        user.role = userReq.role
-        user.eligibilityScore = userReq.eligibilityScore
+        user.role = userReq.role ?: user.role
+        user.eligibilityScore = userReq.eligibilityScore ?: user.eligibilityScore
         return user.toResDTO()
     }
 

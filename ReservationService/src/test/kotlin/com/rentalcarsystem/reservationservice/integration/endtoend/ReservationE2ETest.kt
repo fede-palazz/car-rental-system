@@ -90,8 +90,8 @@ class ReservationE2ETest {
         val createRequest = ReservationReqDTO(
             customerId = 1L,
             carModelId = carModelId!!,
-            plannedPickUpDate = LocalDateTime.now().plusDays(1),
-            plannedDropOffDate = LocalDateTime.now().plusDays(5)
+            plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(1),
+            plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(5)
         )
 
         val postResult = mockMvc.perform(
@@ -116,7 +116,7 @@ class ReservationE2ETest {
 
         // 3. Set actual pick-up date
         val pickUpRequest = ActualPickUpDateReqDTO(
-            actualPickUpDate = LocalDateTime.now()
+            actualPickUpDate = LocalDateTime.now(ZoneOffset.UTC)
         )
 
         mockMvc.perform(
@@ -130,7 +130,7 @@ class ReservationE2ETest {
 
         // 4. Finalize reservation
         val finalizeRequest = FinalizeReservationReqDTO(
-            actualDropOffDate = LocalDateTime.now().plusDays(5),
+            actualDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(5),
             wasDeliveryLate = false,
             wasChargedFee = false,
             wasVehicleDamaged = false,
@@ -161,8 +161,8 @@ class ReservationE2ETest {
         val invalidCreate = ReservationReqDTO(
             customerId = 1L,
             carModelId = carModelId!!,
-            plannedPickUpDate = LocalDateTime.now().minusDays(1),
-            plannedDropOffDate = LocalDateTime.now().plusDays(5)
+            plannedPickUpDate = LocalDateTime.now(ZoneOffset.UTC).minusDays(1),
+            plannedDropOffDate = LocalDateTime.now(ZoneOffset.UTC).plusDays(5)
         )
 
         mockMvc.perform(
@@ -187,7 +187,7 @@ class ReservationE2ETest {
 
         // 4. Test finalize non-existent reservation
         val finalizeRequest = FinalizeReservationReqDTO(
-            actualDropOffDate = LocalDateTime.now(),
+            actualDropOffDate = LocalDateTime.now(ZoneOffset.UTC),
             wasDeliveryLate = false,
             wasChargedFee = false,
             wasVehicleDamaged = false,

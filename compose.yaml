@@ -1,21 +1,31 @@
 services:
   postgres:
     image: 'postgres:17.4'
-    container_name: 'lab5-g15-reservation-service-db'
+    container_name: 'g15-car-rental-db'
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 'password'
-      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass,payment:paymentPass
+      POSTGRES_DBS: carRental:carRentalPass,userManagement:userManagementPass,payment:paymentPass,analytics:analyticsPass,tracking:trackingPass
     ports:
       - '5432:5432'
     command: postgres -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
     volumes:
       - ./init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh
-      - lab5_g15_db:/var/lib/postgresql/data
+      - g15_db:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "5555:80"
+    volumes:
+      - g15_pgadmin_data:/var/lib/pgadmin/
 
   # Kafka
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnamilegacy/kafka:3.3.2
     container_name: paypal-demo-kafka
     ports:
       - "9092:9092"
@@ -72,19 +82,19 @@ services:
         echo "Starting Kafka Connect..."
         /etc/confluent/docker/run
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: paypal-demo-kafka-ui
-    depends_on:
-      - kafka
-    ports:
-      - "9095:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
-      DYNAMIC_CONFIG_ENABLED: "true"
+  #  kafka-ui:
+  #    image: provectuslabs/kafka-ui:latest
+  #    container_name: paypal-demo-kafka-ui
+  #    depends_on:
+  #      - kafka
+  #    ports:
+  #      - "9095:8080"
+  #    environment:
+  #      KAFKA_CLUSTERS_0_NAME: local
+  #      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+  #      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
+  #      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+  #      DYNAMIC_CONFIG_ENABLED: "true"
 
   # Setup Debezium connector
   setup-connector:
@@ -139,7 +149,6 @@ services:
           exit 1
         fi
 
-
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: g15-keycloak
@@ -158,9 +167,12 @@ services:
       - start-dev
       - --import-realm
     volumes:
-      - ./keycloak/car-rental-system-realm-dev.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/import/car-rental-system-realm-dev.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./keycloak/export:/opt/keycloak/data/export
+      - ./keycloak/providers:/opt/keycloak/providers
     depends_on:
       - postgres-keycloak
+      - kafka
 
   postgres-keycloak:
     image: postgres:17.4
@@ -169,12 +181,43 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: keycloak
     ports:
-      - "5433:5432"  # Map to 5433 on host instead of 5432
+      - "5433:5432"
     volumes:
       - keycloak_data:/var/lib/postgresql/data
 
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: mailpit
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Rome
+    volumes:
+      - mailpit_data:/data
+
+  osrm-backend:
+    image: osrm/osrm-backend:v5.25.0
+    container_name: osrm-backend
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    volumes:
+      - ./osrm/data:/data
+    command: osrm-routed --algorithm mld /data/turin.osm.pbf
+
+  osrm-frontend:
+    image: osrm/osrm-frontend
+    container_name: osrm-frontend
+    ports:
+      - "9966:9966"
+    restart: unless-stopped
+
 volumes:
-  lab5_g15_db:
+  g15_db:
+  g15_pgadmin_data:
   kafka_data:
   kafka_connect_plugins:
   keycloak_data:
+  mailpit_data:

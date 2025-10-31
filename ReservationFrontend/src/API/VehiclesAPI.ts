@@ -4,6 +4,7 @@ import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { VehicleFilter } from "@/models/filters/VehicleFilter";
 import { Vehicle } from "@/models/Vehicle.ts";
 import { getCsrfToken } from "./csrfToken";
+import { VehicleVinsResDTO } from "@/models/dtos/response/VehicleVinsResDTO";
 
 const baseURL = "http://localhost:8083/api/v1/reservation-service/";
 
@@ -18,10 +19,12 @@ async function getAllVehicles(
     (filter
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
-          .map(
-            ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-          )
+          .map(([key, value]) => {
+            if (value instanceof Date) {
+              value = value.toISOString();
+            }
+            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+          })
           .join("&")
       : "") +
     `&order=${encodeURIComponent(order)}&sort=${encodeURIComponent(
@@ -45,10 +48,11 @@ async function getAllVehicles(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -70,10 +74,11 @@ async function getVehicleById(id: number): Promise<Vehicle> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -95,10 +100,11 @@ async function deleteVehicleById(id: number): Promise<null> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -122,10 +128,11 @@ async function createVehicle(vehicleDTO: VehicleCreateDTO): Promise<Vehicle> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -152,10 +159,80 @@ async function editVehicleById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
+  }
+}
+
+async function getAvailableVehicles(
+  carModelId: number,
+  desiredStartDate: Date,
+  desiredEndDate: Date,
+  order: string = "asc",
+  sort: string = "vin",
+  page: number = 0,
+  size: number = 9
+): Promise<PagedResDTO<Vehicle>> {
+  const queryParams = `carModelId=${carModelId}&desiredStart=${desiredStartDate.toISOString()}&desiredEnd=${desiredEndDate.toISOString()}&order=${encodeURIComponent(
+    order
+  )}&sort=${encodeURIComponent(sort)}&page=${encodeURIComponent(
+    page
+  )}&size=${encodeURIComponent(size)}`;
+
+  const response = await fetch(baseURL + `vehicles/available?${queryParams}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.ok) {
+    const res = await response.json();
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
+  }
+}
+
+async function getAllVins(vinFilter?: string): Promise<VehicleVinsResDTO[]> {
+  const queryParams =
+    vinFilter !== undefined ? `vin=${encodeURIComponent(vinFilter)}` : "";
+
+  const response = await fetch(baseURL + `vehicles/vin?${queryParams}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.ok) {
+    const res = await response.json();
+    return res;
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
   }
 }
 
@@ -165,6 +242,8 @@ const VehicleAPI = {
   deleteVehicleById,
   createVehicle,
   editVehicleById,
+  getAvailableVehicles,
+  getAllVins,
 };
 
 export default VehicleAPI;

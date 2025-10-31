@@ -7,11 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CarModel } from "@/models/CarModel.ts";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import DefaultCar from "../assets/defaultCarModel.png";
 import { Button } from "@/components/ui/button";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import CarModelAPI from "@/API/CarModelsAPI";
 import ModelFiltersSidebar from "@/components/Sidebars/ModelFiltersSidebar";
 import { ThemeToggler } from "@/components/ThemeToggler";
@@ -37,6 +36,7 @@ import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/enums/UserRole";
 
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 function CarModelsPage({
@@ -50,13 +50,12 @@ function CarModelsPage({
   const navigate = useNavigate();
   const location = useLocation();
   const [carModels, setCarModels] = useState<CarModel[] | undefined>(undefined);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
   const [filtersSidebarOpen, setFiltersSidebarOpen] = useState<boolean>(false);
   const [filter, setFilter] = useState<CarModelFilter>({
     brand: undefined,
     model: undefined,
     year: undefined,
+    search: undefined,
     segment: undefined,
     category: undefined,
     engineType: undefined,
@@ -70,7 +69,6 @@ function CarModelsPage({
   const [pageSize, setPageSize] = useState<number>(9);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const deletingOrEditingIdRef = useRef<number | undefined>(undefined);
 
   const fetchModels = (
     filter: CarModelFilter,
@@ -95,8 +93,8 @@ function CarModelsPage({
           setTotalPages(models.totalPages);
           //setPageSize(models.elementsInPage);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         });
     } else {
       CarModelAPI.getAllModels(
@@ -112,22 +110,10 @@ function CarModelsPage({
           setTotalPages(models.totalPages);
           //setPageSize(models.elementsInPage);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         });
     }
-  };
-
-  const handleDelete = () => {
-    CarModelAPI.deleteModelById(Number(deletingOrEditingIdRef.current))
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        deletingOrEditingIdRef.current = undefined;
-        fetchModels(filter, order, sort);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   };
 
   useEffect(() => {
@@ -147,9 +133,9 @@ function CarModelsPage({
         </div>
         <div className="grow flex flex-col">
           {
-            <div className="grid grid-cols-3 mt-3 justify-between mx-8">
-              <div></div>
-              <div className="flex gap-2 w-full items-center">
+            <div className="grid grid-cols-12 mt-3 justify-between mx-8">
+              <div className="col-span-3"></div>
+              <div className="flex gap-2 col-span-6 w-full items-center">
                 <div className="flex flex-col w-full items-center gap-2">
                   <div className="text-center text-base font-semibold">
                     Car availability range
@@ -158,7 +144,10 @@ function CarModelsPage({
                     <div className="w-1/2">
                       <DateTimePicker
                         calendarDisabled={(val) => {
-                          return date?.to ? val > date.to : val < new Date();
+                          return (
+                            val < new Date() ||
+                            (date?.to ? val > date.to : false)
+                          );
                         }}
                         defaultPopupValue={date?.from ? date.from : new Date()}
                         placeholder="From"
@@ -178,9 +167,10 @@ function CarModelsPage({
                     <div className="w-1/2">
                       <DateTimePicker
                         calendarDisabled={(val) => {
-                          return date?.from
-                            ? val < date.from
-                            : val < new Date();
+                          return (
+                            val < new Date() ||
+                            (date?.from ? val < date.from : false)
+                          );
                         }}
                         defaultPopupValue={
                           date?.to
@@ -206,7 +196,7 @@ function CarModelsPage({
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3 justify-end items-end">
+              <div className="flex col-span-3 gap-3 justify-end items-end">
                 {!filtersSidebarOpen && (
                   <Select value={sort} onValueChange={setSort}>
                     <SelectTrigger className="w-[200px] overflow-x-clip">
@@ -254,7 +244,7 @@ function CarModelsPage({
               </div>
             </div>
           }
-          <div className="flex mt-8 justify-between mx-8">
+          <div className="grid grid-cols-3 mt-8 justify-between mx-8">
             <div className="flex gap-2 items-center">
               <Tabs
                 defaultValue="undefined"
@@ -278,7 +268,34 @@ function CarModelsPage({
                 </TabsList>
               </Tabs>
             </div>
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-3  items-center">
+              <Input
+                id="searchBar"
+                className="h-10"
+                startIcon={
+                  <span className="material-symbols-outlined items-center md-18">
+                    search
+                  </span>
+                }
+                placeholder={"Search by model or brand"}
+                value={filter.search || ""}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setFilter({ ...filter, search: value });
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    fetchModels(filter);
+                  }
+                }}></Input>
+              <Button
+                size="icon"
+                variant="default"
+                onClick={() => fetchModels(filter)}>
+                <span className="material-symbols-outlined md-18">search</span>
+              </Button>
+            </div>
+            <div className="flex gap-3 justify-end items-end">
               <Button
                 variant="secondary"
                 onClick={(e) => {
@@ -290,13 +307,12 @@ function CarModelsPage({
                 </span>
                 Filters
               </Button>
-              {user && user.role !== UserRole.CUSTOMER && (
+              {user && user.role == UserRole.FLEET_MANAGER && (
                 <Button
                   variant="default"
                   size="lg"
                   onClick={(e) => {
                     e.stopPropagation();
-                    deletingOrEditingIdRef.current = undefined;
                     navigate("add");
                   }}>
                   <span className="material-symbols-outlined md-18">add</span>
@@ -357,15 +373,14 @@ function CarModelsPage({
                       </CardContent>
                       <CardFooter>
                         <div className="flex gap-3">
-                          {user && user.role !== UserRole.CUSTOMER ? (
+                          {user && user.role == UserRole.FLEET_MANAGER ? (
                             <>
                               <Button
                                 variant="destructive"
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deletingOrEditingIdRef.current = model.id;
-                                  setDeleteConfirmationOpen(true);
+                                  navigate(`delete/${model.id}`);
                                 }}>
                                 <span className="material-symbols-outlined md-18">
                                   delete
@@ -376,8 +391,7 @@ function CarModelsPage({
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deletingOrEditingIdRef.current = model.id;
-                                  navigate("edit");
+                                  navigate(`edit/${model.id}`);
                                 }}>
                                 <span className="material-symbols-outlined md-18">
                                   edit
@@ -386,11 +400,10 @@ function CarModelsPage({
                             </>
                           ) : (
                             <Button
-                              disabled={!date?.from || !date?.to}
+                              disabled={!date?.from || !date?.to || !user}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                deletingOrEditingIdRef.current = model.id;
-                                navigate("reserve");
+                                navigate(`reserve/${model.id}`);
                               }}>
                               <span className="material-symbols-outlined md-18">
                                 event_upcoming
@@ -419,35 +432,7 @@ function CarModelsPage({
             )}
           </div>
         </div>
-        {user && user.role !== UserRole.CUSTOMER && (
-          <ConfirmationDialog
-            open={deleteConfirmationOpen}
-            handleSubmit={handleDelete}
-            title="Delete Confirmation"
-            submitButtonLabel="Delete"
-            submitButtonVariant="destructive"
-            content="Are you sure to delete this model?"
-            description="This action is irreversible"
-            descriptionClassName="text-warning"
-            handleCancel={() => {
-              deletingOrEditingIdRef.current = undefined;
-              setDeleteConfirmationOpen(false);
-            }}></ConfirmationDialog>
-        )}
-        <Outlet
-          context={
-            user && user.role !== UserRole.CUSTOMER
-              ? deletingOrEditingIdRef.current
-                ? carModels?.find(
-                    (model) => model.id === deletingOrEditingIdRef.current
-                  )
-                : undefined
-              : {
-                  plannedPickUpDate: date?.from,
-                  plannedDropOffDate: date?.to,
-                  carModelId: deletingOrEditingIdRef.current,
-                }
-          }></Outlet>
+        <Outlet></Outlet>
       </SidebarInset>
       {filtersSidebarOpen && (
         <ModelFiltersSidebar

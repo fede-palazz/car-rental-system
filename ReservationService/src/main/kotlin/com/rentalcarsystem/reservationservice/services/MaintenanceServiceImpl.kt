@@ -1,11 +1,15 @@
 package com.rentalcarsystem.reservationservice.services
 
+import com.rentalcarsystem.reservationservice.dtos.request.FinalizeMaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.MaintenanceReqDTO
 import com.rentalcarsystem.reservationservice.dtos.request.toEntity
+import com.rentalcarsystem.reservationservice.kafka.MaintenanceEventDTO
 import com.rentalcarsystem.reservationservice.dtos.response.MaintenanceResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.PagedResDTO
 import com.rentalcarsystem.reservationservice.dtos.response.toResDTO
 import com.rentalcarsystem.reservationservice.enums.CarStatus
+import com.rentalcarsystem.reservationservice.enums.EventType
+import com.rentalcarsystem.reservationservice.enums.MaintenanceType
 import com.rentalcarsystem.reservationservice.exceptions.FailureException
 import com.rentalcarsystem.reservationservice.exceptions.ResponseEnum
 import com.rentalcarsystem.reservationservice.filters.MaintenanceFilter
@@ -13,10 +17,12 @@ import com.rentalcarsystem.reservationservice.models.Maintenance
 import com.rentalcarsystem.reservationservice.models.Vehicle
 import com.rentalcarsystem.reservationservice.repositories.MaintenanceRepository
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
@@ -26,8 +32,11 @@ import org.springframework.validation.annotation.Validated
 @Transactional
 class MaintenanceServiceImpl(
     private val maintenanceRepository: MaintenanceRepository,
-    private val vehicleService: VehicleService
+    private val vehicleService: VehicleService,
+    private val reservationService: ReservationService,
+    private val kafkaTemplate: KafkaTemplate<String, MaintenanceEventDTO>,
 ) : MaintenanceService {
+    private val logger = LoggerFactory.getLogger(MaintenanceServiceImpl::class.java)
 
     override fun getMaintenances(
         vehicleId: Long,
@@ -45,16 +54,10 @@ class MaintenanceServiceImpl(
                 cb.like(cb.lower(root.get("defects")), "${defects.lowercase()}%")
             }
         }
-        // Completed
-        filters.completed?.let { completed ->
-            spec = spec.and { root, _, cb ->
-                cb.equal(root.get<Boolean>("completed"), completed)
-            }
-        }
         // Type
-        filters.type?.takeIf { it.isNotBlank() }?.let { type ->
+        filters.type?.let { type ->
             spec = spec.and { root, _, cb ->
-                cb.like(cb.lower(root.get("type")), "${type.lowercase()}%")
+                cb.equal(root.get<MaintenanceType>("type"), type)
             }
         }
         // Upcoming Service Needs
@@ -63,15 +66,37 @@ class MaintenanceServiceImpl(
                 cb.like(cb.lower(root.get("upcomingServiceNeeds")), "${upcomingServiceNeeds.lowercase()}%")
             }
         }
-        // Date range
-        filters.minDate?.let { minDate ->
+        // startDate range
+        filters.minStartDate?.let { minStartDate ->
             spec = spec.and { root, _, cb ->
-                cb.greaterThanOrEqualTo(root.get("date"), minDate)
+                cb.greaterThanOrEqualTo(root.get("startDate"), minStartDate)
             }
         }
-        filters.maxDate?.let { maxDate ->
+        filters.maxStartDate?.let { maxStartDate ->
             spec = spec.and { root, _, cb ->
-                cb.lessThanOrEqualTo(root.get("date"), maxDate)
+                cb.lessThanOrEqualTo(root.get("startDate"), maxStartDate)
+            }
+        }
+        // plannedEndDate range
+        filters.minPlannedEndDate?.let { minPlannedEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("plannedEndDate"), minPlannedEndDate)
+            }
+        }
+        filters.maxPlannedEndDate?.let { maxPlannedEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("plannedEndDate"), maxPlannedEndDate)
+            }
+        }
+        // actualEndDate range
+        filters.minActualEndDate?.let { minActualEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.greaterThanOrEqualTo(root.get("actualEndDate"), minActualEndDate)
+            }
+        }
+        filters.maxActualEndDate?.let { maxActualEndDate ->
+            spec = spec.and { root, _, cb ->
+                cb.lessThanOrEqualTo(root.get("actualEndDate"), maxActualEndDate)
             }
         }
         // Vehicle
@@ -98,40 +123,106 @@ class MaintenanceServiceImpl(
         return maintenance.toResDTO()
     }
 
-    override fun createMaintenance(vehicleId: Long, @Valid maintenanceReq: MaintenanceReqDTO): MaintenanceResDTO {
+    override fun createMaintenance(
+        vehicleId: Long,
+        @Valid maintenanceReq: MaintenanceReqDTO,
+        username: String
+    ): MaintenanceResDTO {
         val vehicle = vehicleService.getVehicleById(vehicleId)
-        val maintenance = maintenanceReq.toEntity()
-        if (maintenance.completed) {
-            throw IllegalArgumentException("A newly created maintenance record cannot be completed")
+        val overlappingReservationsAmount = reservationService.getOverlappingReservations(
+            vehicleId = vehicleId,
+            desiredStart = maintenanceReq.startDate,
+            desiredEnd = maintenanceReq.plannedEndDate,
+            page = 0,
+            size = 1,
+            singlePage = false,
+            sortBy = "creationDate",
+            sortOrder = "asc"
+        ).totalElements
+        if (overlappingReservationsAmount > 0) {
+            throw FailureException(
+                ResponseEnum.RESERVATION_CONFLICT,
+                "The vehicle $vehicleId has $overlappingReservationsAmount overlapping reservations"
+            )
         }
+        val maintenance = maintenanceReq.toEntity(username)
         vehicle.addMaintenance(maintenance)
-        // Set vehicle status to maintenance
-        vehicle.status = CarStatus.IN_MAINTENANCE
-        return maintenanceRepository.save(maintenance).toResDTO()
+        val savedMaintenance = maintenanceRepository.save(maintenance).toResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.CREATED, savedMaintenance, username, null)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance creation event", ex)
+        }
+
+        return savedMaintenance
+    }
+
+    override fun finalizeMaintenance(
+        vehicleId: Long,
+        maintenanceId: Long,
+        finalizeMaintenanceReq: FinalizeMaintenanceReqDTO,
+        username: String
+    ): MaintenanceResDTO {
+        // Check if maintenance record exists
+        val maintenance = getActualMaintenanceById(maintenanceId)
+        checkMaintenanceVehicleMatch(vehicleId, maintenance)
+        // Check maintenance status
+        if (maintenance.actualEndDate != null) {
+            throw FailureException(ResponseEnum.MAINTENANCE_WRONG_STATUS, "Maintenance record with ID $maintenanceId was already finalized")
+        }
+        if (finalizeMaintenanceReq.actualEndDate.isBefore(maintenance.startDate)) {
+            throw IllegalArgumentException("Actual end date must be after start date")
+        }
+        maintenance.actualEndDate = finalizeMaintenanceReq.actualEndDate
+        maintenance.endFleetManagerUsername = username
+        maintenance.vehicle?.status = CarStatus.AVAILABLE
+        val savedMaintenance = maintenance.toResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.FINALIZED, savedMaintenance, null, username)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance finalize event", ex)
+        }
+
+        return savedMaintenance
     }
 
     override fun updateMaintenance(
         vehicleId: Long,
         maintenanceId: Long,
-        @Valid maintenanceReq: MaintenanceReqDTO
+        @Valid maintenanceReq: MaintenanceReqDTO,
     ): MaintenanceResDTO {
         // Check if maintenance record exists
-        val vehicle = vehicleService.getVehicleById(vehicleId)
         val maintenance = getActualMaintenanceById(maintenanceId)
         checkMaintenanceVehicleMatch(vehicleId, maintenance)
         // Check maintenance status
-        if (maintenance.completed) {
-            throw IllegalArgumentException("Maintenance record with ID $maintenanceId is already completed")
-        }
-        // Check if incoming request will close the maintenance
-        if (maintenanceReq.completed) {
-            vehicle.status = CarStatus.AVAILABLE
+        if (maintenance.actualEndDate != null) {
+            throw FailureException(ResponseEnum.MAINTENANCE_WRONG_STATUS, "Maintenance record with ID $maintenanceId is already completed")
         }
         maintenance.defects = maintenanceReq.defects
-        maintenance.completed = maintenanceReq.completed
         maintenance.type = maintenanceReq.type
-        maintenance.upcomingServiceNeeds = maintenanceReq.upcomingServiceNeeds ?: maintenance.upcomingServiceNeeds
-        return maintenance.toResDTO()
+        maintenance.upcomingServiceNeeds = maintenanceReq.upcomingServiceNeeds
+        maintenance.startDate = maintenanceReq.startDate
+        maintenance.plannedEndDate = maintenanceReq.plannedEndDate
+        val savedMaintenance = maintenance.toResDTO()
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.UPDATED, savedMaintenance, null, null)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance update event", ex)
+        }
+
+        return savedMaintenance
     }
 
     override fun deleteMaintenance(vehicleId: Long, maintenanceId: Long) {
@@ -139,6 +230,15 @@ class MaintenanceServiceImpl(
         val maintenance = getActualMaintenanceById(maintenanceId)
         checkMaintenanceVehicleMatch(vehicleId, maintenance)
         vehicle.removeMaintenance(maintenance)
+
+        try {
+            kafkaTemplate.send(
+                "paypal.public.maintenance-events",
+                MaintenanceEventDTO(EventType.DELETED, maintenance.toResDTO(), null, null)
+            )
+        } catch (ex: Exception) {
+            logger.error("Failed to send maintenance delete event", ex)
+        }
     }
 
     override fun getActualMaintenanceById(maintenanceId: Long): Maintenance {
@@ -149,7 +249,7 @@ class MaintenanceServiceImpl(
 
     private fun checkMaintenanceVehicleMatch(vehicleId: Long, maintenance: Maintenance) {
         if (maintenance.vehicle?.getId() != vehicleId) {
-            throw IllegalArgumentException("Maintenance record with ID ${maintenance.getId()} does not belong to vehicle with ID $vehicleId")
+            throw FailureException(ResponseEnum.MAINTENANCE_WRONG_VEHICLE, "Maintenance record with ID ${maintenance.getId()} does not belong to vehicle with ID $vehicleId")
         }
     }
 }

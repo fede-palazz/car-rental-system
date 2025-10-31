@@ -3,6 +3,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { useEffect } from "react";
 import { CarFeature } from "@/models/CarFeature";
 import CarModelAPI from "@/API/CarModelsAPI";
+import { toast } from "sonner";
 
 function CarModelDetailsList({
   model,
@@ -12,14 +13,18 @@ function CarModelDetailsList({
   form?: boolean;
 }) {
   useEffect(() => {
-    if (!form || !model?.features[0].description) return;
+    if (
+      !form ||
+      (model?.features.length != 0 && !model?.features[0].description)
+    )
+      return;
     model.features.forEach((feature: CarFeature, index) =>
       CarModelAPI.getCarFeatureById(feature.id)
         .then((feat) => {
           model.features[index].description = feat.description;
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((err: Error) => {
+          toast.error(err.message);
         })
     );
   }, []);

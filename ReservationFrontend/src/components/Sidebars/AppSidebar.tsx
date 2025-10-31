@@ -28,17 +28,23 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
   const data = {
     user: user,
     navMain: [
-      {
-        title: user && user.role != UserRole.CUSTOMER ? "Car Models" : "Home",
-        url: "/models",
-        icon: (
-          <span className="material-symbols-outlined items-center md-18">
-            directions_car
-          </span>
-        ),
-        isActive: true,
-      },
-      ...(user && user.role != UserRole.CUSTOMER
+      ...((user && user.role != UserRole.MANAGER) || !user
+        ? [
+            {
+              title:
+                user && user.role != UserRole.CUSTOMER ? "Car Models" : "Home",
+              url: "/models",
+              icon: (
+                <span className="material-symbols-outlined items-center md-18">
+                  directions_car
+                </span>
+              ),
+              isActive: true,
+            },
+          ]
+        : []),
+      ...(user &&
+      (user.role == UserRole.FLEET_MANAGER || user.role == UserRole.STAFF)
         ? [
             {
               title: "Vehicles",
@@ -51,7 +57,7 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
             },
           ]
         : []),
-      ...(user
+      ...(user && user.role != UserRole.FLEET_MANAGER
         ? [
             {
               title: "Reservations",
@@ -59,6 +65,32 @@ export function AppSidebar({ setUser, ...props }: AppSidebarProps) {
               icon: (
                 <span className="material-symbols-outlined items-center md-18">
                   event_upcoming
+                </span>
+              ),
+            },
+          ]
+        : []),
+      ...(user && user.role == UserRole.FLEET_MANAGER
+        ? [
+            {
+              title: "Tracking",
+              url: "/tracking",
+              icon: (
+                <span className="material-symbols-outlined items-center md-18">
+                  globe_location_pin
+                </span>
+              ),
+            },
+          ]
+        : []),
+      ...(user && user.role == UserRole.MANAGER
+        ? [
+            {
+              title: "Analytics",
+              url: "/analytics",
+              icon: (
+                <span className="material-symbols-outlined items-center md-18">
+                  analytics
                 </span>
               ),
             },

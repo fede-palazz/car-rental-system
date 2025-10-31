@@ -42,6 +42,7 @@ class NoteServiceTest : BaseIntegrationTest() {
     private lateinit var carModel: CarModel
     private lateinit var vehicle: Vehicle
     private lateinit var note: Note
+
     @BeforeEach
     fun setup() {
         carModel = carModelRepository.save(
@@ -189,6 +190,7 @@ class NoteServiceTest : BaseIntegrationTest() {
         val deleted = noteRepository.findById(toDelete.getId()!!)
         assertThat(deleted).isEmpty()
     }
+
     @Test
     fun `should throw exception when updating note with wrong vehicleId`() {
         val req = NoteReqDTO(
@@ -244,12 +246,13 @@ class NoteServiceTest : BaseIntegrationTest() {
         val res = noteService.createNote(vehicle.getId()!!, req)
         assertThat(res.date).isNotNull
     }
+
     @Test
     fun `should throw when creating note for non-existent vehicle`() {
         val req = NoteReqDTO(
             content = "Note content",
             author = "Author",
-            date = LocalDateTime.now()
+            date = LocalDateTime.now(ZoneOffset.UTC)
         )
         val invalidVehicleId = 9999L
         Assertions.assertThrows(RuntimeException::class.java) {
@@ -273,7 +276,7 @@ class NoteServiceTest : BaseIntegrationTest() {
         val req = NoteReqDTO(
             content = "Updated content",
             author = "Author",
-            date = LocalDateTime.now()
+            date = LocalDateTime.now(ZoneOffset.UTC)
         )
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             noteService.updateNote(note.getId()!!, anotherVehicle.getId()!!, req)
@@ -297,6 +300,7 @@ class NoteServiceTest : BaseIntegrationTest() {
             noteService.deleteNote(anotherVehicle.getId()!!, note.getId()!!)
         }
     }
+
     @Test
     fun `should return all notes if filters are empty`() {
         // Add one more note
@@ -305,7 +309,7 @@ class NoteServiceTest : BaseIntegrationTest() {
                 vehicle = vehicle,
                 content = "Extra note",
                 author = "AnotherAuthor",
-                date = LocalDateTime.now()
+                date = LocalDateTime.now(ZoneOffset.UTC)
             )
         )
         val filters = NoteFilter()

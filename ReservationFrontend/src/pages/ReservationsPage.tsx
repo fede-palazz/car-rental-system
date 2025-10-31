@@ -1,9 +1,8 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import PaginationWrapper from "@/components/ui/paginationWrapper";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,13 +19,23 @@ import { ReservationStatus } from "@/models/enums/ReservationStatus";
 import ReservationFiltersSidebar from "@/components/Sidebars/ReservationFilterSidebar";
 import PendingReservation from "@/components/PendingReservation";
 import { toast } from "sonner";
-import UserAPI from "@/API/UserAPI";
-import { User } from "@/models/User";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { damageAndDirtinessLevelLabels } from "@/utils/damageAndDirtinessLevelLabels";
 
 function ReservationsPage() {
   const navigate = useNavigate();
   const user = useContext(UserContext);
   const location = useLocation();
+
   const searchParams = new URLSearchParams(location.search);
   const paymentOutcome: boolean | null =
     searchParams.get("completed") === null
@@ -38,8 +47,7 @@ function ReservationsPage() {
   const [pendingReservation, setPendingReservation] = useState<
     Reservation | undefined
   >(undefined);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
+
   const [filtersSidebarOpen, setFiltersSidebarOpen] = useState<boolean>(false);
   const [filter, setFilter] = useState<ReservationFilter>({
     licensePlate: undefined,
@@ -60,15 +68,13 @@ function ReservationsPage() {
     status: undefined,
     wasDeliveryLate: undefined,
     wasChargedFee: undefined,
-    wasVehicleDamaged: undefined,
     wasInvolvedInAccident: undefined,
   });
   const [order, setOrder] = useState<string>("desc");
   const [sort, setSort] = useState<string>("plannedPickUpDate");
-  const [pageSize, setPageSize] = useState<number>(9);
+  const [pageSize, setPageSize] = useState<number>(15);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const deletingOrEditingIdRef = useRef<number | undefined>(undefined);
 
   const fetchReservations = (
     filter: ReservationFilter,
@@ -87,10 +93,6 @@ function ReservationsPage() {
     )
       .then((res: PagedResDTO<Reservation>) => {
         if (user != undefined && user.role == UserRole.CUSTOMER) {
-          const pending = res.content.find(
-            (r) => r.status === ReservationStatus.PENDING
-          );
-          setPendingReservation(pending);
           setReservations(
             res.content.filter((r) => r.status !== ReservationStatus.PENDING)
           );
@@ -101,35 +103,28 @@ function ReservationsPage() {
         setTotalPages(res.totalPages);
         //setPageSize(vehicles.elementsInPage);
       })
-      .catch((err) => {
-        //console.log(err);
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
-  };
-
-  const handleDelete = () => {
-    ReservationsAPI.deleteReservationById(
-      Number(deletingOrEditingIdRef.current)
-    )
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        deletingOrEditingIdRef.current = undefined;
-        fetchReservations(filter);
-      })
-      .catch((err) => {
-        toast.error("Error");
-      });
+    //Fetch the pending reservation if it is a customer
+    if (user != undefined && user.role == UserRole.CUSTOMER) {
+      ReservationsAPI.getPendingReservation()
+        .then((res: PagedResDTO<Reservation>) => {
+          const pending = res.content[0];
+          setPendingReservation(pending);
+        })
+        .catch((err: Error) => {
+          toast.error(err.message);
+        });
+    }
   };
 
   useEffect(() => {
-    if (location.pathname !== "/reservations") return;
-
     fetchReservations(filter, order, sort);
-    if (paymentOutcome == null) return;
-    if (paymentOutcome) {
-      toast.success("Payment succeeded");
-    } else {
-      toast.error("Payment failed");
+
+    if (paymentOutcome != null) {
+      if (paymentOutcome) toast.success("Payment succeeded");
+      else toast.error("Payment failed");
     }
   }, [location, paymentOutcome, order, sort, user]);
 
@@ -147,6 +142,34 @@ function ReservationsPage() {
   }, [paymentOutcome, pendingReservation]);
 
   const baseColumns: ColumnDef<Reservation>[] = [
+    {
+      accessorKey: "model",
+      header: () => (
+        <div
+          onClick={() => {
+            setSort("model");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          Model
+          {sort == "model" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const reservation = row.original;
+        return (
+          <div className="flex justify-center text-sm">
+            {`${reservation.brand} ${reservation.model} ${reservation.year} `}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "licensePlate",
       header: () => (
@@ -171,6 +194,34 @@ function ReservationsPage() {
         return (
           <div className="flex justify-center text-sm">
             {reservation.licensePlate}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "totalAmount",
+      header: () => (
+        <div
+          onClick={() => {
+            setSort("totalAmount");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          Amount
+          {sort == "totalAmount" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const reservation = row.original;
+        return (
+          <div className="flex justify-center text-sm">
+            {reservation.totalAmount.toFixed(2)} €
           </div>
         );
       },
@@ -480,41 +531,6 @@ function ReservationsPage() {
       },
     },
     {
-      accessorKey: "wasVehicleDamaged",
-      header: () => (
-        <div
-          onClick={() => {
-            setSort("wasVehicleDamaged");
-            setOrder((prev: string) => {
-              return prev == "asc" ? "desc" : "asc";
-            });
-          }}
-          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
-          <div className="flex flex-col text-center text-base leading-tight">
-            <span>Damaged</span>
-            <span>Vehicle</span>
-          </div>
-          {sort == "wasVehicleDamaged" && (
-            <span className="material-symbols-outlined md-18">
-              {order == "asc" ? "arrow_upward" : "arrow_downward"}
-            </span>
-          )}
-        </div>
-      ),
-      cell: ({ row }) => {
-        const reservation = row.original;
-        return (
-          <div className="flex justify-center">
-            {reservation.wasVehicleDamaged == null
-              ? "-"
-              : reservation.wasVehicleDamaged
-              ? "Yes"
-              : "No"}
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: "wasInvolvedInAccident",
       header: () => (
         <div
@@ -546,89 +562,201 @@ function ReservationsPage() {
         );
       },
     },
-  ];
-
-  const columns: ColumnDef<Reservation>[] = [
-    ...(user && user.role !== UserRole.CUSTOMER ? [staffColumns[0]] : []),
-    ...baseColumns,
-    ...(user && user.role !== UserRole.CUSTOMER ? staffColumns.slice(1) : []),
     {
-      id: "actions",
+      accessorKey: "damageLevel",
       header: () => (
-        <div className=" text-center flex items-center justify-center">
-          Actions
+        <div
+          onClick={() => {
+            setSort("damageLevel");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          <div className="flex flex-col text-center text-base leading-tight">
+            <span>Damage</span>
+            <span>Level</span>
+          </div>
+          {sort == "damageLevel" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
         </div>
       ),
       cell: ({ row }) => {
         const reservation = row.original;
         return (
-          <div className="flex gap-1 justify-center">
-            <Button
-              variant="destructive"
-              title="Delete"
-              size="icon"
-              disabled={
-                reservation.actualPickUpDate != undefined ||
-                (reservation.plannedPickUpDate &&
-                  reservation.plannedPickUpDate < new Date())
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                deletingOrEditingIdRef.current = reservation.id;
-                setDeleteConfirmationOpen(true);
-              }}>
-              <span className="material-symbols-outlined md-18">delete</span>
-            </Button>
-            {/*<Button
-              variant="secondary"
-              title="Edit"
-              size="icon"
-              disabled={reservation.plannedPickUpDate <= new Date()}
-              onClick={(e) => {
-                e.stopPropagation();
-                deletingOrEditingIdRef.current = reservation.id;
-                navigate("edit");
-            }}>
-              <span className="material-symbols-outlined md-18">edit</span>
-            </Button>*/}
-            {user && user.role != UserRole.CUSTOMER && (
-              <>
-                <Button
-                  variant="secondary"
-                  title="Start"
-                  size="icon"
-                  disabled={!!reservation.actualPickUpDate}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletingOrEditingIdRef.current = reservation.id;
-                    navigate("pick-up-date");
-                  }}>
-                  <span className="material-symbols-outlined md-18">
-                    event_available
-                  </span>
-                </Button>
-                <Button
-                  title="Finalize"
-                  size="icon"
-                  disabled={
-                    !!reservation.actualDropOffDate ||
-                    !reservation.actualPickUpDate
-                  }
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletingOrEditingIdRef.current = reservation.id;
-                    navigate("finalize");
-                  }}>
-                  <span className="material-symbols-outlined md-18">
-                    handshake
-                  </span>
-                </Button>
-              </>
+          <div className="flex justify-center">
+            {reservation.damageLevel == null ? (
+              "-"
+            ) : (
+              <Badge variant={"default"}>
+                {damageAndDirtinessLevelLabels[reservation.damageLevel]}
+              </Badge>
             )}
           </div>
         );
       },
     },
+    {
+      accessorKey: "dirtinessLevel",
+      header: () => (
+        <div
+          onClick={() => {
+            setSort("dirtinessLevel");
+            setOrder((prev: string) => {
+              return prev == "asc" ? "desc" : "asc";
+            });
+          }}
+          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
+          <div className="flex flex-col text-center text-base leading-tight">
+            <span>Dirtiness</span>
+            <span>Level</span>
+          </div>
+          {sort == "dirtinessLevel" && (
+            <span className="material-symbols-outlined md-18">
+              {order == "asc" ? "arrow_upward" : "arrow_downward"}
+            </span>
+          )}
+        </div>
+      ),
+      cell: ({ row }) => {
+        const reservation = row.original;
+        return (
+          <div className="flex justify-center">
+            {reservation.dirtinessLevel == null ? (
+              "-"
+            ) : (
+              <Badge variant={"default"}>
+                {damageAndDirtinessLevelLabels[reservation.dirtinessLevel]}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+
+  const actions: ColumnDef<Reservation> = {
+    id: "actions",
+    header: () => (
+      <div className=" text-center flex items-center justify-center">
+        Actions
+      </div>
+    ),
+    cell: ({ row }) => {
+      const reservation = row.original;
+
+      const cancelledOrExpired =
+        reservation.status == ReservationStatus.CANCELLED ||
+        reservation.status == ReservationStatus.EXPIRED;
+
+      return (
+        <div className="flex justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0 ">
+                <span className="sr-only">Open menu</span>
+                <span className="material-symbols-outlined md-18">
+                  more_horiz
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="min-w-56 rounded-lg p-2"
+              side={"bottom"}
+              align="end"
+              sideOffset={4}>
+              <DropdownMenuLabel className="font-extrabold text-center">
+                Actions
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(user?.role == UserRole.STAFF ||
+                user?.role == UserRole.FLEET_MANAGER) && (
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                    disabled={
+                      cancelledOrExpired ||
+                      reservation.actualPickUpDate != undefined ||
+                      (reservation.plannedPickUpDate &&
+                        reservation.plannedPickUpDate < new Date())
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`change-vehicle/${reservation.id}`);
+                    }}>
+                    <span className="material-symbols-outlined md-18">
+                      edit_road
+                    </span>
+                    Change Vehicle
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                    disabled={
+                      cancelledOrExpired ||
+                      reservation.actualPickUpDate != undefined ||
+                      reservation.plannedPickUpDate > new Date()
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`pick-up-date/${reservation.id}`);
+                    }}>
+                    <span className="material-symbols-outlined md-18">
+                      event_available
+                    </span>
+                    Start
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                    disabled={
+                      cancelledOrExpired ||
+                      !!reservation.actualDropOffDate ||
+                      !reservation.actualPickUpDate
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`finalize/${reservation.id}`);
+                    }}>
+                    <span className="material-symbols-outlined md-18">
+                      handshake
+                    </span>
+                    Finalize
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              )}
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  variant="destructive"
+                  className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal"
+                  disabled={
+                    reservation.actualPickUpDate != undefined ||
+                    (reservation.plannedPickUpDate &&
+                      reservation.plannedPickUpDate < new Date())
+                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`delete/${reservation.id}`);
+                  }}>
+                  <span className="material-symbols-outlined md-18">
+                    delete
+                  </span>
+                  Cancel
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    },
+  };
+
+  const columns: ColumnDef<Reservation>[] = [
+    ...(user && user.role !== UserRole.CUSTOMER ? [staffColumns[0]] : []),
+    ...baseColumns,
+    ...(user && user.role !== UserRole.CUSTOMER ? staffColumns.slice(1) : []),
+    ...(user && user.role !== UserRole.MANAGER ? [actions] : []),
   ];
 
   return (
@@ -647,12 +775,7 @@ function ReservationsPage() {
           {pendingReservation && (
             <>
               <PendingReservation
-                reservation={pendingReservation}
-                handleCancel={(e) => {
-                  e.stopPropagation();
-                  deletingOrEditingIdRef.current = pendingReservation.id;
-                  setDeleteConfirmationOpen(true);
-                }}></PendingReservation>
+                reservation={pendingReservation}></PendingReservation>
               <Separator></Separator>
             </>
           )}
@@ -672,12 +795,14 @@ function ReservationsPage() {
                   fetchReservations(newFilter, order, sort, 0);
                   setFilter(newFilter);
                 }}
-                className="w-[400px]">
+                className="w-[600px]">
                 <TabsList>
                   <TabsTrigger value="undefined">All</TabsTrigger>
                   <TabsTrigger value="CONFIRMED">Confirmed</TabsTrigger>
                   <TabsTrigger value="DELIVERED">Delivered</TabsTrigger>
                   <TabsTrigger value="PICKED_UP">Picked Up</TabsTrigger>
+                  <TabsTrigger value="EXPIRED">Expired</TabsTrigger>
+                  <TabsTrigger value="CANCELLED">Cancelled</TabsTrigger>
                   {user && user.role !== UserRole.CUSTOMER && (
                     <TabsTrigger value="PENDING">Pending</TabsTrigger>
                   )}
@@ -720,28 +845,7 @@ function ReservationsPage() {
             </div>
           </div>
         </div>
-        <ConfirmationDialog
-          open={deleteConfirmationOpen}
-          handleSubmit={handleDelete}
-          title="Delete Confirmation"
-          submitButtonLabel="Delete"
-          submitButtonVariant="destructive"
-          content="Are you sure to delete this reservation?"
-          description="This action is irreversible"
-          descriptionClassName="text-warning"
-          handleCancel={() => {
-            deletingOrEditingIdRef.current = undefined;
-            setDeleteConfirmationOpen(false);
-          }}></ConfirmationDialog>
-        <Outlet
-          context={
-            deletingOrEditingIdRef.current
-              ? reservations?.find(
-                  (reservation) =>
-                    reservation.id === deletingOrEditingIdRef.current
-                )
-              : undefined
-          }></Outlet>
+        <Outlet></Outlet>
       </SidebarInset>
       {filtersSidebarOpen && (
         <ReservationFiltersSidebar

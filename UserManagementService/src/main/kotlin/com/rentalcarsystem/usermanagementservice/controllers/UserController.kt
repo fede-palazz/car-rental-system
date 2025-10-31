@@ -22,7 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @RestController
 @RequestMapping("/api/v1/users")
-@CrossOrigin(origins = ["http://localhost:5173"], allowCredentials = "true")
+@CrossOrigin(origins = ["http://localhost:8083"], allowCredentials = "true")
 class UserController(private val userService: UserService) {
     private val logger = LoggerFactory.getLogger(UserController::class.java)
     private val mapper = ObjectMapper().apply { registerModule(JavaTimeModule()) }
@@ -104,11 +104,18 @@ class UserController(private val userService: UserService) {
         require(username.isNotBlank()) { "Invalid username $username: it must be a positive number" }
         val loggedUsername = jwt.claims["preferred_username"] as String
 
+
         @Suppress("UNCHECKED_CAST")
         val realmAccess = jwt.claims["realm_access"] as? Map<String, Any> ?: emptyMap()
         val roles = (realmAccess["roles"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
-        return ResponseEntity.ok(userService.getUserByUsername(username, loggedUsername, roles))
+        return ResponseEntity.ok(
+            userService.getUserByUsername(
+                username,
+                if (loggedUsername == "service-account-reservation-service") username else loggedUsername,
+                roles
+            )
+        )
     }
 
     @Operation(

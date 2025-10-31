@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size
 @Entity
 @Table(
     name = "car_models",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["brand", "model"])]
+    uniqueConstraints = [UniqueConstraint(columnNames = ["brand", "model", "year"])]
 )
 class CarModel(
     @Column(nullable = false)
@@ -76,5 +76,8 @@ class CarModel(
     @Column(nullable = false)
     @field:Positive
     var rentalPrice: Double,        // Cost per day based on model and category
+
+    @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
+    val searchVector: String? = null,
 ) : BaseEntity<Long>()
 

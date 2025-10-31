@@ -3,6 +3,7 @@ import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { MaintenanceFilter } from "@/models/filters/MaintenanceFilter";
 import { Maintenance } from "@/models/Maintenance";
 import { getCsrfToken } from "./csrfToken";
+import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/reservation-service/";
 
@@ -10,18 +11,20 @@ async function getMaintenancesByVehicleId(
   vehicleId: number,
   filter?: MaintenanceFilter,
   order: string = "asc",
-  sort: string = "date",
+  sort: string = "startDate",
   page: number = 0,
   size: number = 9
 ): Promise<PagedResDTO<Maintenance>> {
   const queryParams =
-    (filter
+    (filter != undefined
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
-          .map(
-            ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-          )
+          .map(([key, value]) => {
+            if (value instanceof Date) {
+              value = value.toISOString();
+            }
+            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+          })
           .join("&")
       : "") +
     `&order=${encodeURIComponent(order)}&sort=${encodeURIComponent(
@@ -40,7 +43,7 @@ async function getMaintenancesByVehicleId(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -48,10 +51,11 @@ async function getMaintenancesByVehicleId(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -71,7 +75,7 @@ async function getMaintenanceById(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -79,10 +83,11 @@ async function getMaintenanceById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -97,11 +102,15 @@ async function createMaintenance(
       "X-CSRF-TOKEN": getCsrfToken(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(maintenanceDTO),
+    body: JSON.stringify({
+      ...maintenanceDTO,
+      startDate: maintenanceDTO.startDate.toISOString(),
+      plannedEndDate: maintenanceDTO.plannedEndDate.toISOString(),
+    }),
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -109,13 +118,15 @@ async function createMaintenance(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
+//TODO
 async function editMaintenanceById(
   vehicleId: number,
   maintenanceDTO: MaintenanceReqDTO,
@@ -135,7 +146,7 @@ async function editMaintenanceById(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -143,10 +154,46 @@ async function editMaintenanceById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
+  }
+}
+
+async function finalizeMaintenanceByMaintenanceId(
+  vehicleId: number,
+  maintenanceId: number,
+  actualEndDate: Date
+): Promise<Maintenance> {
+  const response = await fetch(
+    baseURL + `vehicles/${vehicleId}/maintenances/${maintenanceId}/finalize`,
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "X-CSRF-TOKEN": getCsrfToken(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ actualEndDate: actualEndDate.toISOString() }),
+    }
+  );
+  if (response.ok) {
+    const res = await response.json();
+    return localizeDates(res);
+  } else {
+    const errDetail = await response.json();
+    if (Array.isArray(errDetail.errors)) {
+      throw new Error(
+        errDetail.errors[0].msg ||
+          "Something went wrong, please reload the page"
+      );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
+    }
   }
 }
 
@@ -174,10 +221,11 @@ async function deleteMaintenanceById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -187,6 +235,7 @@ const MaintenancesAPI = {
   deleteMaintenanceById,
   createMaintenance,
   editMaintenanceById,
+  finalizeMaintenanceByMaintenanceId,
 };
 
 export default MaintenancesAPI;

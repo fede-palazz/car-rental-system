@@ -26,9 +26,6 @@ class Vehicle(
     @Column(nullable = false)
     var pendingCleaning: Boolean,
 
-    @Column(nullable = false)
-    var pendingRepair: Boolean,
-
     // One Vehicle can have many Notes
     @OneToMany(mappedBy = "vehicle", cascade = [CascadeType.ALL], orphanRemoval = true)
     var notes: MutableSet<Note> = mutableSetOf(),

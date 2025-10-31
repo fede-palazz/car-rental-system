@@ -90,6 +90,7 @@ class MaintenanceControllerTest : BaseIntegrationTest() {
         upcomingServiceNeeds = "Brake pads change",
         date = LocalDateTime.of(2025, 6, 7, 0, 0)
     )
+
     @BeforeAll
     fun setup() {
         // Save car model first
@@ -125,7 +126,7 @@ class MaintenanceControllerTest : BaseIntegrationTest() {
                 .andExpect(status().isOk).andReturn()
 
             val content = result.response.contentAsString
-            val typeRef = object: TypeReference<PagedResDTO<MaintenanceResDTO>>() {}
+            val typeRef = object : TypeReference<PagedResDTO<MaintenanceResDTO>>() {}
             val pagedMaintenances: PagedResDTO<MaintenanceResDTO> = objectMapper.readValue(content, typeRef)
 
             assertEquals(2, pagedMaintenances.content.size)
@@ -140,7 +141,7 @@ class MaintenanceControllerTest : BaseIntegrationTest() {
                 .andExpect(status().isOk).andReturn()
 
             val content = result.response.contentAsString
-            val typeRef = object: TypeReference<MaintenanceResDTO>() {}
+            val typeRef = object : TypeReference<MaintenanceResDTO>() {}
             val maintenance: MaintenanceResDTO = objectMapper.readValue(content, typeRef)
 
             assertEquals(maintenance2.type, maintenance.type)
@@ -181,7 +182,7 @@ class MaintenanceControllerTest : BaseIntegrationTest() {
             val json = mvcResult.response.contentAsString
             val resultDTO = objectMapper.readValue(json, MaintenanceResDTO::class.java)
 
-            val now = LocalDateTime.now()
+            val now = LocalDateTime.now(ZoneOffset.UTC)
             val diffInSeconds = java.time.Duration.between(resultDTO.date, now).seconds
             Assertions.assertTrue(diffInSeconds in -5..5, "Expected maintenance date to be within 5 seconds of now")
 
@@ -220,7 +221,7 @@ class MaintenanceControllerTest : BaseIntegrationTest() {
             assertEquals(afterCount, beforeCount)
 
             val content = result.response.contentAsString
-            val typeRef = object: TypeReference<MaintenanceResDTO>() {}
+            val typeRef = object : TypeReference<MaintenanceResDTO>() {}
             val resultDTO = objectMapper.readValue(content, typeRef)
 
             assertEquals(input.defects, resultDTO.defects)

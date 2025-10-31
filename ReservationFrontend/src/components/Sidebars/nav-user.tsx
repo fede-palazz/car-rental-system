@@ -29,11 +29,11 @@ export function NavUser({
   user: User | undefined;
   setUser: (user: User) => void;
 }) {
-  const { isMobile } = useSidebar();
+  const { isMobile, state } = useSidebar();
 
   return user ? (
-    <SidebarMenu>
-      <SidebarMenuItem>
+    <SidebarMenu className="z-100000">
+      <SidebarMenuItem className="z-100000">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
@@ -57,7 +57,7 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg z-100000"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}>
@@ -99,7 +99,7 @@ export function NavUser({
               </DropdownMenuLabel>
               <DropdownMenuLabel className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal">
                 <span className="material-symbols-outlined md-18">call</span>
-                {user.phoneNumber}
+                {user.phone}
               </DropdownMenuLabel>
               {user.role == UserRole.CUSTOMER && (
                 <DropdownMenuLabel className=" flex items-center px-2 py-1.5 text-sm outline-hidden select-none gap-2 font-normal">
@@ -111,7 +111,16 @@ export function NavUser({
               )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-
+            <DropdownMenuItem
+              onClick={() => {
+                window.location.href =
+                  "http://localhost:8083/gateway-client/update-profile";
+              }}>
+              <span className="material-symbols-outlined items-center md-18">
+                update
+              </span>
+              Update profile
+            </DropdownMenuItem>
             <form action="/logout" method="post">
               <input type="hidden" name="_csrf" value={user.csrf as string} />
               <DropdownMenuItem asChild variant="destructive">
@@ -136,7 +145,7 @@ export function NavUser({
       <span className="material-symbols-outlined items-center md-18">
         login
       </span>
-      Login
+      {state == "expanded" && "Login"}
     </Button>
   );
 }

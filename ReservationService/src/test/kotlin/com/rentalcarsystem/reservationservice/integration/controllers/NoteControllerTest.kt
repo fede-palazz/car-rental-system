@@ -110,7 +110,7 @@ class NoteControllerTest : BaseIntegrationTest() {
                 .andExpect(status().isOk).andReturn()
 
             val content = result.response.contentAsString
-            val typeRef = object: TypeReference<PagedResDTO<NoteResDTO>>() {}
+            val typeRef = object : TypeReference<PagedResDTO<NoteResDTO>>() {}
             val pagedMaintenances: PagedResDTO<NoteResDTO> = objectMapper.readValue(content, typeRef)
 
             assertEquals(1, pagedMaintenances.content.size)
@@ -125,7 +125,7 @@ class NoteControllerTest : BaseIntegrationTest() {
             val note = NoteReqDTO(
                 content = "New tire installed",
                 author = "Alice",
-                date = LocalDateTime.now()
+                date = LocalDateTime.now(ZoneOffset.UTC)
             )
 
             val vehicleId = vehicleRepository.getVehicleByLicensePlate(vehicle.licensePlate).first().getId()!!
@@ -146,7 +146,7 @@ class NoteControllerTest : BaseIntegrationTest() {
 
             assertEquals(beforeCount + 1, afterCount)
             val content = result.response.contentAsString
-            val typeRef = object: TypeReference<NoteResDTO>() {}
+            val typeRef = object : TypeReference<NoteResDTO>() {}
             val noteResDTO: NoteResDTO = objectMapper.readValue(content, typeRef)
 
             assertEquals(note.content, noteResDTO.content)
@@ -160,7 +160,7 @@ class NoteControllerTest : BaseIntegrationTest() {
             val updateNote = NoteReqDTO(
                 content = "Engine issue resolved",
                 author = "John",
-                date = LocalDateTime.now()
+                date = LocalDateTime.now(ZoneOffset.UTC)
             )
 
             val vehicleId = vehicleRepository.getVehicleByLicensePlate(vehicle.licensePlate).first().getId()!!
@@ -182,7 +182,7 @@ class NoteControllerTest : BaseIntegrationTest() {
             assertEquals(beforeCount, afterCount)
 
             val content = result.response.contentAsString
-            val typeRef = object: TypeReference<NoteResDTO>() {}
+            val typeRef = object : TypeReference<NoteResDTO>() {}
             val noteResDTO: NoteResDTO = objectMapper.readValue(content, typeRef)
 
             assertEquals(updateNote.content, noteResDTO.content)
@@ -207,6 +207,7 @@ class NoteControllerTest : BaseIntegrationTest() {
             assertEquals(beforeCount - 1, afterCount)
         }
     }
+
     @Nested
     inner class NoteControllerErrorTests {
         @Test
@@ -249,7 +250,7 @@ class NoteControllerTest : BaseIntegrationTest() {
 
         @Test
         fun `POST should return 422 for blank content`() {
-            val note = NoteReqDTO(content = " ", author = "John", date = LocalDateTime.now())
+            val note = NoteReqDTO(content = " ", author = "John", date = LocalDateTime.now(ZoneOffset.UTC))
             mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/v1/vehicles/1/notes")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -259,7 +260,7 @@ class NoteControllerTest : BaseIntegrationTest() {
 
         @Test
         fun `POST should return 422 for blank author`() {
-            val note = NoteReqDTO(content = "Important note", author = " ", date = LocalDateTime.now())
+            val note = NoteReqDTO(content = "Important note", author = " ", date = LocalDateTime.now(ZoneOffset.UTC))
             mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/v1/vehicles/1/notes")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -269,7 +270,7 @@ class NoteControllerTest : BaseIntegrationTest() {
 
         @Test
         fun `POST should return 422 for invalid vehicle id`() {
-            val note = NoteReqDTO(content = "Important note", author = "John", date = LocalDateTime.now())
+            val note = NoteReqDTO(content = "Important note", author = "John", date = LocalDateTime.now(ZoneOffset.UTC))
             mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/v1/vehicles/-1/notes")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -279,7 +280,7 @@ class NoteControllerTest : BaseIntegrationTest() {
 
         @Test
         fun `PUT should return 422 for invalid note id`() {
-            val note = NoteReqDTO(content = "Updated", author = "John", date = LocalDateTime.now())
+            val note = NoteReqDTO(content = "Updated", author = "John", date = LocalDateTime.now(ZoneOffset.UTC))
             mockMvc.perform(
                 MockMvcRequestBuilders.put("/api/v1/vehicles/1/notes/0")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -289,7 +290,7 @@ class NoteControllerTest : BaseIntegrationTest() {
 
         @Test
         fun `PUT should return 422 for invalid vehicle id`() {
-            val note = NoteReqDTO(content = "Updated", author = "John", date = LocalDateTime.now())
+            val note = NoteReqDTO(content = "Updated", author = "John", date = LocalDateTime.now(ZoneOffset.UTC))
             mockMvc.perform(
                 MockMvcRequestBuilders.put("/api/v1/vehicles/0/notes/1")
                     .contentType(MediaType.APPLICATION_JSON)

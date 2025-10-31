@@ -1,25 +1,28 @@
 package com.rentalcarsystem.reservationservice.dtos.request
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.rentalcarsystem.reservationservice.enums.MaintenanceType
 import com.rentalcarsystem.reservationservice.models.Maintenance
-import com.rentalcarsystem.reservationservice.utils.CustomBooleanDeserializer
+import jakarta.validation.constraints.Future
 import jakarta.validation.constraints.NotBlank
 import java.time.LocalDateTime
 
 data class MaintenanceReqDTO(
     @field:NotBlank(message = "Defects cannot be blank")
     val defects: String,
-    @field:JsonDeserialize(using = CustomBooleanDeserializer::class)
-    val completed: Boolean,
-    @field:NotBlank(message = "Type cannot be blank")
-    val type: String,
-    val upcomingServiceNeeds: String?,
+    val type: MaintenanceType,
+    @field:NotBlank(message = "Upcoming service needs cannot be blank")
+    val upcomingServiceNeeds: String,
+    @field:Future(message = "Parameter 'startDate' must be a future date")
+    val startDate: LocalDateTime,
+    @field:Future(message = "Parameter 'plannedEndDate' must be a future date")
+    val plannedEndDate: LocalDateTime,
 )
 
-fun MaintenanceReqDTO.toEntity() = Maintenance(
+fun MaintenanceReqDTO.toEntity(username: String) = Maintenance(
     defects = this.defects,
-    completed = this.completed,
     type = this.type,
-    upcomingServiceNeeds = this.upcomingServiceNeeds ?: "",
-    date = LocalDateTime.now(),
+    upcomingServiceNeeds = this.upcomingServiceNeeds,
+    startDate = this.startDate,
+    plannedEndDate = this.plannedEndDate,
+    startFleetManagerUsername = username
 )

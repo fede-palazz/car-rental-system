@@ -27,18 +27,27 @@ enum class ResponseEnum(
 
     // Maintenance errors
     MAINTENANCE_NOT_FOUND(4300, "Maintenance record not found", HttpStatus.NOT_FOUND),
+    MAINTENANCE_WRONG_VEHICLE(4301, "Maintenance record does not belong to the specified vehicle", HttpStatus.CONFLICT),
+    MAINTENANCE_WRONG_STATUS(4302, "Wrong maintenance status", HttpStatus.CONFLICT),
 
     // Note errors
     NOTE_NOT_FOUND(4400, "Note not found", HttpStatus.NOT_FOUND),
+    NOTE_WRONG_VEHICLE(4401, "Note does not belong to the specified vehicle", HttpStatus.CONFLICT),
+    NOTE_WRONG_AUTHOR(4402, "User is not authorized to update or delete note", HttpStatus.FORBIDDEN),
 
     // Reservation errors
     RESERVATION_NOT_FOUND(4400, "Requested reservation not found", HttpStatus.NOT_FOUND),
     RESERVATION_INSUFFICIENT_SCORE(4401, "Insufficient score", HttpStatus.CONFLICT),
     RESERVATION_FORBIDDEN(4402, "Forbidden reservation", HttpStatus.FORBIDDEN),
     RESERVATION_PENDING(4403, "Pending reservation", HttpStatus.CONFLICT),
+    RESERVATION_WRONG_STATUS(4404, "Wrong reservation status", HttpStatus.CONFLICT),
+    RESERVATION_CONFLICT(4405, "Reservation conflict", HttpStatus.CONFLICT),
 
     // Payment error
-    PAYMENT_ERROR(4500, "Payment error", HttpStatus.INTERNAL_SERVER_ERROR);
+    PAYMENT_ERROR(4500, "Payment error", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // Tracking error
+    TRACKING_ERROR(4600, "Tracking error", HttpStatus.INTERNAL_SERVER_ERROR);
 
     // Getters
     fun getCode() = code

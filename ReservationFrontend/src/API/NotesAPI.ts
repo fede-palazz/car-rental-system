@@ -3,6 +3,7 @@ import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { NoteFilter } from "@/models/filters/NoteFilter";
 import { Note } from "@/models/Note";
 import { getCsrfToken } from "./csrfToken";
+import { localizeDates } from "@/utils/dateUtils";
 
 const baseURL = "http://localhost:8083/api/v1/reservation-service/";
 
@@ -18,10 +19,12 @@ async function getNotesByVehicleId(
     (filter
       ? Object.entries(filter)
           .filter(([, value]) => value !== undefined)
-          .map(
-            ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-          )
+          .map(([key, value]) => {
+            if (value instanceof Date) {
+              value = value.toISOString();
+            }
+            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+          })
           .join("&")
       : "") +
     `&order=${encodeURIComponent(order)}&sort=${encodeURIComponent(
@@ -40,7 +43,7 @@ async function getNotesByVehicleId(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -48,10 +51,11 @@ async function getNotesByVehicleId(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -68,7 +72,7 @@ async function getNoteById(vehicleId: number, noteId: number): Promise<Note> {
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -76,10 +80,11 @@ async function getNoteById(vehicleId: number, noteId: number): Promise<Note> {
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -98,7 +103,7 @@ async function createNote(
   });
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -106,10 +111,11 @@ async function createNote(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -132,7 +138,7 @@ async function editNoteById(
   );
   if (response.ok) {
     const res = await response.json();
-    return res;
+    return localizeDates(res);
   } else {
     const errDetail = await response.json();
     if (Array.isArray(errDetail.errors)) {
@@ -140,10 +146,11 @@ async function editNoteById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 
@@ -171,10 +178,11 @@ async function deleteNoteById(
         errDetail.errors[0].msg ||
           "Something went wrong, please reload the page"
       );
+    } else {
+      throw new Error(
+        errDetail.detail ?? "Something went wrong, please reload the page"
+      );
     }
-    throw new Error(
-      errDetail.error || "Something went wrong, please reload the page"
-    );
   }
 }
 

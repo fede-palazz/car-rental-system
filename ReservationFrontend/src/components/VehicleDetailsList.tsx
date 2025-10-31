@@ -2,14 +2,18 @@ import { Vehicle } from "@/models/Vehicle";
 
 function VehicleDetailsList({
   vehicle,
-  form = false,
+  isInCard = false,
+  isOutsideForm = true,
 }: {
   vehicle: Vehicle | undefined;
-  form?: boolean;
+  isInCard?: boolean;
+  isOutsideForm?: boolean;
 }) {
+  const cols = isInCard ? "2" : "3";
   return (
     vehicle && (
-      <ul className="mt-4 px-6 grid grid-cols-2 lg:grid-cols-3 gap-y-4 w-full justify-items-center text-md">
+      <ul
+        className={`mt-4 px-6 grid grid-cols-2 lg:grid-cols-${cols} gap-y-4 w-full justify-items-center text-md`}>
         <li className="w-full grid grid-cols-3 gap-x-4 ">
           <div className="flex justify-end items-center col-span-1">
             <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
@@ -78,20 +82,24 @@ function VehicleDetailsList({
             {vehicle.licensePlate}
           </div>
         </li>
-        <li className="w-full grid grid-cols-3 gap-x-4 ">
-          <div className="flex justify-end items-center col-span-1">
-            <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
-              adjust
-            </span>
-          </div>
-          <div className="space-y-1 text-start col-span-2">
-            <p>
-              <strong className="text-accent-foreground text-lg">Status</strong>
-            </p>
-            {vehicle.status.replace(/_/g, " ").charAt(0).toUpperCase() +
-              vehicle.status.replace(/_/g, " ").slice(1).toLowerCase()}
-          </div>
-        </li>
+        {isOutsideForm && (
+          <li className="w-full grid grid-cols-3 gap-x-4 ">
+            <div className="flex justify-end items-center col-span-1">
+              <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
+                adjust
+              </span>
+            </div>
+            <div className="space-y-1 text-start col-span-2">
+              <p>
+                <strong className="text-accent-foreground text-lg">
+                  Status
+                </strong>
+              </p>
+              {vehicle.status.replace(/_/g, " ").charAt(0).toUpperCase() +
+                vehicle.status.replace(/_/g, " ").slice(1).toLowerCase()}
+            </div>
+          </li>
+        )}
         <li className="w-full grid grid-cols-3 gap-x-4 ">
           <div className="flex justify-end items-center col-span-1">
             <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
@@ -107,96 +115,25 @@ function VehicleDetailsList({
             {vehicle.kmTravelled}
           </div>
         </li>
-        <li className="w-full grid grid-cols-3 gap-x-4 ">
-          <div className="flex justify-end items-center  col-span-1">
-            <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
-              local_car_wash
-            </span>
-          </div>
-          <div className="text-start col-span-2 space-y-1 ">
-            <p>
-              <strong className="text-accent-foreground text-lg">
-                Pending Cleaning
-              </strong>
-            </p>
-            {vehicle.pendingCleaning ? "Yes" : "No"}
-          </div>
-        </li>
-        <li className="w-full grid grid-cols-3 gap-x-4 ">
-          <div className="flex justify-end items-center  col-span-1">
-            <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
-              car_repair
-            </span>
-          </div>
-          <div className="text-start col-span-2 space-y-1 ">
-            <p>
-              <strong className="text-accent-foreground text-lg">
-                Pending Repair
-              </strong>
-            </p>
-            {vehicle.pendingRepair ? "Yes" : "No"}
-          </div>
-        </li>
-        {/*form ? (
-          <div className="col-span-full grid grid-cols-2">
+        {isOutsideForm && (
+          <>
             <li className="w-full grid grid-cols-3 gap-x-4 ">
               <div className="flex justify-end items-center  col-span-1">
                 <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
-                  payments
+                  local_car_wash
                 </span>
               </div>
-              <div className="space-y-1 text-start col-span-2">
+              <div className="text-start col-span-2 space-y-1 ">
                 <p>
                   <strong className="text-accent-foreground text-lg">
-                    Rental Price
+                    Pending Cleaning
                   </strong>
                 </p>
-                {model.rentalPrice}
+                {vehicle.pendingCleaning ? "Yes" : "No"}
               </div>
             </li>
-            {model.motorDisplacement ? (
-              <li className="w-full grid grid-cols-3 gap-x-4 ">
-                <div className="flex justify-end items-center col-span-1">
-                  <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
-                    speed
-                  </span>
-                </div>
-                <div className="space-y-1 text-start col-span-2">
-                  <p>
-                    <strong className="text-accent-foreground text-lg">
-                      Motor Displacement
-                    </strong>
-                  </p>
-                  {model.motorDisplacement} cc
-                </div>
-              </li>
-            ) : (
-              <li className="w-full grid grid-cols-3 gap-x-4 "></li>
-            )}
-          </div>
-        ) : (
-          model.motorDisplacement && (
-            <>
-              <li className="w-full grid grid-cols-3 gap-x-4 "></li>
-              <li className="w-full grid grid-cols-3 gap-x-4 ">
-                <div className="flex justify-end items-center col-span-1">
-                  <span className="material-symbols-outlined md-18 rounded-full bg-sidebar-accent p-2.5">
-                    speed
-                  </span>
-                </div>
-                <div className="space-y-1 text-start col-span-2">
-                  <p>
-                    <strong className="text-accent-foreground text-lg">
-                      Motor Displacement
-                    </strong>
-                  </p>
-                  {model.motorDisplacement} cc
-                </div>
-              </li>
-              <li className="w-full grid grid-cols-3 gap-x-4 "></li>
-            </>
-          )
-        )*/}
+          </>
+        )}
       </ul>
     )
   );

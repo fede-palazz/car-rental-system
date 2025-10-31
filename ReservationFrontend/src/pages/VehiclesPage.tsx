@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { CarStatus, Vehicle } from "@/models/Vehicle";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import PaginationWrapper from "@/components/ui/paginationWrapper";
 import VehicleAPI from "@/API/VehiclesAPI";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggler } from "@/components/ThemeToggler";
 import { VehicleFilter } from "@/models/filters/VehicleFilter";
@@ -14,13 +13,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "@/components/ui/data-table";
 import { PagedResDTO } from "@/models/dtos/response/PagedResDTO";
 import { toast } from "sonner";
+import UserContext from "@/contexts/UserContext";
+import { UserRole } from "@/models/enums/UserRole";
 
 const VehiclesPage = () => {
+  const user = useContext(UserContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [vehicles, setVehicles] = useState<Vehicle[] | undefined>(undefined);
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
-    useState<boolean>(false);
   const [filtersSidebarOpen, setFiltersSidebarOpen] = useState<boolean>(false);
   const [filter, setFilter] = useState<VehicleFilter>({
     licensePlate: undefined,
@@ -32,14 +32,12 @@ const VehiclesPage = () => {
     minKmTravelled: undefined,
     maxKmTravelled: undefined,
     pendingCleaning: undefined,
-    pendingRepair: undefined,
   });
   const [order, setOrder] = useState<string>("asc");
   const [sort, setSort] = useState<string>("vin");
-  const [pageSize, setPageSize] = useState<number>(9);
+  const [pageSize, setPageSize] = useState<number>(15);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const deletingOrEditingIdRef = useRef<number | undefined>(undefined);
   const columns: ColumnDef<Vehicle>[] = [
     {
       accessorKey: "licensePlate",
@@ -220,34 +218,6 @@ const VehiclesPage = () => {
       },
     },
     {
-      accessorKey: "pendingRepair",
-      header: () => (
-        <div
-          onClick={() => {
-            setSort("pendingRepair");
-            setOrder((prev: string) => {
-              return prev == "asc" ? "desc" : "asc";
-            });
-          }}
-          className="text-center text-base gap-1 cursor-pointer flex items-center justify-center hover:text-muted-foreground">
-          Pending Repair
-          {sort == "pendingRepair" && (
-            <span className="material-symbols-outlined md-18">
-              {order == "asc" ? "arrow_upward" : "arrow_downward"}
-            </span>
-          )}
-        </div>
-      ),
-      cell: ({ row }) => {
-        const vehicle = row.original;
-        return (
-          <div className="flex justify-center">
-            {vehicle.pendingRepair ? "Yes" : "No"}
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: "pendingCleaning",
       header: () => (
         <div
@@ -295,26 +265,30 @@ const VehiclesPage = () => {
               }}>
               <span className="material-symbols-outlined md-18">info</span>
             </Button>
-            <Button
-              variant="destructive"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                deletingOrEditingIdRef.current = vehicle.id;
-                setDeleteConfirmationOpen(true);
-              }}>
-              <span className="material-symbols-outlined md-18">delete</span>
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                deletingOrEditingIdRef.current = vehicle.id;
-                navigate("edit");
-              }}>
-              <span className="material-symbols-outlined md-18">edit</span>
-            </Button>
+            {user && user.role == UserRole.FLEET_MANAGER && (
+              <>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`delete/${vehicle.id}`);
+                  }}>
+                  <span className="material-symbols-outlined md-18">
+                    delete
+                  </span>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`edit/${vehicle.id}`);
+                  }}>
+                  <span className="material-symbols-outlined md-18">edit</span>
+                </Button>
+              </>
+            )}
           </div>
         );
       },
@@ -341,25 +315,13 @@ const VehiclesPage = () => {
         setTotalPages(vehicles.totalPages);
         //setPageSize(vehicles.elementsInPage);
       })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleDelete = () => {
-    VehicleAPI.deleteVehicleById(Number(deletingOrEditingIdRef.current))
-      .then(() => {
-        setDeleteConfirmationOpen(false);
-        deletingOrEditingIdRef.current = undefined;
-        fetchVehicles(filter);
-      })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error) => {
+        toast.error(err.message);
       });
   };
 
   useEffect(() => {
-    if (location.pathname !== "/vehicles") return;
+    //if (location.pathname !== "/vehicles") return;
     fetchVehicles(filter, order, sort);
   }, [location.pathname, order, sort]);
 
@@ -418,7 +380,6 @@ const VehiclesPage = () => {
                 size="lg"
                 onClick={(e) => {
                   e.stopPropagation();
-                  deletingOrEditingIdRef.current = undefined;
                   navigate("add");
                 }}>
                 <span className="material-symbols-outlined md-18">add</span>
@@ -440,27 +401,7 @@ const VehiclesPage = () => {
             </div>
           </div>
         </div>
-        <ConfirmationDialog
-          open={deleteConfirmationOpen}
-          handleSubmit={handleDelete}
-          title="Delete Confirmation"
-          submitButtonLabel="Delete"
-          submitButtonVariant="destructive"
-          content="Are you sure to delete this vehicle?"
-          description="This action is irreversible"
-          descriptionClassName="text-warning"
-          handleCancel={() => {
-            deletingOrEditingIdRef.current = undefined;
-            setDeleteConfirmationOpen(false);
-          }}></ConfirmationDialog>
-        <Outlet
-          context={
-            deletingOrEditingIdRef.current
-              ? vehicles?.find(
-                  (vehicle) => vehicle.id === deletingOrEditingIdRef.current
-                )
-              : undefined
-          }></Outlet>
+        <Outlet></Outlet>
       </SidebarInset>
       {filtersSidebarOpen && (
         <VehicleFiltersSidebar

@@ -23,27 +23,63 @@ docker compose -f compose-prod.yaml down -v
 username: g15-personal@wa2.polito.it
 password: bellapass
 
-## Keycloak credentials
+## Keycloak
 
-### Users with role CUSTOMER
+### Export real settings
 
+```bash
+    docker exec g15-keycloak /opt/keycloak/bin/kc.sh export \
+  --file /opt/keycloak/data/export/realm-export.json \
+  --realm car-rental-system
+```
+
+### Account credentials
+
+Users with role CUSTOMER
+
+```text
 username: customer1
 password: password
 
 username: customer2
 password: password
+```
 
 ### User with role STAFF
 
+```text
 username: staff
 password: password
+```
 
 ### User with role FLEET_MANAGER
 
+```text
 username: fleetmanager
 password: password
+```
 
 ### User with role MANAGER
 
+```text
 username: manager
 password: password
+```
+
+## Map Data Preparation
+
+Before you can run `osrm-backend`, you need to prepare the .osrm files from the .osm.pbf.
+Run these three commands once inside `osrm` folder (they create files in osrm/data):
+
+```bash
+# Extract map data
+docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-extract -p /opt/car.lua /data/turin.osm.pbf
+
+# Partition map
+docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-partition /data/turin.osrm
+
+# Customize map
+docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-customize /data/turin.osrm
+```
+
+[OSRM API](https://project-osrm.org/docs/v5.24.0/api)

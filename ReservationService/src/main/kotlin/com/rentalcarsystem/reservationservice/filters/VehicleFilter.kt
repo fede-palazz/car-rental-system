@@ -1,11 +1,10 @@
 package com.rentalcarsystem.reservationservice.filters
 
-import com.rentalcarsystem.reservationservice.enums.CarStatus
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
-
+import com.rentalcarsystem.reservationservice.enums.CarStatus
 
 data class VehicleFilter(
     @field:Size(min = 1, max = 7, message = "Parameter 'licensePlate' must be maximum 7 characters long")
@@ -23,5 +22,4 @@ data class VehicleFilter(
     @field:PositiveOrZero(message = "Parameter 'maxKmTravelled' must be positive")
     val maxKmTravelled: Double? = null,
     val pendingCleaning: Boolean? = null,
-    val pendingRepair: Boolean? = null,
 )
