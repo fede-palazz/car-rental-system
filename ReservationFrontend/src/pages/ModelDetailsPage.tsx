@@ -105,6 +105,7 @@ function ModelDetailsPage() {
                     </>
                   ) : (
                     <Button
+                      disabled={!user}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate("reserve");

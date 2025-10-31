@@ -400,7 +400,7 @@ function CarModelsPage({
                             </>
                           ) : (
                             <Button
-                              disabled={!date?.from || !date?.to}
+                              disabled={!date?.from || !date?.to || !user}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(`reserve/${model.id}`);
