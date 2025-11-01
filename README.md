@@ -1,13 +1,11 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/zKPsPXQP)
-
-# Lab 5 - Group 15
+# Final Project - A Microservices-based Car Rental System - Group 15
 
 ## Getting started
 
 You can run the application with the following docker command:
 
 ```bash
-$ docker compose -f compose-prod.yaml up
+docker compose up
 ```
 
 If you run into problems, append a `--build` flag at the end.
@@ -15,8 +13,18 @@ If you run into problems, append a `--build` flag at the end.
 To remove all data and get a fresh start, execute:
 
 ```bash
-docker compose -f compose-prod.yaml down -v
+docker compose down -v
 ```
+
+After running the microservices, you can run the frontend with the following commands:
+
+```bash
+cd ReservationFrontend
+npm install --force
+npm run previewDev
+```
+
+Finally, it will be possible to access the website at the address `http://localhost:8083/ui`
 
 ## Paypal customer credentials
 
@@ -83,3 +91,12 @@ docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-customize /d
 ```
 
 [OSRM API](https://project-osrm.org/docs/v5.24.0/api)
+
+## Screenshots
+
+![Landing Page](./screenshots/landing.png)
+![Car Models](./screenshots/models.png)
+![Reservation](./screenshots/reservation.png)
+![Vehicle](./screenshots/vehicle.png)
+![Tracking](./screenshots/tracking.png)
+![Analytics](./screenshots/analytics.png)
