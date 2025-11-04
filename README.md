@@ -111,5 +111,3 @@ docker run -t -v "${PWD}/data:/data" osrm/osrm-backend:v5.25.0 osrm-customize /d
 
 [OSRM API](https://project-osrm.org/docs/v5.24.0/api)
 
-## Screenshots
-
