@@ -41,6 +41,8 @@ The system is built as a distributed network of containerized microservices:
 * **Tracking & Analytics Services**: Dedicated modules for GPS data ingestion and management reporting.
 * **Message Broker**: **Apache Kafka** is used for asynchronous inter-service communication and event propagation.
 
+<img src="screenshots/architecture-diagram.png" alt="architecture_diagram" style="zoom:50%;" />
+
 ### Technology Stack
 
 * **Backend**: Kotlin, Spring Boot 3.x, Spring Data JPA.
