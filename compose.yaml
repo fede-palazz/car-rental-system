@@ -1,7 +1,7 @@
 services:
   postgres:
     image: 'postgres:17.4'
-    container_name: 'g15-car-rental-db'
+    container_name: 'car-rental-db'
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 'password'
@@ -11,7 +11,7 @@ services:
     command: postgres -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
     volumes:
       - ./init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh
-      - g15_db:/var/lib/postgresql/data
+      - car_rental_db_data:/var/lib/postgresql/data
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -21,12 +21,12 @@ services:
     ports:
       - "5555:80"
     volumes:
-      - g15_pgadmin_data:/var/lib/pgadmin/
+      - car_rental_pgadmin_data:/var/lib/pgadmin/
 
   # Kafka
   kafka:
     image: bitnamilegacy/kafka:3.3.2
-    container_name: paypal-demo-kafka
+    container_name: car-rental-kafka
     ports:
       - "9092:9092"
     environment:
@@ -41,12 +41,12 @@ services:
       KAFKA_CFG_LOG_RETENTION_HOURS: 168
       KAFKA_CFG_LOG_RETENTION_BYTES: 1073741824
     volumes:
-      - kafka_data:/bitnami/kafka
+      - car_rental_kafka_data:/bitnami/kafka
 
   # Kafka Connect
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.9.0
-    container_name: paypal-demo-kafka-connect
+    container_name: car-rental-kafka-connect
     depends_on:
       - kafka
     environment:
@@ -99,7 +99,7 @@ services:
   # Setup Debezium connector
   setup-connector:
     image: curlimages/curl:latest
-    container_name: setup-connector
+    container_name: car-rental-setup-connector
     depends_on:
       - kafka-connect
       - postgres
@@ -151,7 +151,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
-    container_name: g15-keycloak
+    container_name: car-rental-keycloak
     ports:
       - "9090:8080"
     environment:
@@ -176,6 +176,7 @@ services:
 
   postgres-keycloak:
     image: postgres:17.4
+    container_name: car-rental-postgres-keycloak
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
@@ -183,7 +184,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - keycloak_data:/var/lib/postgresql/data
+      - car_rental_keycloak_data:/var/lib/postgresql/data
 
   mailpit:
     image: axllent/mailpit:v1.27
@@ -195,7 +196,7 @@ services:
     environment:
       - TZ=Europe/Rome
     volumes:
-      - mailpit_data:/data
+      - car_rental_mailpit_data:/data
 
   osrm-backend:
     image: osrm/osrm-backend:v5.25.0
@@ -207,17 +208,17 @@ services:
       - ./osrm/data:/data
     command: osrm-routed --algorithm mld /data/turin.osm.pbf
 
-  osrm-frontend:
-    image: osrm/osrm-frontend
-    container_name: osrm-frontend
-    ports:
-      - "9966:9966"
-    restart: unless-stopped
+#  osrm-frontend:
+#    image: osrm/osrm-frontend
+#    container_name: osrm-frontend
+#    ports:
+#      - "9966:9966"
+#    restart: unless-stopped
 
 volumes:
-  g15_db:
-  g15_pgadmin_data:
-  kafka_data:
-  kafka_connect_plugins:
-  keycloak_data:
-  mailpit_data:
+  car_rental_db_data:
+  car_rental_pgadmin_data:
+  car_rental_kafka_data:
+  car_rental_kafka_connect_plugins_data:
+  car_rental_keycloak_data:
+  car_rental_mailpit_data:
