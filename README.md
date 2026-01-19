@@ -1,7 +1,5 @@
 # A Microservices-based Car Rental System
 
-Repository for the main project of the Web Applications II (2025) course at Politecnico di Torino.
-
 [![React](https://img.shields.io/badge/React-19.1.2-61DAFB?style=flat&logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-199900?style=flat&logo=leaflet&logoColor=white)](https://leafletjs.com/)
@@ -18,6 +16,41 @@ Repository for the main project of the Web Applications II (2025) course at Poli
 <img src="screenshots/vehicle.png" alt="screen_vehicle" style="zoom:50%;" />
 <img src="screenshots/tracking.png" alt="screen_tracking" style="zoom:50%;" />
 <img src="screenshots/analytics.png" alt="screen_analytics" style="zoom:50%;" />
+
+## Introduction
+
+This project is a comprehensive car rental management platform built using a **microservices architecture**. The system is designed to support the entire lifecycle of a car rental agency, from managing a diverse vehicle fleet to handling complex customer reservations and secure financial transactions. It provides a tailored experience for four distinct user roles: **Customers**, **Staff**, **Fleet Managers**, and **General Managers**.
+
+### Key Features
+
+* **Car Catalog & Fleet Management**: A detailed inventory tracking car models, specifications, physical vehicle status, and maintenance history.
+* **Three-Phase Reservation Workflow**: Supports a robust process including initial reservation/assignment, manual pickup confirmation by staff, and final return reconciliation.
+* **Advanced Security**: Centralized Identity and Access Management (IAM) integrated via **Keycloak**. The system implements **OAuth 2.0** and **OpenID Connect (OIDC)** with Role-Based Access Control (RBAC) enforced across the frontend and all backend services.
+* **Integrated Payment System**: Secure, simulated payment processing using the **PayPal Sandbox**. It follows a professional 2-step "authorize and capture" model to ensure transaction security.
+* **Reliable Distributed Transactions**: Ensures data consistency between the Reservation and Payment services using the **Outbox Pattern** and **Change Data Capture (CDC)** via Debezium.
+* **Vehicle Tracking & Analytics**: Real-time GPS location monitoring for security and theft prevention, alongside business intelligence tools for monitoring fleet utilization and revenue KPIs.
+
+### Architecture
+
+The system is built as a distributed network of containerized microservices:
+
+* **API Gateway**: Built with Spring Cloud Gateway MVC, acting as the single entry point for the frontend and handling OIDC login/logout flows.
+* **Reservation Service**: The core service for vehicle searching and booking management.
+* **Payment Service**: Manages billing information and coordinates with the third-party banking platform.
+* **User Management Service**: Operates as a CRM for storing customer and staff profiles and verifying rental eligibility.
+* **Tracking & Analytics Services**: Dedicated modules for GPS data ingestion and management reporting.
+* **Message Broker**: **Apache Kafka** is used for asynchronous inter-service communication and event propagation.
+
+### Technology Stack
+
+* **Backend**: Kotlin, Spring Boot 3.x, Spring Data JPA.
+* **Frontend**: React (SPA), TypeScript, Vite.
+* **Security**: Keycloak (IAM), Spring Security, JWT.
+* **Data Persistence**: PostgreSQL, Flyway (Database Migrations).
+* **Infrastructure**: Docker, Docker Compose, Debezium (CDC).
+* **Testing**: JUnit 5, Testcontainers, MockMvc.
+* **Documentation**: OpenAPI / Swagger UI.
+
 
 ## Getting started
 
